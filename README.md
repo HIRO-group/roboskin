@@ -14,7 +14,7 @@ python examples/01_add_numbers.py
 
 
 # Documentations
-You can find the documentation 
+You can find the documentation [here](http://hiro-group.ronc.one/robotic_skin/)
 
 # For Developers
 ## Test
