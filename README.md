@@ -27,8 +27,7 @@ New features and bug fixes are welcome. Send PRs.
 This project is using GitHub flow ([See here for details](https://guides.github.com/introduction/flow/)) for development so do not try to push directly to master branch (It will be rejected anyway)
 
 ## Target python versions
-Target python versions are 2.7, 3.4, 3.5 and 3.6 (as of August 2018).
-Use six, [future](https://pypi.org/project/future/) or any other libraries to keep compatibility among above python versions.
+Target python version is 3.7.4
 
 ## Repository structure
 ### Module Structure
