@@ -1,4 +1,4 @@
-# [PACKAGE NAME]
+# robotic_skin
 
 # Installation
 ```
