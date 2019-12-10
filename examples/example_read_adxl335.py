@@ -1,7 +1,7 @@
 import time
 import numpy as np
 
-from adxl335 import ADXL335
+from robotic_skin.sensor.adxl335 import ADXL335
 
 # initialize accelerometer
 accel_sensor = ADXL335(xpin=0, ypin=1, zpin=2)

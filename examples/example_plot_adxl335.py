@@ -3,7 +3,7 @@ import matplotlib.animation as animation
 import time
 import numpy as np
 
-from adxl335 import ADXL335
+from robotic_skin.sensor.adxl335 import ADXL335
 
 accelerometer = ADXL335(xpin=0, ypin=1, zpin=2)
 
