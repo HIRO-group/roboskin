@@ -18,7 +18,8 @@ setup(
 	long_description=readme,
 	author='Kandai Watanabe',
 	author_email='kandai.watanabe@colorado.edu',
-	url='https://github.com/watakandhi/package_template',
+	url='https://github.com/HIRO-group/robotic_skin',
+        install_requires=read_requirements(),
 	packages=find_packages(exclude=('tests', 'docs')),
 	test_suite='tests'
 )

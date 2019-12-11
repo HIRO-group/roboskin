@@ -2,7 +2,7 @@
 
 # Installation
 ```
-python setup.py install
+pip3 install .
 ```
 
 # Run Examples
@@ -10,6 +10,11 @@ Examples are in `./examples/`
 For example, Run
 ```
 python examples/01_add_numbers.py
+```
+
+or if you have connected accelerometer (ADXL335)
+```
+python examples/example_read_adxl335.py
 ```
 
 
