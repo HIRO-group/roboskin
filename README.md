@@ -18,7 +18,7 @@ python examples/example_read_adxl335.py
 ```
 
 
-# Documentations
+# Documentation
 You can find the documentation [here](http://hiro-group.ronc.one/robotic_skin/)
 
 # For Developers
