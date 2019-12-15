@@ -31,8 +31,8 @@ python setup.py test
 New features and bug fixes are welcome. Send PRs.
 This project is using GitHub flow ([See here for details](https://guides.github.com/introduction/flow/)) for development so do not try to push directly to master branch (It will be rejected anyway)
 
-## Target python versions
-Target python version is 3.7.4
+## Target Python versions
+Target Python version is 3.7.4
 
 ## Repository structure
 ### Module Structure
