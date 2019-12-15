@@ -42,7 +42,7 @@ Write your tests for the features under ./tests/
 
 
 ## Write TESTS 
-When adding new feature such as function/class, always and must write test(s) unless it will be rejected.
+When adding new feature such as function/class, you always and must write test(s) unless it will be rejected.
 
 ### Where should I write my feature's tests?
 When writing tests, for example for feature_module.py, please create test module file of name test_feature_module_name.py and place exactly at the same layer of your feature module.
