@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/HIRO-group/robotic_skin.svg?token=UPeNZfpEiF2sCZduAo4d&branch=master)](https://travis-ci.com/HIRO-group/robotic_skin)
+
 # robotic_skin
 
 # Installation
