@@ -47,6 +47,7 @@ def animate(i, X, Y, force_sensor, start):
 
     return line, 
 
+# if __name__ == "__main__":
 print('start animation')
 anim = animation.FuncAnimation(fig, animate, fargs=(X, Y, force_sensor, start), interval=int(1000/FREQ))
 plt.show()
