@@ -3,6 +3,7 @@ import numpy as np
 
 from robotic_skin.sensor.adxl335 import ADXL335
 
+# if __name__ == "__main__":
 # initialize accelerometer
 accel_sensor = ADXL335(xpin=0, ypin=1, zpin=2)
 
