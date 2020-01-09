@@ -44,7 +44,7 @@ def animate(i, X, Y1, Y2, vcnl4040, start):
         Y2 = Y2[-20:]
 
     # assume x is larger than 0
-    xlim = [0.9*np.min(X), 1.1*np.max(X)]
+    xlim = [np.min(X)-1, np.max(X)+1]
        
     ylim = [0, 500]
 
