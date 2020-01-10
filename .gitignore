@@ -1,3 +1,5 @@
 .python-version	
 robotic_skin.egg-info/*
 *.pyc
+.idea/
+.git/
