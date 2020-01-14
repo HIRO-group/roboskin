@@ -2,9 +2,5 @@ Cython
 future
 matplotlib
 numpy
-pandas
-Pillow
-scikit-learn
-seaborn
 sphinx_rtd_theme
 mcp3208
