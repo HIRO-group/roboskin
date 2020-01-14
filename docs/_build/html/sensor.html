@@ -35,7 +35,6 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Big Heading Test" href="test_doc.html" />
     <link rel="prev" title="API Reference" href="reference.html" /> 
 </head>
 
@@ -90,7 +89,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="test_doc.html">Big Heading Test</a></li>
 </ul>
 
             
@@ -161,9 +159,38 @@
 <h1>Utilities related to sensor<a class="headerlink" href="#utilities-related-to-sensor" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="sensor">
 <h2>Sensor<a class="headerlink" href="#sensor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="robotic_skin.sensor.adxl335.Sensor">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.adxl335.</code><code class="sig-name descname">Sensor</code><a class="reference internal" href="_modules/robotic_skin/sensor/adxl335.html#Sensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.adxl335.Sensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sensor Class</p>
+<dl class="method">
+<dt id="robotic_skin.sensor.adxl335.Sensor.calibrate">
+<code class="sig-name descname">calibrate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/adxl335.html#Sensor.calibrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.adxl335.Sensor.calibrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calibrate the sensor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="robotic_skin.sensor.adxl335.Sensor.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/adxl335.html#Sensor.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.adxl335.Sensor.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch sensor data</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="adxl335">
 <h2>ADXL335<a class="headerlink" href="#adxl335" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="robotic_skin.sensor.adxl335.ADXL335">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.adxl335.</code><code class="sig-name descname">ADXL335</code><span class="sig-paren">(</span><em class="sig-param">xpin</em>, <em class="sig-param">ypin</em>, <em class="sig-param">zpin</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/adxl335.html#ADXL335"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.adxl335.ADXL335" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="robotic_skin.sensor.adxl335.ADXL335.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/adxl335.html#ADXL335.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.adxl335.ADXL335.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns numpy list of fetched sensor data</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
@@ -174,8 +201,6 @@
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="test_doc.html" class="btn btn-neutral float-right" title="Big Heading Test" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="reference.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
