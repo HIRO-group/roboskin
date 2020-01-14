@@ -11,6 +11,7 @@ Welcome to robotic_skin's documentation!
    :caption: Contents:
 
    reference
+   test_doc.md
 
 Indices and tables
 ==================
