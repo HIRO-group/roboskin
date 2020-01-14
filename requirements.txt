@@ -2,9 +2,8 @@ Cython
 future
 matplotlib
 numpy
-pandas
-Pillow
-scikit-learn
-seaborn
 sphinx_rtd_theme
 mcp3208
+RPI.GPIO
+adafruit-blinka
+adafruit-circuitpython-vcnl4040
