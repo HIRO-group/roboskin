@@ -32,7 +32,7 @@ python examples/02_read_adxl335.py
 
 
 # Documentation
-You can find the documentation [here](http://hiro-group.ronc.one/robotic_skin/)
+You can find the documentation [here](http://hiro-group.ronc.one/robotic_skin/).
 
 
 # For Developers
