@@ -8,12 +8,15 @@
 Target Python version is 3.7.4, and a Python version >= 3.6 is required.
 
 
-# Installation
+# HTTPS Installation
 ```
-pip install git+https://github.com/HIRO-group/robotic_skin.git
+pip install --upgrade git+https://github.com/HIRO-group/robotic_skin.git
 ```
-TODO: Make a SSH url, by discussing an SSH key with team
 
+# SSH Installation
+```
+pip install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git
+```
 
 # Run Examples
 Examples are in `./examples/`
