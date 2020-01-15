@@ -2,6 +2,8 @@ Cython
 future
 matplotlib
 numpy
+sphinx 
+sphinx-autobuild
 sphinx_rtd_theme
 mcp3208
 RPI.GPIO
