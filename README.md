@@ -1,5 +1,7 @@
 ![](https://github.com/HIRO-group/robotic_skin/workflows/Python%20application/badge.svg)
 
+![](https://github.com/HIRO-group/robotic_skin/workflows/Docker%20Image%20CI/badge.svg)
+
 # HIRO Robotic Skin
 ## Current Release
 - `0.0.1` as of 2020/01/14
@@ -55,6 +57,12 @@ Then run the test
 
 ```
 python setup.py test
+```
+
+You can also use `pycodestyle`:
+
+```
+pycodestyle <script-name>.py
 ```
 
 ### Where should I write my features tests?
