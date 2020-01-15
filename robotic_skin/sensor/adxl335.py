@@ -13,15 +13,15 @@ class ADXL335(Sensor):
         self.pins = [xpin, ypin, zpin]
         # self.data is holder for all our accelerations in x,y,z directions
         self.data = np.zeros(len(self.pins))
-        self.calibrate = False
+        self.calibration = False
         print('Make sure to supply 5V to the circuit & 3.3V to AD Converter Vref')
 
     def calibrate(self) -> None:
         # How dumb can it be to write some shit like this that calibrate = True in calibrate function?
         # Well we gotta calibrate it before. It isn't automated, which I hate, but I gotta do what I gotta do
         # This is basically implemented to satisfy the Sensor class, as I have to override the class for sure
-        # TODO: Discuss with @kandai about calibrate. Wanna keep it a property or what?
-        self.calibrate = True
+
+        self.calibration = True
 
     def _read_raw(self):
         """
@@ -45,8 +45,7 @@ class ADXL335(Sensor):
 
 if __name__ == '__main__':
     accel_sensor = ADXL335(xpin=0, ypin=1, zpin=2)
-    # TODO: Do we need this? Can't this be automatically done when sensor is initialized?
-    accel_sensor.calibrate
+    accel_sensor.calibrate()
     while True:
         data = accel_sensor.read()
         print("Z Acceleration: ", data[2])
