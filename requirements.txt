@@ -2,6 +2,10 @@ Cython
 future
 matplotlib
 numpy
+Pillow
+scikit-learn
+seaborn
+pandas
 sphinx 
 sphinx-autobuild
 sphinx_rtd_theme
