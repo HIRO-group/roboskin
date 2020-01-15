@@ -36,7 +36,7 @@ def animate(i, X, Y, force_sensor, start):
         Y = Y[-20:]
 
     # assume x is larger than 0
-    xlim = [0.9*np.min(X), 1.1*np.max(X)]
+    xlim = [np.min(X)-1, np.max(X)+1]
        
     ylim = [0, 4000]
 

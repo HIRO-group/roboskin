@@ -53,19 +53,10 @@ def animate(i, T, X, Y, Z, accelerometer, start, YMIN, YMAX):
         Z = Z[-20:]
 
     # assume x is larger than 0
-    xlim = [0.9*np.min(T), 1.1*np.max(T)]
+    xlim = [np.min(T)-1, np.max(T)+1]
        
     # compute ylim
-    ymin = np.min([X, Y, Z])
-    ymax = np.max([X, Y, Z])
-    ymin -= 0.1*ymin
-    ymax += 0.1*ymax
-
-    if YMAX < ymax:
-        YMAX = ymax
-    if YMIN > ymin:
-        YMIN = ymin
-    ylim = [ymin, ymax]
+    ylim = [-2, 2]
 
     line[0].set_data(T, X)
     line[1].set_data(T, Y)

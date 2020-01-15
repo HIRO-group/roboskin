@@ -44,7 +44,7 @@ This project is using GitHub flow ([See here for details](https://guides.github.
 4. Write Unit Test under `./tests/`
 5. Run Test Locally `python setup.py test`
 6. Run Test Remotely (Travis automatically deals this)
-7. Write Documentations under `./docsrc/`. See [docsrc/README.md](docsrc/README.md). 
+7. Write Documentations under `./docs/`. See [docs/README.md](docs/README.md). 
 
 ## Test [MUST]
 When adding new feature such as `function`/`class`, you always and must write test(s) unless it will be rejected. <br>
