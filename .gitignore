@@ -3,4 +3,4 @@ robotic_skin.egg-info/*
 *.pyc
 .idea/
 .git/
-docsrc/_build
+docs/_build
