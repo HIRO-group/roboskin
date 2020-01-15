@@ -159,15 +159,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pins</span> <span class="o">=</span> <span class="p">[</span><span class="n">xpin</span><span class="p">,</span> <span class="n">ypin</span><span class="p">,</span> <span class="n">zpin</span><span class="p">]</span>
         <span class="c1"># self.data is holder for all our accelerations in x,y,z directions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pins</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">calibrate</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calibrated</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Make sure to supply 5V to the circuit &amp; 3.3V to AD Converter Vref&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ADXL335.calibrate"><a class="viewcode-back" href="../../../robotic_skin.sensor.html#robotic_skin.sensor.adxl335.ADXL335.calibrate">[docs]</a>    <span class="k">def</span> <span class="nf">calibrate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># How dumb can it be to write some shit like this that calibrate = True in calibrate function?</span>
         <span class="c1"># Well we gotta calibrate it before. It isn&#39;t automated, which I hate, but I gotta do what I gotta do</span>
-        <span class="c1"># Else Satan help me I will forget if I don&#39;t write this</span>
         <span class="c1"># This is basically implemented to satisfy the Sensor class, as I have to override the class for sure</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">calibrate</span> <span class="o">=</span> <span class="kc">True</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calibrated</span> <span class="o">=</span> <span class="kc">True</span></div>
 
     <span class="k">def</span> <span class="nf">_read_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -191,7 +190,7 @@
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">accel_sensor</span> <span class="o">=</span> <span class="n">ADXL335</span><span class="p">(</span><span class="n">xpin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ypin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">zpin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-    <span class="n">accel_sensor</span><span class="o">.</span><span class="n">calibrate</span>
+    <span class="n">accel_sensor</span><span class="o">.</span><span class="n">calibrate</span><span class="p">()</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">accel_sensor</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Z Acceleration: &quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
