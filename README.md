@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/HIRO-group/robotic_skin.svg?token=UPeNZfpEiF2sCZduAo4d&branch=master)](https://travis-ci.com/HIRO-group/robotic_skin)
+![](https://github.com/HIRO-group/robotic_skin/workflows/Python%20application/badge.svg)
 
 # HIRO Robotic Skin
 ## Current Release
