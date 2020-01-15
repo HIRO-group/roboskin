@@ -13,3 +13,4 @@ mcp3208
 RPI.GPIO
 adafruit-blinka
 adafruit-circuitpython-vcnl4040
+pycodestyle
