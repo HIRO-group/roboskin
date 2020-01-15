@@ -24,7 +24,7 @@ python examples/01_add_numbers.py
 
 or if you have a connected accelerometer (ADXL335):
 ```
-python examples/example_read_adxl335.py
+python examples/02_read_adxl335.py
 ```
 
 
