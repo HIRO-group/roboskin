@@ -59,6 +59,12 @@ Then run the test
 python setup.py test
 ```
 
+You can also use `pycodestyle`:
+
+```
+pycodestyle <script-name>.py
+```
+
 ### Where should I write my features tests?
 When writing tests, for example for feature_module.py, please create test module file of name test_feature_module_name.py and place exactly at the same layer of your feature module.
 See below. <br>
