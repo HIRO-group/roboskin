@@ -45,6 +45,7 @@ class ADXL335(Sensor):
 
 if __name__ == '__main__':
     accel_sensor = ADXL335(xpin=0, ypin=1, zpin=2)
+    # TODO: Do we need this? Can't this be automatically done when sensor is initialized?
     accel_sensor.calibrate
     while True:
         data = accel_sensor.read()
