@@ -19,8 +19,8 @@ class ADXL335(Sensor):
     def calibrate(self) -> None:
         # How dumb can it be to write some shit like this that calibrate = True in calibrate function?
         # Well we gotta calibrate it before. It isn't automated, which I hate, but I gotta do what I gotta do
-        # Else Satan help me I will forget if I don't write this
         # This is basically implemented to satisfy the Sensor class, as I have to override the class for sure
+        # TODO: Discuss with @kandai about calibrate. Wanna keep it a property or what?
         self.calibrate = True
 
     def _read_raw(self):
