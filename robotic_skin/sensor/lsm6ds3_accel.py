@@ -11,13 +11,13 @@ Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076
 
 
 class LSM6DS3_acclerometer(Sensor):
-    def __init__(self, bus: int = 1, addr: int =0x6b):
+    def __init__(self, bus_num: int = 1, addr: int =0x6b):
         """
         Initializes the LSM6DS3 accelerometer. Checks for the I2C connection and checks whether it's the correct
         accelerometer or not.
-        :param bus: This is the bus number. Basically The I2C port number. For our circuit, I connected it I2C port 1,
+        :param bus_num: This is the bus number. Basically The I2C port number. For our circuit, I connected it I2C port 1,
         So by default it's value I kept as 1. Feel free to pass your own value if you need it.
-        :type bus: int
+        :type bus_num: int
         :param addr: The I2C address of the accelerometer. According to the datasheet of LSM6DS3, there can be only two
         addresses 0x6b or 0x6a. By default I am using Sparkfun breakout board and the address to that is 0x6b which I
         have kept as default
@@ -54,7 +54,7 @@ class LSM6DS3_acclerometer(Sensor):
         self.initial_registers = ['CTRL1_XL', 'CTRL2_G', 'CTRL3_C', 'CTRL4_C', 'CTRL5_C',
                                   'CTRL6_C', 'CTRL7_G', 'CTRL8_XL', 'CTRL9_XL', 'CTRL10_C']
         # Setting the SMBus
-        self.bus_num = bus
+        self.bus_num = bus_num
         self.bus = smbus2.SMBus(self.bus_num)
         # If int is not passed, then convert it to int
         if isinstance(addr, str):
@@ -105,7 +105,8 @@ class LSM6DS3_acclerometer(Sensor):
 
     def twos_comp(self, val, bits):
         """
-        compute the 2's complement of int value val
+        compute the 2's complement of int value val. Reference:
+         https://en.wikipedia.org/wiki/Two%27s_complement
         :param val: The original value, which we have to convert to 2's complement
         :type val: int
         :param bits: # of bits, this is particularly important because if you don't know bit size, you dont what's the
