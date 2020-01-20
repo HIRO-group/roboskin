@@ -1,0 +1,2 @@
+load-plugins=pylint.extensions.docparams
+convention=numpy

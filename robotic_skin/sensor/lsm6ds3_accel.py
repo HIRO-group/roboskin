@@ -1,28 +1,32 @@
-import smbus2
-from robotic_skin.sensor import Sensor
-import math
-
-'''
+"""
 This code is heavily inspired by this wonderful GitHub repo:
 https://github.com/CRImier/python-lsm6ds3
 Thanks Homie!
 Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf
-'''
-
+"""
+import smbus2
+from robotic_skin.sensor import Sensor
+import math
 
 class LSM6DS3_acclerometer(Sensor):
+    """
+    This is the Python Class for LSM6DS3. This includes all subroutines including calibration to handle everything
+    related to the device.
+    """
     def __init__(self, bus_num: int = 1, addr: int =0x6b):
         """
         Initializes the LSM6DS3 accelerometer. Checks for the I2C connection and checks whether it's the correct
         accelerometer or not.
-        :param bus_num: This is the bus number. Basically The I2C port number. For our circuit, I connected it I2C port 1,
-        So by default it's value I kept as 1. Feel free to pass your own value if you need it.
-        :type bus_num: int
-        :param addr: The I2C address of the accelerometer. According to the datasheet of LSM6DS3, there can be only two
-        addresses 0x6b or 0x6a. By default I am using Sparkfun breakout board and the address to that is 0x6b which I
-        have kept as default
-        :type addr: int (It would be easy for you to pass hexadecimal int of the form 0xNN, directly according to the
-        datasheet)
+        Parameters
+        ----------
+        bus_num : int
+            This is the bus number. Basically The I2C port number. For our circuit, I connected it I2C port 1,
+            So by default it's value I kept as 1. Feel free to pass your own value if you need it.
+        addr : int
+            (It would be easy for you to pass hexadecimal int of the form 0xNN, directly according to the datasheet)
+            The I2C address of the accelerometer. According to the datasheet of LSM6DS3, there can be only two
+            addresses 0x6b or 0x6a. By default I am using Sparkfun breakout board and the address to that is 0x6b
+            which I have kept as default
         """
         super().__init__()
         # Below are Accelerometer Output registers
@@ -65,58 +69,101 @@ class LSM6DS3_acclerometer(Sensor):
         self.setup()
 
     def calibrate(self):
+        """
+        #TODO: Need to implement this function
+
+        Returns
+        -------
+        None
+
+        """
         pass
 
     def write_reg(self, reg, val):
         """
         Write value to the register specified
-        :param reg: Value of the register to which you want the write some value
-        :type reg: int
-        :param val: Value you want to write to the register
-        :type val: int
-        :return: None
-        :rtype: None
+        Parameters
+        ----------
+        reg : int
+            Value of the register to which you want the write some value
+        val : int
+            Value you want to write to the register
+
+        Returns
+        -------
+        None
+
         """
         return self.bus.write_byte_data(self.addr, reg, val)
 
     def read_reg(self, reg):
         """
         Read the Register Value in form of int
-        :param reg: Register from which you want to read the value from
-        :type reg: int
-        :return: int value read from register
-        :rtype: int
+        Parameters
+        ----------
+        reg : int
+            Register from which you want to read the value from
+
+        Returns
+        -------
+        int
+            int value read from register
         """
+
         return self.bus.read_byte_data(self.addr, reg)
 
     def make_16bit_value(self, vh, vl):
+        """
+        The acceleration is usually from 2 Byte sized registers. We obtain acceleration value in 2's complement form
+        So first we obtain both MSByte as well as LSByte, combine them both, and convert them into 2's complement form
+        Parameters
+        ----------
+        vh : int
+            The MSByte
+        vl : int
+            The LSByte
+
+        Returns
+        -------
+        float
+            Acceleration Value in G
+        """
 
         v = (vh << 8) | vl
         # return v
         return (self.twos_comp(v, 16))/math.pow(2, 14)
 
-    def twos_comp(self, val, bits):
+    def twos_comp(self, val, num_of_bits):
         """
         compute the 2's complement of int value val. Reference:
-         https://en.wikipedia.org/wiki/Two%27s_complement
-        :param val: The original value, which we have to convert to 2's complement
-        :type val: int
-        :param bits: # of bits, this is particularly important because if you don't know bit size, you dont what's the
-        MS Bit, and entire thing can go wrong. Fortunately our both Accelerometer registers combined are of 16 bit
-        length. So that's what we will pass
-        :type bits: int
-        :return: Two's complement value of passed value
-        :rtype: int
+        https://en.wikipedia.org/wiki/Two%27s_complement
+        Parameters
+        ----------
+        val : int
+            The original value, which we have to convert to 2's complement
+        num_of_bits : int
+            # of bits, this is particularly important because if you don't know bit size, you dont what's the
+            MS Bit, and entire thing can go wrong. Fortunately our both Accelerometer registers combined are of 16 bit
+            length. So that's what we will pass
+
+        Returns
+        -------
+        int
+            Two's complement value of passed value
+
         """
-        if (val & (1 << (bits - 1))) != 0:  # if sign bit is set e.g., 8bit: 128-255
-            val = val - (1 << bits)  # compute negative value
+        if (val & (1 << (num_of_bits - 1))) != 0:  # if sign bit is set e.g., 8bit: 128-255
+            val = val - (1 << num_of_bits)  # compute negative value
         return val
 
     def detect(self):
         """
         This function will detect if the accelerometer is LSM6DS3 or not
-        :return: True if the detected accelerometer is LSM6DS3, else False
-        :rtype: Bool
+
+        Returns
+        -------
+        Bool
+            True if the detected accelerometer is LSM6DS3, otherwise false
         """
         assert (self.read_reg(self.WHO_AM_I) == self.LSM6DS3_RegisterIdentification_NUM), "Identification register value \
                                                        is wrong! Pass 'detect=False' \
@@ -127,9 +174,13 @@ class LSM6DS3_acclerometer(Sensor):
         Setup the LSM6DS3 accelerometer with the preferences hexadecimal values from self.initial_reg_values. It also
         checks if the accelerometer is LSM6DS3 or not. Execution of this function without any problems is a litmus
         test that attached device is LSM6DS3.
-        :return: Return True if all assert statements are executed and all code is executed without exceptions,
-        else False
-        :rtype: Bool
+
+        Returns
+        -------
+        Bool
+            Return True if all assert statements are executed and all code is executed without exceptions,
+            else False
+
         """
         self.detect()
         # Safety check
@@ -158,10 +209,16 @@ class LSM6DS3_acclerometer(Sensor):
         """
         Output the calibrated value from the function you manually made.
         #TODO: Make this function an argument and pass it for future use
-        :param input_value: Original value which you want to convert it to calibrated value
-        :type input_value: float
-        :return: Returns the calibrated value
-        :rtype: float
+        Parameters
+        ----------
+        input_value : float
+            Original value which you want to convert it to calibrated value
+
+        Returns
+        -------
+        float
+            Returns the calibrated value
+
         """
         return input_value
 
@@ -169,13 +226,17 @@ class LSM6DS3_acclerometer(Sensor):
         """
         Reads the sensor values and continuously streams them back to the function whoever called it. This is the
         function you need to put while(True) loop for continuous acquisition of accelerometer values.
-        :return: List of floats with Acceleration values in G
-        :rtype: list
+        Returns
+        -------
+        list
+            List of floats with Acceleration values in G in the form of [x, y, z] respective directions
+
         """
         return [self._calibrate_value(each_value) for each_value in self._read_raw()]
 
 
 if __name__ == "__main__":
+    # Test Case
     from time import sleep
     lsm = LSM6DS3_acclerometer()
     while True:
