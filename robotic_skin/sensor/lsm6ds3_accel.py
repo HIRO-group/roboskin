@@ -9,8 +9,6 @@ Thanks Homie!
 Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf
 '''
 
-#TODO: Add Documentation
-
 
 class LSM6DS3_acclerometer(Sensor):
     def __init__(self, bus: int = 1, addr: int =0x6b):
