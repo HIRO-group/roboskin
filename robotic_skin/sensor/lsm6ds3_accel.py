@@ -8,12 +8,14 @@ import smbus2
 from robotic_skin.sensor import Sensor
 import math
 
+
 class LSM6DS3_acclerometer(Sensor):
     """
     This is the Python Class for LSM6DS3. This includes all subroutines including calibration to handle everything
     related to the device.
     """
-    def __init__(self, bus_num: int = 1, addr: int =0x6b):
+
+    def __init__(self, bus_num: int = 1, addr: int = 0x6b):
         """
         Initializes the LSM6DS3 accelerometer. Checks for the I2C connection and checks whether it's the correct
         accelerometer or not.
@@ -131,7 +133,7 @@ class LSM6DS3_acclerometer(Sensor):
 
         v = (vh << 8) | vl
         # return v
-        return (self.twos_comp(v, 16))/math.pow(2, 14)
+        return (self.twos_comp(v, 16)) / math.pow(2, 14)
 
     def twos_comp(self, val, num_of_bits):
         """
@@ -238,6 +240,7 @@ class LSM6DS3_acclerometer(Sensor):
 if __name__ == "__main__":
     # Test Case
     from time import sleep
+
     lsm = LSM6DS3_acclerometer()
     while True:
         raw_accel_list = lsm.read()
