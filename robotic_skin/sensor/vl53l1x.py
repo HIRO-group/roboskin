@@ -86,5 +86,5 @@ if __name__ == "__main__":
     from time import sleep
     ps = VL53L1X_ProximitySensor()
     while True:
-        print("Proximity Sensor Readin: ", ps.read())
+        print("Proximity Sensor Reading: ", ps.read())
         sleep(0.02)
