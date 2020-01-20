@@ -47,6 +47,7 @@ class LSM6DS3_acclerometer(Sensor):
         self.CTRL8_XL = 0x17
         self.CTRL9_XL = 0x18
         self.CTRL10_C = 0x19
+        self.LSM6DS3_RegisterIdentification_NUM = 0x69
         # Below are initial register values along with their respective names in initial_registers list
         # these will be used to set values to registers
         self.initial_reg_values = [0x70, 0x4c, 0x44, 0x0, 0x0,
@@ -126,7 +127,7 @@ class LSM6DS3_acclerometer(Sensor):
         :return: True if the detected accelerometer is LSM6DS3, else False
         :rtype: Bool
         """
-        assert (self.read_reg(self.WHO_AM_I) == 0x69), "Identification register value \
+        assert (self.read_reg(self.WHO_AM_I) == self.LSM6DS3_RegisterIdentification_NUM), "Identification register value \
                                                        is wrong! Pass 'detect=False' \
                                                        to setup() to disable the check."
 
