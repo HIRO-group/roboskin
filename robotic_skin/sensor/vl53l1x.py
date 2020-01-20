@@ -31,7 +31,10 @@ class VL53L1X_ProximitySensor(Sensor):
         super().__init__()
         self.tof = VL53L1X.VL53L1X(i2c_bus, i2c_address)
         self.tof.open()
-        self.tof.start_ranging(range_value)
+        if range_value == 1 or range_value == 2 or range_value == 3:
+            self.tof.start_ranging(range_value)
+        else:
+            raise("The range value passed is not 1 or 2 or 3")
 
     def calibrate(self):
         """
