@@ -90,16 +90,7 @@ class LSM6DS3_acclerometer(Sensor):
         return self.bus.read_byte_data(self.addr, reg)
 
     def make_16bit_value(self, vh, vl):
-        """
-        The acceleration is usually from 2 Byte sized registers. We obtain acceleration value in 2's complement form
-        So first we obatin both MSByte as well as LSByte, combine them both, and convert them into 2's complement form
-        :param vh: The MSByte
-        :type vh: int
-        :param vl: The LSByte
-        :type vl: int
-        :return: Accleration value in G
-        :rtype:float
-        """
+
         v = (vh << 8) | vl
         # return v
         return (self.twos_comp(v, 16))/math.pow(2, 14)
