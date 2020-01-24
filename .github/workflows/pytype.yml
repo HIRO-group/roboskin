@@ -1,4 +1,4 @@
-name: Pylint
+name: PyType
 on: [push]
 jobs:
   Pylint:
