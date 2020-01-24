@@ -1,4 +1,5 @@
 ![](https://github.com/HIRO-group/robotic_skin/workflows/Python%20application/badge.svg)
+![](https://github.com/HIRO-group/robotic_skin/workflows/Pylint/badge.svg)
 
 # HIRO Robotic Skin
 ## Current Release
