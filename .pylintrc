@@ -1,2 +1,6 @@
-load-plugins=pylint.extensions.docparams
-convention=numpy
+[MESSAGES CONTROL]
+disable=line-too-long,
+        C0303,
+        R0201,
+        R1705,
+        C0200
