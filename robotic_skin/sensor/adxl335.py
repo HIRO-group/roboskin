@@ -4,10 +4,23 @@ import numpy as np
 from robotic_skin.sensor import Sensor
 from mcp3208 import MCP3208
 
+import robotic_skin.const as C
 
 class ADXL335(Sensor):
     def __init__(self, xpin, ypin, zpin):
         super(ADXL335, self).__init__()
+        """
+        Initialize ADXL335 which is connected to MCP3208 AD Converter.
+
+        Paramters
+        ------------
+        xpin: int
+            Pin number for accelerometer x axis
+        ypin: int
+            Pin number for accelerometer y axis
+        zpin: int
+            Pin number for accelerometer z axis
+        """
         # We are using MPC3208 library from Pypi, thank God someone wrote it
         self.adc = MCP3208()
         self.pins = [xpin, ypin, zpin]
@@ -17,9 +30,11 @@ class ADXL335(Sensor):
         print('Make sure to supply 5V to the circuit & 3.3V to AD Converter Vref')
 
     def calibrate(self) -> None:
-        # How dumb can it be to write some shit like this that calibrate = True in calibrate function?
-        # Well we gotta calibrate it before. It isn't automated, which I hate, but I gotta do what I gotta do
-        # This is basically implemented to satisfy the Sensor class, as I have to override the class for sure
+        """
+        How dumb can it be to write some shit like this that calibrate = True in calibrate function?
+        Well we gotta calibrate it before. It isn't automated, which I hate, but I gotta do what I gotta do
+        This is basically implemented to satisfy the Sensor class, as I have to override the class for sure
+        """
         self.calibrated = True
 
     def _read_raw(self):
@@ -31,19 +46,24 @@ class ADXL335(Sensor):
         return [self.adc.read(pin) for pin in self.pins]
 
     def read(self):
-        # Read raw ADC values from the sensor
+        """
+        Read raw ADC values from the sensor
+        How this equation came up, look for my blog:
+        https://krishnachaitanya9.github.io/posts/RPi_Calibrating_ADXL335_Accelerometer/
+        There is a more detailed explanation
+        which can't be fir into comments. So please go look, and lemme know if there is any problem with the logic
+        """
         data = np.array(self._read_raw())
-        # How this equation came up, look for my blog:
-        # https://krishnachaitanya9.github.io/posts/RPi_Calibrating_ADXL335_Accelerometer/
-        # There is a more detailed explanation
-        # which can't be fir into comments. So please go look, and lemme know if there is any problem with the logic
         self.data = ((((3.3 / 4096) * data) - 2) * 3.1) + 1
         # Returning back the data
         return self.data
 
 
 if __name__ == '__main__':
-    accel_sensor = ADXL335(xpin=0, ypin=1, zpin=2)
+    accel_sensor = ADXL335(
+        xpin=C.ADXL335_XPIN, 
+        ypin=C.ADXL335_YTPIN, 
+        zpin=C.ADXL335_ZPIN)
     accel_sensor.calibrate()
     while True:
         data = accel_sensor.read()
