@@ -1,8 +1,7 @@
 import unittest
 import numpy as np
-from robotic_skin.calibration.estimate_kinematic import (
+from robotic_skin.calibration.accel_position import ParameterManager, KinematicEstimator
 
-)
 class MyTest(unittest.TestCase):
     def test_(self):
         pass
