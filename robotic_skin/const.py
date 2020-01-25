@@ -1,4 +1,5 @@
 import sys
+import nlopt
 
 class MyConstBaseClass(object):
     def __setattr__(self, name, value):
@@ -22,5 +23,10 @@ class _const(MyConstBaseClass):
         self.ESTIMATE_SAMPLE_LENGTH = 1000  # 
         self.GLOBAL_STOP = 0.1              # 
         self.LOCAL_STOP = 1e-6              #
+        self.PATTERN_FREQ = 2               # Hz
+        self.PATTERN_A = 0.4                # rad/s
+        self.T = 0.5                        # s
+        self.GLOBAL_OPTIMIZER = nlopt.G_MLSL_LDS
+        self.LOCAL_OPTIMIZER = nlopt.LN_NELDERMEAD
 
 sys.modules[__name__] = _const()

@@ -1,6 +1,7 @@
-.python-version	
-robotic_skin.egg-info/*
-*.pyc
+**/*.python-version	
+**/*.egg-info
+**/*.pyc
+**/__pycache__
 .idea/
 .git/
 docs/_build

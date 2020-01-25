@@ -11,3 +11,5 @@ adafruit-blinka
 adafruit-circuitpython-vcnl4040
 pycodestyle
 nlopt
+smbus2
+VL53L1X
