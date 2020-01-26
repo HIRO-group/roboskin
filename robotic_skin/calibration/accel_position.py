@@ -4,9 +4,14 @@ import numpy as np
 from collections import namedtuple
 
 import robotic_skin.const as C
+from robotic_skin.calibration.utils import TransMat
 # need to import set_franka_pose, oscillate_franka
 
 class KinematicEstimator():
+    """
+    Class for estimating the kinematics of the arm
+    and sensor unit positions.
+    """
     def __init__(self, data, poses):
         """
         Parameters 
@@ -15,11 +20,13 @@ class KinematicEstimator():
             Traning data consists of accelerations when in static and dynamic. 
             Static accelerations indicate the gravity vector in SU frame.
             Dynamic accelerations indicate the maximum acceleration in SU frame.
-            Gravity Vectors are measured at each pose for all accelerometers [pose, accelerometer].
+            Gravity Vectors are measured at each pose for all accelerometers [pose, accelerometer, xyz].
             Maximum accelerations are measured at each pose excited by each joint 
             for all accelerometers [pose, accelerometer, joint]. 
         """
         # Assume n_sensor is equal to n_joint for now
+        self.data = data
+        self.poses = poses
         self.n_pose = poses.shape[0]
         self.n_joint = self.n_pose
         self.n_sensor = self.n_pose
@@ -28,7 +35,7 @@ class KinematicEstimator():
         self.bounds = np.array([
             #    th,   d,    a,     al
             [-np.pi, 0.0, -0.1, -np.pi],
-            [ np.pi, 0.5,  0.1,  np.pi]])
+            [ np.pi, 0.5, 0.1, np.pi]])
         self.param_manager = ParameterManager(self.n_joint, poses, self.bounds)
 
     def optimize(self):
@@ -45,7 +52,7 @@ class KinematicEstimator():
             params = self.param_manager.get_params_at(i=i)
             n_param = params.shape[0]
 
-            if i==0:
+            if i == 0:
                 assert n_param == 6
             else:
                 assert n_param == 10
@@ -73,16 +80,36 @@ class KinematicEstimator():
             self.param_manager.set_params_at(i, params)
 
     def get_tmat(self):
+        """
+        Returns lists of transformation matrices
+
+        Returns
+        -----------
+        list of TransMat
+            Transformation Matrices between a DoF and its next DoF
+        list of TransMat
+            Transformation Matrices between a DoF and its virtual DoF
+        list of TransMat
+            Transformation Matrices between a virtual DoF and its SU
+        """
         return self.param_manager.Tdof2dof, \
                 self.param_manager.Tdof2vdof, \
                 self.param_manager.Tvdof2su
     
     def get_accelerometer_positions(self):
-        positions = np.zeros((n_sensor, 3))
+        """
+        Returns all accelerometer positions in the initial position
+
+        Returns 
+        --------
+        positions: np.ndarray
+            All accelerometer positions
+        """
+        positions = np.zeros((self.n_sensor, 3))
         for i in range(self.n_sensor):
             T = TransMat(np.zeros(4))
             for j in range(i):
-               T = self.param_manager.Tdof2dof[j] * T
+                T = self.param_manager.Tdof2dof[j] * T
             T = self.param_manager.Tvdof2su[i] * self.param_manager.Tdof2vdof[i] * T
 
             position = T[:3, 3]
@@ -92,7 +119,7 @@ class KinematicEstimator():
 
     def error_function(self, params, grad, i, Tdofs, Tposes):
         """
-        computes an error e_T = e_1 + e_2 from current parameters
+        Computes an error e_T = e_1 + e_2 from current parameters
 
         Parameters
         ----------
@@ -101,9 +128,17 @@ class KinematicEstimator():
         grad: np.ndarray
             Gradient, but we do not use any gradient information
             (We could in the future)
+        i: int
+            ith sensor
+        Tdofs: list of TransMat
+            Transformation Matrices between Dofs
+        Tposes: list of TransMat
+            Transformation Matrices (Rotation Matrix)
 
         Returns 
         ----------
+        error: float
+            Error between measured values and estimated model outputs
         """
         # Since Tdof2su includes Tranformation Matrix for 2 joints
         # Move them to Tdofs so that len(Tdofs) == len(Tjoints)
@@ -135,11 +170,27 @@ class KinematicEstimator():
         .. math:: `e_1 = \Sigma_{p=1}^P |{}^{RS}g_{N,p} - \Sigma_{p=1}^P {}^{RS}g_{N,p}|^2`
         where
         .. math:: `{}^{RS}g_{N,p} = {}^{RS}R_{SU_N}^{mod,p} {}^{SU_N}g_{N,p}`
+
+        Parameters
+        ------------
+        i: int
+            ith sensor
+        Tdof2su_i: TransMat
+            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
+        Tdofs: list of TransMat
+            Transformation Matrices between Dofs
+        Tposes: list of TransMat
+            Transformation Matrices (Rotation Matrix)
+
+        Returns
+        --------
+        e1: float
+            Static Error
         """
         gravities = np.zeros((self.n_pose, 3))
 
         # loop over P poses
-        for Tpose in Tposes:
+        for p, Tpose in enumerate(Tposes):
             # 1 Pose are consists for n_joint DoF
             T = TransMat(np.zeros(4))   # equals to I Matrix
             for Tdof, Tjoint in zip(Tdofs, Tpose):
@@ -147,36 +198,40 @@ class KinematicEstimator():
             # DoF to SU
                 T = Tdof2su_i * T
 
-            R = T[:3, 3]
-            # Take an average over time T
-            # shape = (P x 1 x 1) = (P, )
-            accel_su = self.data.static[pose, i]
-            accel_rs = np.dot(R, accel_su)
-            gravities[pose, :] = accel_rs
+            Rdof2su = T[:3, :3]
+            accel_su = self.data.static[p, i]
+            accel_rs = np.dot(Rdof2su.T, accel_su)
+            gravities[p, :] = accel_rs
 
-        return np.sum(np.square(gravities[pose,:] - np.mean(gravities,0)))
+        return np.sum(np.square(gravities[p, :] - np.mean(gravities, 0)))
 
     def dynamic_error_function(self, i, Tdof2su_i, Tdofs, Tposes):
         """
         Compute errors between estimated and measured max acceleration for sensor i
 
         .. math:: `\Sigma_{p=1}^P\Sigma_{d=i-3, i>0}^i {}^{SU_i}|a_{max}^{model} - a_{max}^{measured}|_{i,d,p}^2`
-
+        
+        Parameters
+        ------------
         i: int
-            ith Accelerometer
-        Tdof2su_i: TransformationMatrix
-            Transformation matrix from ith DoF to ith SU
-        Tposes: list of list of Transformation Matrix
-            Transformation matrices for each joint for all joints in all poses
-            It only rotates. No translational tranformation
-        max_accels: np.ndarray
-            Stores all the measured maximum accelerations at [pose, joint, sensor]
+            ith sensor
+        Tdof2su_i: TransMat
+            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
+        Tdofs: list of TransMat
+            Transformation Matrices between Dofs
+        Tposes: list of TransMat
+            Transformation Matrices (Rotation Matrix)
+
+        Returns
+        --------
+        e2: float
+            Dynamic Error
         """
 
         e2 = 0
         for p, Tpose in enumerate(Tposes):
-            for d in range(max(0,i-3), i):
-                max_acccel_train = self.data.dynamic[p, d, i] 
+            for d in range(max(0, i-3), i):
+                max_accel_train = self.data.dynamic[p, d, i] 
                 max_accel_model = self.estimate_max_acceleration(d, Tdofs, Tpose, Tdof2su_i)
                 error = np.square(max_accel_train - max_accel_model)
                 e2 += error
@@ -193,6 +248,22 @@ class KinematicEstimator():
         .. math:: f(t-{\Delta t}) = f(t) - hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)
 
         Add both equations and plug t=0 to get the above equation
+        
+        Parameters
+        ------------
+        d: int
+            dth excited joint
+        Tdof2su_i: TransMat
+            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
+        Tdofs: list of TransMat
+            Transformation Matrices between Dofs
+        Tposes: list of TransMat
+            Transformation Matrices (Rotation Matrix)
+
+        Returns
+        ---------
+        acceleration: np.array
+            Acceleration computed from positions
         """
         dt = 1/(1000*C.PATTERN_FREQ)
         pos = lambda dt: self.accelerometer_position(dt, d, Tdofs, Tjoints, Tdof2su_i)
@@ -211,18 +282,29 @@ class KinematicEstimator():
         1   2    3    4    5    6    7         th joint
         1    2    3    4    5    6    7      th sensor
 
-        Tjoint: list of TransformationMatrix
+        Parameters
+        ------------
+        d: int
+            dth excited joint
+        Tdof2su_i: TransMat
+            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
+        Tdofs: list of TransMat
+            Transformation Matrices between Dofs
+        Tjoints: list of TransformationMatrix
             Tranformation Matrices of all joints in Pose p
             Tjoint = [T(th_1), T(th_2), ..., T(th_n)] for n joints
-        d: int
-            dth joint which it gets excited
+
+        Returns
+        ---------
+        position: np.array
+            Position of the resulting transformation
         """
         # Currently I assume that the patterns are same for all the joints
         # TODO We could change to a list of Tranformation Matrix
         #   Tpatts = [T(th_patt_1), T(th_patt_2), ..., T(th_patt_n)]
         #   Tpatt = Tpatts[d]
         th_pattern = C.PATTERN_A/(2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
-        Tpatt = TransMat(th_pattern, 1) # for all joint
+        Tpatt = TransMat(th_pattern) # for all joint
 
         T = TransMat(np.zeros(4))   # equals to I Matrix
         # loop over all joint to get to the ith sensor
@@ -242,42 +324,89 @@ class KinematicEstimator():
 
 
 class ParameterManager():
+    """
+    Class for managing DH parameters
+    """
     def __init__(self, n_joint, poses, bounds):
         """
         TODO For now, we assume n_sensor is equal to n_joint
+        
+        Parameters
+        -----------
+        n_joints: int
+            Number of joints
+        poses: np.ndarray
+            Poses for n_joints
+        bounds: np.ndarray
+            Bounds for DH parameters
         """
-        self.n_joint
+        self.n_joint = n_joint
         # TODO
         # initialize with randomized value within a certain range
         self.poses = poses
         self.Tdof2dof = [TransMat() for i in range(n_joint-1)]
         self.Tdof2vdof = [TransMat() for i in range(n_joint)]
-        self.Tvdof2su = [TransMat(n_params=2) for i in range(n_joint)]
-        self.Tposes = [[TransMat(theta, 1) for theta in pose] for pose in poses]
+        self.Tvdof2su = [TransMat(np.random.rand(2)) for i in range(n_joint)]
+        self.Tposes = [[TransMat(np.array(theta)) for theta in pose] for pose in poses]
 
     def get_params_at(self, i):
         """
         if n_joint is 7 DoF i = 0, 1, ..., 6
+
+        Parameters
+        ---------------
+        i: int
+            ith joint (ith sensor) 
+        
+        Returns
+        --------
+        params: np.array
+            Next DH parameters to be optimized
         """
-        if i==0:
-            params = np.c_[self.Tdof2vdof[i].params, self.Tvdof2su[i].params]
+        if i == 0:
+            params = np.r_[self.Tdof2vdof[i].parameters, self.Tvdof2su[i].parameters]
         else:
-            params = np.c_[self.Tdof2dof[i-1, :].params, 
-                           self.Tdof2vdof[i].params, 
-                           self.Tvdof2su[i].params]
+            params = np.r_[self.Tdof2dof[i-1].parameters, 
+                           self.Tdof2vdof[i].parameters, 
+                           self.Tvdof2su[i].parameters]
 
         return params
 
     def get_tmat_until(self, i):
-        if i==0:
-            return TransMat(np.zeros(4)) # equal to I Matrix
-        if i==1:
-            return TransMat(np.zeros(4)) # equal to I Matrix
+        """
+        get transformation matrices when optimizing ith joint (sensor)
 
-        return self.Tdof2dof[:i-1], [self.Tposes[p][:i+1] for p in self.poses.shape[0]]
+        Parameters
+        ----------
+        i: int
+            ith joint (sensor)
+
+        Returns
+        --------
+        list of TransMat
+            Transformation Matrices between DoFs
+        list of TransMat
+            Transformation Rotation Matrices for all joints
+        """
+        if i == 0:
+            return [TransMat(np.zeros(4))], [self.Tposes[p][:i+1] for p in range(self.poses.shape[0])]
+        if i == 1:
+            return [TransMat(np.zeros(4))], [self.Tposes[p][:i+1] for p in range(self.poses.shape[0])] 
+
+        return self.Tdof2dof[:i-1], [self.Tposes[p][:i+1] for p in range(self.poses.shape[0])]
 
     def set_params_at(self, i, params):
-        if i==0:
+        """
+        Set DH parameters
+        
+        Parameters
+        ------------
+        int: i
+            ith joint (sensor)
+        parmas: np.array
+            DH Parameters
+        """
+        if i == 0:
             self.Tdof2vdof[i].set_params(params[:4])
             self.Tvdof2su[i].set_params(params[4:])
         else:
@@ -286,11 +415,28 @@ class ParameterManager():
             self.Tvdof2su[i].set_params(params[8:])
 
 
+def collect_data():
+    """
+    Function for collecting acceleration data with poses
+    TODO
+    Randomly generates for now
+
+    Returns
+    --------
+    data: Data
+        Data includes static and dynamic accelerations data
+    poses: np.ndarray
+        For all poses for all joints
+    """
+    Data = namedtuple('Data', 'static dynamic')
+    data = Data(np.random.rand((20, 7, 3)), np.random.rand((20, 7, 7, 1)))
+    poses = np.random.rand((20, 7))
+    return data, poses
+
 if __name__ == '__main__':
-    # TODO
-    # NEED DATAAAAAAAAAAAAAAAAA
-    data, poses, = collect_data()
-    estimator = KinematicEstimator(data, poses)
+    # Need data
+    measured_data, orientations = collect_data()
+    estimator = KinematicEstimator(measured_data, orientations)
     estimator.optimize()
     Tdof2dof, Tdof2vdof, Tvdof2su = estimator.get_tmat()
     positions = estimator.get_accelerometer_positions()
