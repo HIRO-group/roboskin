@@ -294,6 +294,12 @@ class ParameterManager():
             self.Tvdof2su[i].set_params(params[8:])
 
 
+def collect_data():
+    Data = namedtuple('Data', 'static dynamic')
+    data = Data(np.random.rand((20, 7, 3)), np.random.rand((20, 7, 7, 1)))
+    poses = np.random.rand((20, 7))
+    return data, poses
+
 if __name__ == '__main__':
     # Need data
     measured_data, orientations = collect_data()
