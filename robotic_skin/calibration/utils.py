@@ -4,12 +4,20 @@ class TransMat():
     """
     Class for Transformation Matrix
     Manages all its parameters and computation
+    It also outputs Rotation Matrix and Position of the transformed result
     """
     def __init__(self, params=None):
         """
-        theta, d, a, alpha are all DH parameters 
-        For DH Parameters, please refer to this video
-        https://robotacademy.net.au/lesson/denavit-hartenberg-notation/
+        Constructor for TransMat. 
+        It creates a tranformation matrix from DH Parameters
+        
+        Parameters
+        ------------
+        params: np.array
+            DH parameters
+            It includes theta, d, a, alpha 
+            For DH Parameters, please refer to this video
+            https://robotacademy.net.au/lesson/denavit-hartenberg-notation/
         """
         self.params = params
         if params is None:
@@ -21,6 +29,15 @@ class TransMat():
         self.mat = self.transformation_matrix(th, d, a, al)
 
     def check_params(self, params):
+        """
+        Check the size of the given dh parameters
+        Complement other parameters according to the size
+        
+        Parameters
+        -----------
+        params: np.array
+            DH Parameters 
+        """
         if params.size == 1:
             th = params
             d, a, al = 0.0, 0.0, 0.0
@@ -36,6 +53,10 @@ class TransMat():
 
     def transformation_matrix(self, th, d, a, al):
         """
+        Create a tranformation matrix
+
+        Parameters
+        ------------
         th:
             Rotation theta around z axis (rad)
         d: 
@@ -44,6 +65,11 @@ class TransMat():
             Displacement relative to x axis (m)
         al:
             Rotation alpha around x axis (rad) 
+
+        Returns
+        ---------
+        np.ndarray
+            tranformation matrix
         """
         return np.array([
             [np.cos(th), -np.sin(th)*np.cos(al),  np.sin(th)*np.sin(al), a*np.cos(th)],
@@ -53,6 +79,19 @@ class TransMat():
         ])
 
     def dhparameters(self, mat):
+        """
+        Compute DH parameters from a tranformation matrix
+
+        Parameters
+        -----------
+        mat: np.ndarray
+            A tranformation matrix
+
+        Returns
+        -----------
+        np.array
+            DH Parameters
+        """
         th = np.arctan2(mat[1, 0], mat[0, 0])
         d = mat[2, 3]
         a = np.sqrt(np.square(mat[0, 3]) + np.square(mat[1, 3]))
@@ -63,8 +102,16 @@ class TransMat():
         """
         In our implementation, we use * for dot product
 
+        Parameters
+        ------------
         mat: np.ndarray
             4 by 4 ndarray tranformation matrix
+
+        Returns 
+        ----------
+        T: TransMat
+            Resulting tranformation matrix from dot products 
+            of two tranformation matrices
         """
         new_mat = np.dot(T.mat, self.mat)
         params = self.dhparameters(new_mat)
@@ -76,8 +123,17 @@ class TransMat():
         """
         In our implementation, we use * for dot product
         
+
+        Parameters
+        ------------
         mat: np.ndarray
             4 by 4 ndarray tranformation matrix
+
+        Returns 
+        ----------
+        T: TransMat
+            Resulting tranformation matrix from dot products 
+            of two tranformation matrices
         """
         new_mat = np.dot(self.mat, T.mat)
         params = self.dhparameters(new_mat)
@@ -85,23 +141,27 @@ class TransMat():
         T.mat = new_mat
         return T
 
-    def T(self):
-        """
-        Transpose
-        """
-        return self.mat.T
-
     @property
     def R(self):
         """
         Rotation Matrix
+
+        Returns
+        ----------
+        np.ndarray
+            Rotation Matrix
         """
         return self.mat[:3, :3]
 
     @property
     def position(self):
         """
-        Position as a result of the tranformation
+        Position as a result of the transformation
+        
+        Returns
+        -----------
+        np.ndarray
+            Position of the resulting transformation
         """
         return self.mat[:3, 3]
 
@@ -109,6 +169,8 @@ class TransMat():
         """
         Set parameters that have been optimized
 
+        Parameters
+        -----------
         params: np.array
             DH parameters
         """
@@ -118,6 +180,12 @@ class TransMat():
 
     @property
     def parameters(self):
+        """
+        Returns
+        ---------
+        np.array
+            DH parameters of this transformation matrix
+        """
         if self.n_params == 1:
             return self.params[0]
         if self.n_params == 2:
