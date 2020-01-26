@@ -15,19 +15,19 @@ class TransMat():
         if params is None:
             # initialize randomly
             self.params = np.random.rand(4)
-        self.n_params = len(self.params)
+        self.n_params = self.params.size
         
         th, d, a, al = self.check_params(self.params)
         self.mat = self.transformation_matrix(th, d, a, al)
 
     def check_params(self, params):
-        if params.shape[0] == 1:
+        if params.size == 1:
             th = params
             d, a, al = 0.0, 0.0, 0.0
-        elif params.shape[0] == 2:
+        elif params.size == 2:
             th, d = params 
             a, al = 0.0, 0.0
-        elif params.shape[0] == 4: 
+        elif params.size == 4: 
             th, d, a, al = params
         else:
             raise ValueError('Wrong number of parameters passed. It should be 1, 2 or 4')
@@ -115,3 +115,12 @@ class TransMat():
         self.params = params
         th, d, a, al = self.check_params(self.params)
         self.mat = self.transformation_matrix(th, d, a, al)
+
+    @property
+    def parameters(self):
+        if self.n_params == 1:
+            return self.params[0]
+        if self.n_params == 2:
+            return self.params[[0, 1]]
+        if self.n_params == 4:
+            return self.params

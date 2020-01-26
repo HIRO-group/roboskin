@@ -20,7 +20,7 @@ class KinematicEstimator():
             Traning data consists of accelerations when in static and dynamic. 
             Static accelerations indicate the gravity vector in SU frame.
             Dynamic accelerations indicate the maximum acceleration in SU frame.
-            Gravity Vectors are measured at each pose for all accelerometers [pose, accelerometer].
+            Gravity Vectors are measured at each pose for all accelerometers [pose, accelerometer, xyz].
             Maximum accelerations are measured at each pose excited by each joint 
             for all accelerometers [pose, accelerometer, joint]. 
         """
@@ -254,38 +254,38 @@ class ParameterManager():
         """
         TODO For now, we assume n_sensor is equal to n_joint
         """
-        self.n_joint
+        self.n_joint = n_joint
         # TODO
         # initialize with randomized value within a certain range
         self.poses = poses
         self.Tdof2dof = [TransMat() for i in range(n_joint-1)]
         self.Tdof2vdof = [TransMat() for i in range(n_joint)]
-        self.Tvdof2su = [TransMat() for i in range(n_joint)]
-        self.Tposes = [[TransMat(theta) for theta in pose] for pose in poses]
+        self.Tvdof2su = [TransMat(np.random.rand(2)) for i in range(n_joint)]
+        self.Tposes = [[TransMat(np.array(theta)) for theta in pose] for pose in poses]
 
     def get_params_at(self, i):
         """
         if n_joint is 7 DoF i = 0, 1, ..., 6
         """
         if i == 0:
-            params = np.c_[self.Tdof2vdof[i].params, self.Tvdof2su[i].params]
+            params = np.r_[self.Tdof2vdof[i].parameters, self.Tvdof2su[i].parameters]
         else:
-            params = np.c_[self.Tdof2dof[i-1, :].params, 
-                           self.Tdof2vdof[i].params, 
-                           self.Tvdof2su[i].params]
+            params = np.r_[self.Tdof2dof[i-1].parameters, 
+                           self.Tdof2vdof[i].parameters, 
+                           self.Tvdof2su[i].parameters]
 
         return params
 
     def get_tmat_until(self, i):
         if i == 0:
-            return TransMat(np.zeros(4)) # equal to I Matrix
+            return [TransMat(np.zeros(4))], [self.Tposes[p][:i+1] for p in range(self.poses.shape[0])]
         if i == 1:
-            return TransMat(np.zeros(4)) # equal to I Matrix
+            return [TransMat(np.zeros(4))], [self.Tposes[p][:i+1] for p in range(self.poses.shape[0])] 
 
-        return self.Tdof2dof[:i-1], [self.Tposes[p][:i+1] for p in self.poses.shape[0]]
+        return self.Tdof2dof[:i-1], [self.Tposes[p][:i+1] for p in range(self.poses.shape[0])]
 
     def set_params_at(self, i, params):
-        if i==0:
+        if i == 0:
             self.Tdof2vdof[i].set_params(params[:4])
             self.Tvdof2su[i].set_params(params[4:])
         else:
