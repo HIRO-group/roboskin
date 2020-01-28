@@ -28,8 +28,7 @@ class TestlMatrix(unittest.TestCase):
             [0, 0, 0, 1, 0]
         ])
         is_lt_matrix, _, _, _, _ = ConvertToLT(test_array).get_lt_matrix()
-        if not is_lt_matrix:
-            raise Exception("Test-1 Failed")
+        self.assertTrue(is_lt_matrix)
 
     def test_deformed_matrix(self):
         """
@@ -55,8 +54,7 @@ class TestlMatrix(unittest.TestCase):
             [0, 0, 0, 1, 0]
         ])
         is_lt_matrix, _, _, _, _ = ConvertToLT(test_array).get_lt_matrix()
-        if is_lt_matrix:
-            raise Exception("Test-2 Failed")
+        self.assertFalse(is_lt_matrix)
 
 
 if __name__ == "__main__":
