@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from robotic_skin.calibration.accel_position import ParameterManager, KinematicEstimator
+from robotic_skin.calibration.accel_position import ParameterManager, KinematicEstimator, collect_data
 
 N_JOINT = 7
 INIT_POSE = np.zeros(N_JOINT)
@@ -12,10 +12,12 @@ BOUNDS = np.array([
 class KinematicEstimatorTest(unittest.TestCase):
     """
     """
-    def test_(self):
+    def test_initialization(self):
         """
         """
-        pass
+        data, poses = collect_data()
+        estimator = KinematicEstimator(data, poses)
+        estimator.optimize()
 
 class ParameterManagerTest(unittest.TestCase):
     """
@@ -80,7 +82,7 @@ class ParameterManagerTest(unittest.TestCase):
 
         raised = False
         try:
-            params = param_manager.get_params_at(i=0)
+            params, _ = param_manager.get_params_at(i=0)
             param_manager.set_params_at(i=0, params=params)
         except:
             raised = True
