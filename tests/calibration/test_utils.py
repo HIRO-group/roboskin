@@ -112,7 +112,7 @@ class TransMatTest(unittest.TestCase):
         T1 = TransMat(np.array([np.pi/4, 0, 2, 0]))
         # Then 90 eegress
         T2 = TransMat(np.array([np.pi/2, 0, 2, 0]))
-        T3 = T2*T1
+        T3 = T2.dot(T1)
 
         a = 1/np.sqrt(2)
         expected_R = np.array([

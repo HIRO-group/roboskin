@@ -109,8 +109,8 @@ class KinematicEstimator():
         for i in range(self.n_sensor):
             T = TransMat(np.zeros(4))
             for j in range(i):
-                T = self.param_manager.Tdof2dof[j] * T
-            T = self.param_manager.Tvdof2su[i] * self.param_manager.Tdof2vdof[i] * T
+                T = self.param_manager.Tdof2dof[j].dot(T)
+            T = self.param_manager.Tvdof2su[i].dot(self.param_manager.Tdof2vdof[i].dot(T))
 
             position = T[:3, 3]
             positions[i, :] = position
@@ -194,9 +194,9 @@ class KinematicEstimator():
             # 1 Pose are consists for n_joint DoF
             T = TransMat(np.zeros(4))   # equals to I Matrix
             for Tdof, Tjoint in zip(Tdofs, Tpose):
-                T = Tjoint * Tdof * T
+                T = Tjoint.dot(Tdof.dot(T))
             # DoF to SU
-                T = Tdof2su_i * T
+                T = Tdof2su_i.dot(T)
 
             Rdof2su = T[:3, :3]
             accel_su = self.data.static[p, i]
@@ -311,17 +311,16 @@ class KinematicEstimator():
         for i_joint in range(self.n_joint):
             # 1. Transform each joint by dh parameter theta Tdofs[i_joint]
             # 2. Then Rotate the axis by theta_pose Tjoints[i_joint] defined by the pose
-            T = Tjoints[i_joint] * Tdofs[i_joint] * T
+            T = Tjoints[i_joint].dot(Tdofs[i_joint].dot(T))
             # If at the dth joint, Rotate the joint by theta_pattern
             if i_joint == d:
-                T = Tpatt * T
+                T = Tpatt.dot(T)
 
         # At the end, Transform from the last ith DoF to ith SU
-        T = Tdof2su_i * T
+        T = Tdof2su_i.dot(T)
 
         # Return only the XYZ position of the sensor in Reference Frame
         return T[:3, 3]
-
 
 class ParameterManager():
     """
@@ -413,7 +412,6 @@ class ParameterManager():
             self.Tdof2dof[i-1].set_params(params[:4])
             self.Tdof2vdof[i].set_params(params[4:8])
             self.Tvdof2su[i].set_params(params[8:])
-
 
 def collect_data():
     """
