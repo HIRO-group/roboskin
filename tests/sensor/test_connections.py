@@ -3,7 +3,7 @@ from robotic_skin.sensor.vl53l1x import VL53L1X_ProximitySensor
 import unittest
 
 
-class TestCircuit(unittest):
+class TestCircuit(unittest.TestCase):
     def test_circuit_connections(self):
         LSM6DS3_acclerometer()
         VL53L1X_ProximitySensor()
