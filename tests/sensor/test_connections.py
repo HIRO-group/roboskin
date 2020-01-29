@@ -4,10 +4,11 @@ import unittest
 
 
 class TestCircuit(unittest.TestCase):
-    def test_circuit_connections(self):
+    def test_accelerometer_connection(self):
         LSM6DS3_acclerometer()
-        VL53L1X_ProximitySensor()
 
+    def test_proximity_connections(self):
+        VL53L1X_ProximitySensor()
 
 if __name__ == "__main__":
     unittest.main()
