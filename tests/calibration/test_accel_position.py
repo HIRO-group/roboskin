@@ -44,11 +44,12 @@ class ParameterManagerTest(unittest.TestCase):
         poses = np.array([INIT_POSE])
         param_manager = ParameterManager(N_JOINT, poses, BOUNDS)
 
-        params = param_manager.get_params_at(i=0)
+        params, _ = param_manager.get_params_at(i=0)
+        print(params)
         self.assertEqual(params.size, 6)
         
         for i in range(1, N_JOINT):
-            params = param_manager.get_params_at(i=i)
+            params, _ = param_manager.get_params_at(i=i)
             self.assertEqual(params.size, 10)
 
     def test_get_tmat_until(self):
@@ -91,7 +92,7 @@ class ParameterManagerTest(unittest.TestCase):
 
         raised = False
         try: 
-            params = param_manager.get_params_at(i=1)
+            params, _ = param_manager.get_params_at(i=1)
             param_manager.set_params_at(i=1, params=params)
         except:
             raised = True
