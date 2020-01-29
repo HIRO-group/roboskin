@@ -2,13 +2,26 @@ import sys
 import nlopt
 
 class MyConstBaseClass(object):
+    """
+    Base Class for managing constants
+    Does not accept overwrite
+    """
     def __setattr__(self, name, value):
+        """
+        Set a value with a key 'name'
+        """
         if name in self.__dict__:
             raise NameError("Can't rebind const(%s)"%name)
         self.__dict__[name] = value
 
 class _const(MyConstBaseClass):
+    """
+    const class
+    """
     def __init__(self):
+        """
+        Handles alll parameters
+        """
         # Add constants here
         self.ADXL335_XPIN = 0
         self.ADXL335_YPIN = 1

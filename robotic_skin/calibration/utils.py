@@ -98,7 +98,7 @@ class TransMat():
         al = np.arctan2(mat[2, 1], mat[2, 2])
         return np.array([th, d, a, al])
 
-    def __mul__(self, T):
+    def dot(self, T):
         """
         In our implementation, we use * for dot product
 
@@ -114,28 +114,6 @@ class TransMat():
             of two tranformation matrices
         """
         new_mat = np.dot(T.mat, self.mat)
-        params = self.dhparameters(new_mat)
-        T = TransMat(params)
-        T.mat = new_mat
-        return T
-
-    def __rmul__(self, T):
-        """
-        In our implementation, we use * for dot product
-        
-
-        Parameters
-        ------------
-        mat: np.ndarray
-            4 by 4 ndarray tranformation matrix
-
-        Returns 
-        ----------
-        T: TransMat
-            Resulting tranformation matrix from dot products 
-            of two tranformation matrices
-        """
-        new_mat = np.dot(self.mat, T.mat)
         params = self.dhparameters(new_mat)
         T = TransMat(params)
         T.mat = new_mat

@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from robotic_skin.calibration.accel_position import ParameterManager, KinematicEstimator
+from robotic_skin.calibration.accel_position import ParameterManager, KinematicEstimator, collect_data
 
 N_JOINT = 7
 INIT_POSE = np.zeros(N_JOINT)
@@ -12,16 +12,21 @@ BOUNDS = np.array([
 class KinematicEstimatorTest(unittest.TestCase):
     """
     """
-    def test_(self):
+    def test_initialization(self):
         """
         """
         pass
+        #data, poses = collect_data()
+        #estimator = KinematicEstimator(data, poses)
+        #estimator.optimize()
 
 class ParameterManagerTest(unittest.TestCase):
     """
+    Parameter Manager Class
     """
     def test_shapes(self):
         """
+        Test the shape of all lists of TransMat
         """
         poses = np.array([INIT_POSE])
         param_manager = ParameterManager(N_JOINT, poses, BOUNDS)
@@ -32,18 +37,25 @@ class ParameterManagerTest(unittest.TestCase):
         self.assertEqual(len(param_manager.Tposes), 1)
         self.assertEqual(len(param_manager.Tposes[0]), N_JOINT)
 
-    def test_n_params(self):
+    def test_get_params(self):
+        """
+        Test get_params function
+        """
         poses = np.array([INIT_POSE])
         param_manager = ParameterManager(N_JOINT, poses, BOUNDS)
 
-        params = param_manager.get_params_at(i=0)
+        params, _ = param_manager.get_params_at(i=0)
+        print(params)
         self.assertEqual(params.size, 6)
         
         for i in range(1, N_JOINT):
-            params = param_manager.get_params_at(i=i)
+            params, _ = param_manager.get_params_at(i=i)
             self.assertEqual(params.size, 10)
 
-    def test_T_sizes(self):
+    def test_get_tmat_until(self):
+        """
+        Test get_tmat_until function
+        """
         poses = np.array([INIT_POSE])
         param_manager = ParameterManager(N_JOINT, poses, BOUNDS)
 
@@ -64,12 +76,15 @@ class ParameterManagerTest(unittest.TestCase):
             self.assertEqual(len(Tposes[0]), i+1)
     
     def test_set_params(self):
+        """
+        Test set_params function
+        """
         poses = np.array([INIT_POSE])
         param_manager = ParameterManager(N_JOINT, poses, BOUNDS)
 
         raised = False
         try:
-            params = param_manager.get_params_at(i=0)
+            params, _ = param_manager.get_params_at(i=0)
             param_manager.set_params_at(i=0, params=params)
         except:
             raised = True
@@ -77,7 +92,7 @@ class ParameterManagerTest(unittest.TestCase):
 
         raised = False
         try: 
-            params = param_manager.get_params_at(i=1)
+            params, _ = param_manager.get_params_at(i=1)
             param_manager.set_params_at(i=1, params=params)
         except:
             raised = True
