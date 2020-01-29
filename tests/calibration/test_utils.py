@@ -2,13 +2,22 @@ import unittest
 import numpy as np
 from robotic_skin.calibration.utils import TransMat
 
-class MyTransMat(unittest.TestCase):
+class TransMatTest(unittest.TestCase):
+    """
+    Transformation Matrix Test Class
+    """
     def test_matrix(self):
+        """
+        Test to create an identity matrix
+        """
         T = TransMat(np.zeros(4))
         print('test_matrix')
         np.testing.assert_array_equal(T.mat, np.eye(4))
 
     def test_n_params(self):
+        """
+        Test a constructor with different number of parameters
+        """
         T = TransMat(np.random.rand(1))
         self.assertEqual(T.n_params, 1)
         
@@ -19,17 +28,30 @@ class MyTransMat(unittest.TestCase):
         self.assertEqual(T.n_params, 4)
 
     def test_wrong_number_of_params(self):
+        """
+        Test if a constructor outputs error 
+        if other than 1, 2, 4 params are given
+        """
         self.assertRaises(ValueError, TransMat, np.random.rand(3))
 
     def test_R_shape(self):
+        """
+        Test the shape of the resulting rotation matrix
+        """
         T = TransMat(np.zeros(4))
         self.assertEqual(T.R.shape, np.zeros((3, 3)).shape)
 
     def test_position_shape(self):
+        """
+        Test the shape of the resulting positions 
+        """
         T = TransMat(np.zeros(4))
         self.assertEqual(T.position.shape, np.zeros(3).shape)
 
     def test_sub_position_into_ndarray(self):
+        """
+        Test to substitute an np.array to np.ndarray
+        """
         n_joint = 7
         positions = np.zeros((n_joint, 3))
         T = TransMat(np.zeros(4))
@@ -43,6 +65,9 @@ class MyTransMat(unittest.TestCase):
         self.assertFalse(raised, 'Exception raised')
 
     def test_tmat_90degrees(self):
+        """
+        Test a tranformation matrix by rotating 90 degrees
+        """
         T = TransMat(np.array([np.pi/2, 0, 2, 0]))
         expected_R = np.array([
             [0, -1, 0],
@@ -55,6 +80,9 @@ class MyTransMat(unittest.TestCase):
         np.testing.assert_array_almost_equal(T.position, expected_pos)
     
     def test_tmat_45degrees(self):
+        """
+        Test a tranformation matrix by rotating 45 degrees
+        """
         T = TransMat(np.array([np.pi/4, 0, 2, 0]))
         a = 1/np.sqrt(2)
         expected_R = np.array([

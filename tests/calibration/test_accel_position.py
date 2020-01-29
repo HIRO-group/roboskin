@@ -19,9 +19,11 @@ class KinematicEstimatorTest(unittest.TestCase):
 
 class ParameterManagerTest(unittest.TestCase):
     """
+    Parameter Manager Class
     """
     def test_shapes(self):
         """
+        Test the shape of all lists of TransMat
         """
         poses = np.array([INIT_POSE])
         param_manager = ParameterManager(N_JOINT, poses, BOUNDS)
@@ -32,7 +34,10 @@ class ParameterManagerTest(unittest.TestCase):
         self.assertEqual(len(param_manager.Tposes), 1)
         self.assertEqual(len(param_manager.Tposes[0]), N_JOINT)
 
-    def test_n_params(self):
+    def test_get_params(self):
+        """
+        Test get_params function
+        """
         poses = np.array([INIT_POSE])
         param_manager = ParameterManager(N_JOINT, poses, BOUNDS)
 
@@ -43,7 +48,10 @@ class ParameterManagerTest(unittest.TestCase):
             params = param_manager.get_params_at(i=i)
             self.assertEqual(params.size, 10)
 
-    def test_T_sizes(self):
+    def test_get_tmat_until(self):
+        """
+        Test get_tmat_until function
+        """
         poses = np.array([INIT_POSE])
         param_manager = ParameterManager(N_JOINT, poses, BOUNDS)
 
@@ -64,6 +72,9 @@ class ParameterManagerTest(unittest.TestCase):
             self.assertEqual(len(Tposes[0]), i+1)
     
     def test_set_params(self):
+        """
+        Test set_params function
+        """
         poses = np.array([INIT_POSE])
         param_manager = ParameterManager(N_JOINT, poses, BOUNDS)
 
