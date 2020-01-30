@@ -12,11 +12,28 @@ class ConvertToLT:
     """
 
     def __init__(self, input_matrix):
+        """
+        Initialize the class
+        Parameters
+        ----------
+        input_matrix :
+        """
+        self.input_matrix = input_matrix
+        self.main_algorithm()
+
+    def main_algorithm(self):
+        """
+        Main Algorithm implementation. Algorithm details at the top of the file.
+        Returns
+        -------
+        None
+
+        """
         zero_array_index = []
         # Remove the nd arrays which are zero arrays for now, we can add them back later
-        for index, each_array in enumerate(input_matrix):
+        for index, each_array in enumerate(self.input_matrix):
             if self.find_empty_ndarray(each_array):
-                input_matrix = np.delete(input_matrix, index, 0)
+                input_matrix = np.delete(self.input_matrix, index, 0)
                 zero_array_index.append(index)
         # There can be only one zero row in the activity matrix. More info in the exception string
         if len(zero_array_index) != 1:
@@ -25,8 +42,8 @@ class ConvertToLT:
         # After removing the zero arrays the residue matrix should be a square matrix, be mindful of that
         # Stackoverflow links: https://stackoverflow.com/questions/52216526/sort-array-columns-based-upon-sum/52216674
         # https://stackoverflow.com/questions/7235785/sorting-numpy-array-according-to-the-sum
-        self.is_matrix_lt_convertible(input_matrix)
-        input_matrix = self.custom_sort_row(input_matrix)
+        self.is_matrix_lt_convertible(self.input_matrix)
+        input_matrix = self.custom_sort_row(self.input_matrix)
         input_matrix = self.custom_sort_column(input_matrix)
 
         # The algorithm is more deeply stated in my Blog:
@@ -43,6 +60,7 @@ class ConvertToLT:
             input_matrix = np.insert(input_matrix, 0, 0, axis=0)
         self.final_matrix = input_matrix
         self.reference_segment_accelerometer = zero_array_index[0] + 1
+
 
     def numpyarray_toint(self, my_array: np.ndarray, reverse: bool):
         """
