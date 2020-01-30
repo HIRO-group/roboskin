@@ -33,7 +33,7 @@ class ConvertToLT:
         # Remove the nd arrays which are zero arrays for now, we can add them back later
         for index, each_array in enumerate(self.input_matrix):
             if self.find_empty_ndarray(each_array):
-                input_matrix = np.delete(self.input_matrix, index, 0)
+                self.input_matrix = np.delete(self.input_matrix, index, 0)
                 zero_array_index.append(index)
         # There can be only one zero row in the activity matrix. More info in the exception string
         if len(zero_array_index) != 1:
