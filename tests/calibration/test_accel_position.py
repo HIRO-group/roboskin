@@ -3,7 +3,8 @@ Testing acceleration position module.
 """
 import unittest
 import numpy as np
-from robotic_skin.calibration.accel_position import ParameterManager, KinematicEstimator, collect_data
+from robotic_skin.calibration.accel_position import ParameterManager
+# from robotic_skin.calibration.accel_position import ParameterManager, KinematicEstimator, collect_data
 
 N_JOINT = 7
 INIT_POSE = np.zeros(N_JOINT)
