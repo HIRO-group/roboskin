@@ -1,3 +1,6 @@
+"""
+Read vcnl4040 sensor example
+"""
 import time
 import board
 import busio
@@ -10,4 +13,3 @@ while True:
     print('Proximity: ', sensor.proximity)
     print('Light: ', sensor.lux)
     time.sleep(0.5)
-

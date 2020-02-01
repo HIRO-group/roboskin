@@ -1,7 +1,11 @@
+"""
+This module serves to provide a variety of constants
+
+"""
 import sys
 import nlopt
 
-class MyConstBaseClass(object):
+class MyConstBaseClass():
     """
     Base Class for managing constants
     Does not accept overwrite

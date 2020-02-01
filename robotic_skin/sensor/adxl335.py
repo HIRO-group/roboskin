@@ -1,12 +1,19 @@
-import math
+"""
+ADXL335 Sensor Module.
+"""
 import time
 import numpy as np
-from robotic_skin.sensor import Sensor
 from mcp3208 import MCP3208
 
+from robotic_skin.sensor import Sensor
 import robotic_skin.const as C
 
+# import math
+
 class ADXL335(Sensor):
+    """
+    ADXL335 Sensor class.
+    """
     def __init__(self, xpin, ypin, zpin):
         super(ADXL335, self).__init__()
         """
@@ -21,6 +28,7 @@ class ADXL335(Sensor):
         zpin: int
             Pin number for accelerometer z axis
         """
+        
         # We are using MPC3208 library from Pypi, thank God someone wrote it
         self.adc = MCP3208()
         self.pins = [xpin, ypin, zpin]
@@ -53,8 +61,8 @@ class ADXL335(Sensor):
         There is a more detailed explanation
         which can't be fir into comments. So please go look, and lemme know if there is any problem with the logic
         """
-        data = np.array(self._read_raw())
-        self.data = ((((3.3 / 4096) * data) - 2) * 3.1) + 1
+        raw_data = np.array(self._read_raw())
+        self.data = ((((3.3 / 4096) * raw_data) - 2) * 3.1) + 1
         # Returning back the data
         return self.data
 

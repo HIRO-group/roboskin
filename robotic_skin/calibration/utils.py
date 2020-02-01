@@ -1,3 +1,6 @@
+"""
+Utilities module for Robotic Skin.
+"""
 import numpy as np 
 
 class TransMat():
@@ -70,12 +73,21 @@ class TransMat():
         ---------
         np.ndarray
             tranformation matrix
+    
+        returns 4x4 matrix of the form"
+        [
+        [cos(th),     sin(th)*cos(al),     sin(th)*sin(al),      a*cos(th)],
+        [sin(th),     cos(th)*cos(al),     -cos(th)*sin(al),     a*sin(th)],
+        [0,           sin(al),             cos(al),              d],
+        [0,           0,                   0,                    1]
+        ]
+
         """
         return np.array([
-            [np.cos(th), -np.sin(th)*np.cos(al),  np.sin(th)*np.sin(al), a*np.cos(th)],
-            [np.sin(th),  np.cos(th)*np.cos(al), -np.cos(th)*np.sin(al), a*np.sin(th)],
-            [0,           np.sin(al),             np.cos(al),            d],
-            [0,           0,                      0,                     1]
+            [np.cos(th), -np.sin(th)*np.cos(al), np.sin(th)*np.sin(al), a*np.cos(th)],
+            [np.sin(th), np.cos(th)*np.cos(al), -np.cos(th)*np.sin(al), a*np.sin(th)],
+            [0, np.sin(al), np.cos(al), d],
+            [0, 0, 0, 1]
         ])
 
     def dhparameters(self, mat):
@@ -166,7 +178,9 @@ class TransMat():
         """
         if self.n_params == 1:
             return self.params[0]
-        if self.n_params == 2:
+        elif self.n_params == 2:
             return self.params[[0, 1]]
-        if self.n_params == 4:
+        else:
+            # self.n_params was specified as 4 or some other value,
+            # return all of the values
             return self.params

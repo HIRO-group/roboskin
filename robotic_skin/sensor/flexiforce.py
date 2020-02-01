@@ -1,9 +1,15 @@
+"""
+FlexiForce module
+"""
 import time
 from mcp3208 import MCP3208
 
 import robotic_skin.const as C
 
 class FlexiForce():
+    """
+    FlexiForce class
+    """
     def __init__(self, pin):
         """
         Initialize the FlexiForce connected to MCP3208 AD Converter.

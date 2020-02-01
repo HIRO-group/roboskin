@@ -1,5 +1,8 @@
+"""
+calibration of adxl335 sensor example.
+"""
 import time
-import numpy as np
+# import numpy as np
 
 from robotic_skin.sensor.adxl335 import ADXL335
 
