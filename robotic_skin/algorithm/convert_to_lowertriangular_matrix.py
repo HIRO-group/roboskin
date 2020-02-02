@@ -1,6 +1,13 @@
 """
 This is a python file containing a test case and a class to convert any matrix which is convertible Lower Triangular(LT)
 Matrix to Lower Triangular Matrix
+Algorithm:
+1) As this is a binary matrix, and also lower triangular, the total sum of elements should be at max n(n+1)/2, else it
+can't be a LT matrix
+2) There can only be one reference segment, hence only one zero row array, else the algorithm will throw an exception
+3) You are only allowed to switch rows and columns to get the LT matrix
+4) Arrange the rows in ascending order of number of ones present in the row
+5) Arrange the columns in the descending order of number of ones in the column
 """
 import math
 import numpy as np
