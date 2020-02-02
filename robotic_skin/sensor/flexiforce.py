@@ -6,6 +6,7 @@ from mcp3208 import MCP3208
 
 import robotic_skin.const as C
 
+# pylint: disable=R0903,R0902
 class FlexiForce():
     """
     FlexiForce class

@@ -4,7 +4,7 @@ This module serves to provide a variety of constants
 """
 import sys
 import nlopt
-
+# pylint: disable=R0903,R0902
 class MyConstBaseClass():
     """
     Base Class for managing constants
