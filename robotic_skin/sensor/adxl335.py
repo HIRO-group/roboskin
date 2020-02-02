@@ -70,7 +70,7 @@ class ADXL335(Sensor):
 if __name__ == '__main__':
     accel_sensor = ADXL335(
         xpin=C.ADXL335_XPIN, 
-        ypin=C.ADXL335_YTPIN, 
+        ypin=C.ADXL335_YPIN, 
         zpin=C.ADXL335_ZPIN)
     accel_sensor.calibrate()
     while True:
