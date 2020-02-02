@@ -8,7 +8,6 @@ disable=line-too-long,
         R0903,
         R0913,
         R1705,
-        W0105,
         W0640,
         W0702,
         W1401

@@ -15,7 +15,6 @@ class ADXL335(Sensor):
     ADXL335 Sensor class.
     """
     def __init__(self, xpin, ypin, zpin):
-        super(ADXL335, self).__init__()
         """
         Initialize ADXL335 which is connected to MCP3208 AD Converter.
 
@@ -28,6 +27,7 @@ class ADXL335(Sensor):
         zpin: int
             Pin number for accelerometer z axis
         """
+        super(ADXL335, self).__init__()
         
         # We are using MPC3208 library from Pypi, thank God someone wrote it
         self.adc = MCP3208()
