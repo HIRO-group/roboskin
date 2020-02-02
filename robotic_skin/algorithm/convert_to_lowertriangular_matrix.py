@@ -54,7 +54,7 @@ class ConvertToLT:
         zero_array_index = []
         # Remove the nd arrays which are zero arrays for now, we can add them back later
         for index, each_array in enumerate(self.input_matrix):
-            if self.find_empty_ndarray(each_array):
+            if self.find_zero_ndarray(each_array):
                 self.input_matrix = np.delete(self.input_matrix, index, 0)
                 zero_array_index.append(index)
         # There can be only one zero row in the activity matrix. More info in the exception string
@@ -74,7 +74,7 @@ class ConvertToLT:
         # Finally Increment the column number
         self.columns += 1
         # Check if the final array is a lower triangular array
-        self.is_lower_triangular = self.islowertriangular(input_matrix)
+        self.is_lower_triangular = self.is_lower_triangular(input_matrix)
         # The lower triangular matrix, should have ones on diagonal and lower triangular part. If after our algorithm
         # still if it's not lower triangular
         # Add the zero array you removed at the start, making it a complete matrix
@@ -195,7 +195,7 @@ class ConvertToLT:
 
         return self.is_lower_triangular, self.final_matrix, self.reference_segment_accelerometer, self.rows, self.columns
 
-    def matrix_is_square(self, input_array):
+    def is_square_matrix(self, input_array):
         """
         This is a function which raises an exception, if the output matrix isn't square matrix
         Parameters
@@ -211,7 +211,7 @@ class ConvertToLT:
         if not len(input_array) == len(input_array[0]):
             raise Exception("The matrix isn't square")
 
-    def find_empty_ndarray(self, input_array):
+    def find_zero_ndarray(self, input_array):
         """
         As this is a binary matrix, with values only 0 and 1, equating min value and max value to 0, we can say
         the array is a zero array
@@ -230,7 +230,7 @@ class ConvertToLT:
             return True
         return False
 
-    def islowertriangular(self, input_array: np.ndarray):
+    def is_lower_triangular(self, input_array: np.ndarray):
         """
         Directly copied from: https://www.geeksforgeeks.org/program-check-matrix-lower-triangular/
         And also checked. Will output if input matrix input_array is a lower triangular matrix or not
@@ -263,7 +263,7 @@ class ConvertToLT:
 
         """
 
-        self.matrix_is_square(input_array)
+        self.is_square_matrix(input_array)
         length_of_input_array = len(input_array)
         if np.sum(input_array) <= (length_of_input_array * (length_of_input_array + 1)) / 2:
             pass
