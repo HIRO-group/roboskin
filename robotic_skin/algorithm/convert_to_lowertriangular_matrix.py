@@ -2,12 +2,26 @@
 This is a python file containing a test case and a class to convert any matrix which is convertible Lower Triangular(LT)
 Matrix to Lower Triangular Matrix
 Algorithm:
-1) As this is a binary matrix, and also lower triangular, the total sum of elements should be at max n(n+1)/2, else it
+*) As this is a binary matrix, and also lower triangular, the total sum of elements should be at max n(n+1)/2, else it
 can't be a LT matrix
-2) There can only be one reference segment, hence only one zero row array, else the algorithm will throw an exception
-3) You are only allowed to switch rows and columns to get the LT matrix
-4) Arrange the rows in ascending order of number of ones present in the row
-5) Arrange the columns in the descending order of number of ones in the column
+*) There can only be one reference segment, hence only one zero row array, else the algorithm will throw an exception
+*) You are only allowed to switch rows and columns to get the LT matrix
+Custom Sort Row:
+    *) Arrange the rows in ascending order of number of ones present in the row
+    *) If there is a tie in number of ones, then you assume the row as a binary number, with MSB at first and then the
+    number you get, convert it to a floating point number and add it to the row sum. This mainly signifies as a weight
+    value to the row sum which are same, so that argsort can give preference. Finally the row sum is arranged in
+    ascending order
+
+Custom Sort Column:
+    *) Arrange the columns in the descending order of number of ones in the column
+    *) *) Arrange the rows in ascending order of number of ones present in the row
+    *) If there is a tie in number of ones, then you assume the row as a binary number, with MSB at first and then the
+    number you get, convert it to a floating point number and add it to the row sum. This mainly signifies as a weight
+    value to the row sum which are same, so that argsort can give preference. Finally the row sum is arranged in
+    descending order
+
+# TODO: Next PR, I will add more examples of why this approach is correct. I derived some in my IPad
 """
 import math
 import numpy as np
@@ -20,10 +34,11 @@ class ConvertToLT:
 
     def __init__(self, input_matrix):
         """
-        Initialize the class
+        Initialize the class and start the main algorithm
         Parameters
         ----------
-        input_matrix :
+        input_matrix : np.ndarray
+            the input matrix passed into the class, to convert it to LT matrix
         """
         self.input_matrix = input_matrix
         self.main_algorithm()
@@ -91,7 +106,7 @@ class ConvertToLT:
 
     def convert_to_floating_point(self, my_number):
         """
-        This methos id used to convert some number like 768 to 0.768. Basically used to add weight value
+        This method id used to convert some number like 768 to 0.768. Basically used to add weight value
         Parameters
         ----------
         my_number : int
@@ -107,13 +122,16 @@ class ConvertToLT:
 
     def custom_sort_row(self, input_array: np.ndarray):
         """
-        Sort rows of input matrix
+        Sort rows of input matrix. Algorithm at the top.
         Parameters
         ----------
-        input_array :
+        input_array : np.ndarray
+            the input array we pass into the function, for it to have it's rows sorted
 
         Returns
         -------
+        np.ndarray
+            The array with its rows sorted
 
         """
         # So each row has to be unique for us to convert to Lower triangular Matrix
@@ -137,7 +155,7 @@ class ConvertToLT:
 
     def custom_sort_column(self, input_array: np.ndarray):
         """
-        Sort rows of input matrix
+        Sort columns of input matrix. The algorithm is specified at the top.
         Parameters
         ----------
         input_array :
