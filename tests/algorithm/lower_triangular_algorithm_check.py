@@ -71,7 +71,7 @@ class TestlMatrix(unittest.TestCase):
             [1, 1, 0, 1, 1]
         ])
         _, final_matrix, _, _, _ = ConvertToLT(test_array).get_lt_matrix()
-        self.assertFalse(is_lt_matrix)
+        np.testing.assert_array_equal(expected_matrix, final_matrix)
 
 
 if __name__ == "__main__":
