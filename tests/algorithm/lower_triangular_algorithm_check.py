@@ -35,7 +35,7 @@ class TestlMatrix(unittest.TestCase):
             [1, 1, 1, 1, 0],
             [1, 1, 1, 1, 1]
         ])
-        _, final_matrix, _, _, _ = ConvertToLT(test_array).get_lt_matrix()
+        _, final_matrix, _, _, _ = ConvertToLT(test_array).get_lt_matrix_infos()
         np.testing.assert_array_equal(expected_matrix, final_matrix)
 
     def test_deformed_matrix(self):
@@ -61,7 +61,7 @@ class TestlMatrix(unittest.TestCase):
             [0, 1, 0, 1, 1],
             [0, 0, 0, 1, 0]
         ])
-        is_lt_matrix, final_matrix, _, _, _ = ConvertToLT(test_array).get_lt_matrix()
+        is_lt_matrix, final_matrix, _, _, _ = ConvertToLT(test_array).get_lt_matrix_infos()
         expected_matrix = np.array([
             [0, 0, 0, 0, 0],
             [1, 0, 0, 0, 0],
@@ -70,7 +70,7 @@ class TestlMatrix(unittest.TestCase):
             [1, 1, 1, 1, 0],
             [1, 1, 0, 1, 1]
         ])
-        _, final_matrix, _, _, _ = ConvertToLT(test_array).get_lt_matrix()
+        _, final_matrix, _, _, _ = ConvertToLT(test_array).get_lt_matrix_infos()
         np.testing.assert_array_equal(expected_matrix, final_matrix)
 
 

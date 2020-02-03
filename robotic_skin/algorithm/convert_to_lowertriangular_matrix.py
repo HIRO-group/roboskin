@@ -43,6 +43,22 @@ class ConvertToLT:
         self.input_matrix = input_matrix
         self.main_algorithm()
 
+    def _is_there_only_one_zero_array(self):
+        """
+        This function will check if there is only one zero array in the passed matrix, if there are more, it will
+        throw an exception
+        """
+        # There can be only one zero row in the activity matrix. More info in the exception string
+        self.zero_array_index = []
+        # Remove the nd arrays which are zero arrays for now, we can add them back later
+        for index, each_array in enumerate(self.input_matrix):
+            if self.find_zero_ndarray(each_array):
+                self.input_matrix = np.delete(self.input_matrix, index, 0)
+                self.zero_array_index.append(index)
+        if len(self.zero_array_index) != 1:
+            raise Exception("More than one row is a zero row. According to the paper there can be only one reference "
+                            "zero row array, so Activity matrix might be wrong")
+
     def main_algorithm(self):
         """
         Main Algorithm implementation. Algorithm details at the top of the file.
@@ -51,38 +67,38 @@ class ConvertToLT:
         None
 
         """
-        zero_array_index = []
-        # Remove the nd arrays which are zero arrays for now, we can add them back later
-        for index, each_array in enumerate(self.input_matrix):
-            if self.find_zero_ndarray(each_array):
-                self.input_matrix = np.delete(self.input_matrix, index, 0)
-                zero_array_index.append(index)
-        # There can be only one zero row in the activity matrix. More info in the exception string
-        if len(zero_array_index) != 1:
-            raise Exception("More than one row is a zero row. According to the paper there can be only one reference "
-                            "zero row array, so Activity matrix might be wrong")
+        self._is_there_only_one_zero_array()
         # After removing the zero arrays the residue matrix should be a square matrix, be mindful of that
-        # Stackoverflow links: https://stackoverflow.com/questions/52216526/sort-array-columns-based-upon-sum/52216674
-        # https://stackoverflow.com/questions/7235785/sorting-numpy-array-according-to-the-sum
         self.is_matrix_lt_convertible(self.input_matrix)
-        input_matrix = self.custom_sort_row(self.input_matrix)
-        input_matrix = self.custom_sort_column(input_matrix)
+        self.input_matrix = self.sort_rows_in_ascending_order(self.input_matrix)
+        self.input_matrix = self.sort_columns_in_descending_order(self.input_matrix)
+        # Check if output matrix is an LT matrix
+        self.is_lower_triangular = self.is_lower_triangular(self.input_matrix)
+        # The row numbers need to be changed as we removed zero array at the start
+        self._arrange_row_column_numbers()
+        # Finally we add zero array at the start of the array
+        self._append_zero_array_at_start()
+        # I know I can just return the input matrix, but for the sanity of people who will be using my algorithm in the
+        # future I am writing this extra line
+        self.final_matrix = self.input_matrix
+        # Saving the reference segment number to a variable
+        self.reference_segment_accelerometer = self.zero_array_index[0] + 1
 
-        # The algorithm is more deeply stated in my Blog:
-        # https://krishnachaitanya9.github.io/posts/lower_triangular_algorithm_problem/
-        self.rows += np.array((self.rows - zero_array_index[0] + 1) > 0).astype(int) + 1
+    def _arrange_row_column_numbers(self):
+        """
+        When we remove the zero row array, and then do shuffling of rows and columns, we finally need where our original
+        row and column were shuffled to, to get the LT matrix. Issue is that as the zero row array can be somewhere in
+        between we have to change the row numbers of some rows. That algorithm is explained in more detailed in my blog
+        https://krishnachaitanya9.github.io/posts/lower_triangular_algorithm_problem/
+        This is just an implementation of that algorithm
+        """
+        self.rows += np.array((self.rows - self.zero_array_index[0] + 1) > 0).astype(int) + 1
         # Finally Increment the column number
         self.columns += 1
-        # Check if the final array is a lower triangular array
-        self.is_lower_triangular = self.is_lower_triangular(input_matrix)
-        # The lower triangular matrix, should have ones on diagonal and lower triangular part. If after our algorithm
-        # still if it's not lower triangular
-        # Add the zero array you removed at the start, making it a complete matrix
-        for _ in range(len(zero_array_index)):
-            input_matrix = np.insert(input_matrix, 0, 0, axis=0)
-        self.final_matrix = input_matrix
-        self.reference_segment_accelerometer = zero_array_index[0] + 1
 
+    def _append_zero_array_at_start(self):
+        for _ in range(len(self.zero_array_index)):
+            self.input_matrix = np.insert(self.input_matrix, 0, 0, axis=0)
 
     def numpyarray_toint(self, my_array: np.ndarray, reverse: bool):
         """
@@ -120,9 +136,12 @@ class ConvertToLT:
         """
         return my_number / math.pow(10, len(str(my_number)))
 
-    def custom_sort_row(self, input_array: np.ndarray):
+    def sort_rows_in_ascending_order(self, input_array: np.ndarray):
         """
         Sort rows of input matrix. Algorithm at the top.
+        References:
+        # Stackoverflow links: https://stackoverflow.com/questions/52216526/sort-array-columns-based-upon-sum/52216674
+        # https://stackoverflow.com/questions/7235785/sorting-numpy-array-according-to-the-sum
         Parameters
         ----------
         input_array : np.ndarray
@@ -153,7 +172,7 @@ class ConvertToLT:
             self.rows = row_sum.argsort()
             return input_array[self.rows, :]
 
-    def custom_sort_column(self, input_array: np.ndarray):
+    def sort_columns_in_descending_order(self, input_array: np.ndarray):
         """
         Sort columns of input matrix. The algorithm is specified at the top.
         Parameters
@@ -184,9 +203,15 @@ class ConvertToLT:
             self.columns = row_sum.argsort()[::-1]
             return input_array[self.columns, :].transpose()
 
-    def get_lt_matrix(self):
+    def get_lt_matrix_infos(self):
         """
-        This function is just used to return values
+        This function is just used to return values in the order
+        bool: Whether the matrix output generated is an LT matrix or not
+        np.ndarray: The LT matrix, if not possible the near LT matrix. Basically whatever the output generated
+            from the algorithm
+        int: The reference segment Accelerometer ID
+        np.ndarray: The accelerometer ID's in the order of their arrangement on the robotic arm
+        np.ndarray: The Joint ID's in the order of their arrangement on the robotic arm
         Returns
         -------
             bool, np.ndarray, int, np.ndarray, np.ndarray
@@ -281,4 +306,4 @@ if __name__ == "__main__":
         [0, 1, 0, 1, 1],
         [0, 0, 0, 1, 0]
     ])
-    print(ConvertToLT(TEST_ARRAY).get_lt_matrix())
+    print(ConvertToLT(TEST_ARRAY).get_lt_matrix_infos())
