@@ -4,10 +4,10 @@ https://github.com/CRImier/python-lsm6ds3
 Thanks Homie!
 Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf
 """
+import math
 import smbus2
 from robotic_skin.sensor import Sensor
-import math
-
+# pylint: disable=R0903,R0902
 
 class LSM6DS3_acclerometer(Sensor):
     """
@@ -42,7 +42,8 @@ class LSM6DS3_acclerometer(Sensor):
         # According to Page 51 this register will always output 0x69
         self.WHO_AM_I = 0x0F
         # Below are control registers used to set specific preferences
-        # TODO: Explore more of this settings for our Optimal Use
+
+        # FOR LATER: Explore more of this settings for our Optimal Use
         self.CTRL1_XL = 0x10
         self.CTRL2_G = 0x11
         self.CTRL3_C = 0x12
@@ -72,14 +73,13 @@ class LSM6DS3_acclerometer(Sensor):
 
     def calibrate(self):
         """
-        #TODO: Need to implement this function
+        # Need to implement this function
 
         Returns
         -------
         None
 
         """
-        pass
 
     def write_reg(self, reg, val):
         """

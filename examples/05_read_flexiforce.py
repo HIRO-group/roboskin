@@ -1,5 +1,8 @@
+"""
+read flexiforce sensor info example
+"""
 import time
-import numpy as np
+# import numpy as np
 
 from robotic_skin.sensor.flexiforce import FlexiForce
 

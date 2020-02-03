@@ -1,6 +1,9 @@
+"""
+Plot adxl335 sensor info example
+"""
+import time
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import time
 import numpy as np
 
 from robotic_skin.sensor.adxl335 import ADXL335
@@ -28,39 +31,53 @@ YMAX = -np.inf
 YMIN = np.inf
 
 def init():
+    """
+    set empty data for line
+
+    Returns
+    ----------
+    line
+    """
     line[0].set_data([], [])
     line[1].set_data([], [])
     line[2].set_data([], [])
         
-    return line,
+    return line
 
-def animate(i, T, X, Y, Z, accelerometer, start, YMIN, YMAX):
+def animate(T_arr, X_arr, Y_arr, Z_arr):
+    """
+    animation function
+
+    Returns
+    ----------
+    line
+    """
     now = time.time()
     t = now - start
     data = accelerometer.read()
         
     # print('T:%03d, X:%04d, Y:%04d, Z:%04d'%(t, x, y, z))
         
-    T.append(t)
-    X.append(data[0])
-    Y.append(data[1])
-    Z.append(data[2])
+    T_arr.append(t)
+    X_arr.append(data[0])
+    Y_arr.append(data[1])
+    Z_arr.append(data[2])
     
-    if len(T)>20:
-        T = T[-20:]
-        X = X[-20:]
-        Y = Y[-20:]
-        Z = Z[-20:]
+    if len(T_arr) > 20:
+        T_arr = T_arr[-20:]
+        X_arr = X_arr[-20:]
+        Y_arr = Y_arr[-20:]
+        Z_arr = Z_arr[-20:]
 
     # assume x is larger than 0
-    xlim = [np.min(T)-1, np.max(T)+1]
+    xlim = [np.min(T_arr)-1, np.max(T_arr)+1]
        
     # compute ylim
     ylim = [-2, 2]
 
-    line[0].set_data(T, X)
-    line[1].set_data(T, Y)
-    line[2].set_data(T, Z)
+    line[0].set_data(T_arr, X_arr)
+    line[1].set_data(T_arr, Y_arr)
+    line[2].set_data(T_arr, Z_arr)
 
     ax0.set_xlim(xlim)
     ax1.set_xlim(xlim)
@@ -69,7 +86,7 @@ def animate(i, T, X, Y, Z, accelerometer, start, YMIN, YMAX):
     ax1.set_ylim(ylim)
     ax2.set_ylim(ylim)
 
-    return line, 
+    return line
 
 print('start animation')
 anim = animation.FuncAnimation(fig, animate, fargs=(T, X, Y, Z, accelerometer, start, YMIN, YMAX), interval=int(1000/FREQ))

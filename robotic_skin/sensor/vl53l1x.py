@@ -10,6 +10,9 @@ from robotic_skin.sensor import Sensor
 
 
 class VL53L1X_ProximitySensor(Sensor):
+    """
+    Code for VL53L1X distance sensor class.
+    """
     def __init__(self, i2c_bus=1, i2c_address=0x29, range_value=3):
         """
         Initialize the VL53L1X sensor, test if the python code can reach it or not, if not throw an exception
@@ -31,10 +34,10 @@ class VL53L1X_ProximitySensor(Sensor):
         super().__init__()
         self.tof = VL53L1X.VL53L1X(i2c_bus, i2c_address)
         self.tof.open()
-        if range_value == 1 or range_value == 2 or range_value == 3:
+        if range_value in (1, 2, 3):
             self.tof.start_ranging(range_value)
         else:
-            raise("The range value passed is not 1 or 2 or 3")
+            raise "The range value passed is not 1 or 2 or 3"
 
     def calibrate(self):
         """
@@ -44,7 +47,6 @@ class VL53L1X_ProximitySensor(Sensor):
         -------
         None
         """
-        pass
 
     def _read_raw(self):
         """

@@ -1,21 +1,26 @@
+"""
+Testing acceleration position module.
+"""
 import unittest
 import numpy as np
-from robotic_skin.calibration.accel_position import ParameterManager, KinematicEstimator, collect_data
+from robotic_skin.calibration.accel_position import ParameterManager
+# from robotic_skin.calibration.accel_position import ParameterManager, KinematicEstimator, collect_data
 
 N_JOINT = 7
 INIT_POSE = np.zeros(N_JOINT)
 BOUNDS = np.array([
     [-np.pi, 0.0, -0.1, -np.pi],
-    [ np.pi, 0.5, 0.1, np.pi]
+    [np.pi, 0.5, 0.1, np.pi]
     ])
 
 class KinematicEstimatorTest(unittest.TestCase):
     """
+    Tests for Kinematics Estimator.
     """
     def test_initialization(self):
         """
+        tests the initialization of the KinematicEstimator.
         """
-        pass
         #data, poses = collect_data()
         #estimator = KinematicEstimator(data, poses)
         #estimator.optimize()

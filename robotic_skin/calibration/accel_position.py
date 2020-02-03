@@ -1,7 +1,10 @@
 #!/usr/bin/env python
+"""
+Module for Kinematics Estimation
+"""
+from collections import namedtuple
 import nlopt
 import numpy as np
-from collections import namedtuple
 
 import robotic_skin.const as C
 from robotic_skin.calibration.utils import TransMat
@@ -35,7 +38,7 @@ class KinematicEstimator():
         self.bounds = np.array([
             #    th,   d,    a,     al
             [-np.pi, -1.0, 0, -np.pi],
-            [ np.pi, 1.0, 1.0, np.pi]])
+            [np.pi, 1.0, 1.0, np.pi]])
         self.param_manager = ParameterManager(self.n_joint, poses, self.bounds)
 
     def optimize(self):
@@ -67,8 +70,8 @@ class KinematicEstimator():
             opt.set_min_objective(lambda x, grad: self.error_function(x, grad, i, Tdofs, Tposes))
 
             # Set boundaries
-            opt.set_lower_bounds(bounds[0,:])
-            opt.set_upper_bounds(bounds[1,:])
+            opt.set_lower_bounds(bounds[0, :])
+            opt.set_upper_bounds(bounds[1, :])
             opt.set_stopval(C.GLOBAL_STOP)
             # Need to set a local optimizer for the global optimizer
             local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
@@ -105,7 +108,7 @@ class KinematicEstimator():
         positions: np.ndarray
             All accelerometer positions
         """
-        positions = np.zeros((self.n_sensor, 3))
+        accelerometer_positions = np.zeros((self.n_sensor, 3))
         for i in range(self.n_sensor):
             T = TransMat(np.zeros(4))
             for j in range(i):
@@ -113,11 +116,11 @@ class KinematicEstimator():
             T = self.param_manager.Tvdof2su[i].dot(self.param_manager.Tdof2vdof[i].dot(T))
 
             position = T[:3, 3]
-            positions[i, :] = position
+            accelerometer_positions[i, :] = position
 
-        return positions
+        return accelerometer_positions
 
-    def error_function(self, params, grad, i, Tdofs, Tposes):
+    def error_function(self, params, i, Tdofs, Tposes, grad=None):
         """
         Computes an error e_T = e_1 + e_2 from current parameters
 
@@ -125,9 +128,7 @@ class KinematicEstimator():
         ----------
         params: np.ndarray
             Current estimated parameters
-        grad: np.ndarray
-            Gradient, but we do not use any gradient information
-            (We could in the future)
+        
         i: int
             ith sensor
         Tdofs: list of TransMat
@@ -135,6 +136,9 @@ class KinematicEstimator():
         Tposes: list of TransMat
             Transformation Matrices (Rotation Matrix)
 
+        grad: np.ndarray
+            Gradient, but we do not use any gradient information
+            (We could in the future)
         Returns 
         ----------
         error: float
@@ -143,6 +147,9 @@ class KinematicEstimator():
         # Since Tdof2su includes Tranformation Matrix for 2 joints
         # Move them to Tdofs so that len(Tdofs) == len(Tjoints)
         # Refer to Fig. 4
+        if grad is not None:
+            # do something separate
+            pass
         if params.shape[0] == 6:
             # 6 parameters
             #   (2)     (4)
@@ -162,7 +169,7 @@ class KinematicEstimator():
         return e1 + e2
 
     def static_error_function(self, i, Tdof2su_i, Tdofs, Tposes):
-        """
+        """ 
         Computes static error for ith accelerometer. 
         Static error is an deviation of the gravity vector for p positions. 
         
@@ -170,6 +177,7 @@ class KinematicEstimator():
         .. math:: `e_1 = \Sigma_{p=1}^P |{}^{RS}g_{N,p} - \Sigma_{p=1}^P {}^{RS}g_{N,p}|^2`
         where
         .. math:: `{}^{RS}g_{N,p} = {}^{RS}R_{SU_N}^{mod,p} {}^{SU_N}g_{N,p}`
+
 
         Parameters
         ------------
@@ -186,10 +194,12 @@ class KinematicEstimator():
         --------
         e1: float
             Static Error
+        
         """
         gravities = np.zeros((self.n_pose, 3))
 
         # loop over P poses
+        p = 0
         for p, Tpose in enumerate(Tposes):
             # 1 Pose are consists for n_joint DoF
             T = TransMat(np.zeros(4))   # equals to I Matrix
@@ -300,7 +310,7 @@ class KinematicEstimator():
             Position of the resulting transformation
         """
         # Currently I assume that the patterns are same for all the joints
-        # TODO We could change to a list of Tranformation Matrix
+        # We could change to a list of Tranformation Matrix
         #   Tpatts = [T(th_patt_1), T(th_patt_2), ..., T(th_patt_n)]
         #   Tpatt = Tpatts[d]
         th_pattern = C.PATTERN_A/(2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
@@ -340,8 +350,7 @@ class ParameterManager():
             Bounds for DH parameters
         """
         self.n_joint = n_joint
-        # TODO
-        # initialize with randomized value within a certain range
+        # for later: initialize with randomized value within a certain range
         self.poses = poses
         self.bounds = bounds
         self.Tdof2dof = [TransMat() for i in range(n_joint-1)]
@@ -365,12 +374,12 @@ class ParameterManager():
         """
         if i == 0:
             params = np.r_[self.Tdof2vdof[i].parameters, self.Tvdof2su[i].parameters]
-            bounds = np.hstack([self.bounds[:,:], self.bounds[:,:2]])
+            bounds = np.hstack([self.bounds[:, :], self.bounds[:, :2]])
         else:
             params = np.r_[self.Tdof2dof[i-1].parameters, 
                            self.Tdof2vdof[i].parameters, 
                            self.Tvdof2su[i].parameters]
-            bounds = np.hstack([self.bounds[:,:], self.bounds[:,:], self.bounds[:,:2]])
+            bounds = np.hstack([self.bounds[:, :], self.bounds[:, :], self.bounds[:, :2]])
 
         return params, bounds
 
@@ -442,5 +451,5 @@ if __name__ == '__main__':
     Tdof2dof, Tdof2vdof, Tvdof2su = estimator.get_tmat()
     positions = estimator.get_accelerometer_positions()
 
-    for i, p in enumerate(positions):
-        print(str(i)+'th SU: [%02.2f, %02.2f, %02.2f]'%(p[0], p[1], p[2]))
+    for ind, point in enumerate(positions):
+        print(str(ind)+'th SU: [%02.2f, %02.2f, %02.2f]'%(point[0], point[1], point[2]))

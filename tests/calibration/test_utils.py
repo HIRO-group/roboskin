@@ -1,3 +1,6 @@
+"""
+Testing utils module
+"""
 import unittest
 import numpy as np
 from robotic_skin.calibration.utils import TransMat

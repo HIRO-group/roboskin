@@ -1,4 +1,7 @@
-class Sensor(object):
+"""
+Generic Sensor Module
+"""
+class Sensor():
     """
     Sensor Class
     """
@@ -17,3 +20,4 @@ class Sensor(object):
         Fetch sensor data
         """
         raise NotImplementedError()
+        
