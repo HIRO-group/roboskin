@@ -5,6 +5,7 @@ import unittest
 import numpy as np
 from robotic_skin.algorithm.convert_to_lowertriangular_matrix import ConvertToLT
 
+
 class TestlMatrix(unittest.TestCase):
     """
     This class will just test matrix, which is convertible to Lower Triangular(LT) Matrix
@@ -36,7 +37,6 @@ class TestlMatrix(unittest.TestCase):
         ])
         _, final_matrix, _, _, _ = ConvertToLT(test_array).get_lt_matrix_infos()
         np.testing.assert_array_equal(expected_matrix, final_matrix)
-
 
     def test_deformed_matrix(self):
         """
