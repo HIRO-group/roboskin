@@ -41,6 +41,9 @@ class ConvertToLT:
             the input matrix passed into the class, to convert it to LT matrix
         """
         self.input_matrix = input_matrix
+        self.zero_array_index = []
+        self.rows = []
+        self.columns = []
         self.main_algorithm()
 
     def _is_there_only_one_zero_array(self):
@@ -73,7 +76,7 @@ class ConvertToLT:
         self.input_matrix = self.sort_rows_in_ascending_order(self.input_matrix)
         self.input_matrix = self.sort_columns_in_descending_order(self.input_matrix)
         # Check if output matrix is an LT matrix
-        self.is_lower_triangular = self.is_lower_triangular(self.input_matrix)
+        self.is_lower_triangular = self.is_lower_triangular_fn(self.input_matrix)
         # The row numbers need to be changed as we removed zero array at the start
         self._arrange_row_column_numbers()
         # Finally we add zero array at the start of the array
@@ -255,7 +258,7 @@ class ConvertToLT:
             return True
         return False
 
-    def is_lower_triangular(self, input_array: np.ndarray):
+    def is_lower_triangular_fn(self, input_array: np.ndarray):
         """
         Directly copied from: https://www.geeksforgeeks.org/program-check-matrix-lower-triangular/
         And also checked. Will output if input matrix input_array is a lower triangular matrix or not
@@ -270,10 +273,12 @@ class ConvertToLT:
             True if numpy array inputted is lower triangular, else False
 
         """
-        for i in range(0, len(input_array)):
-            for j in range(i + 1, len(input_array)):
+        rows, cols = input_array.shape
+        for i in range(rows):
+            for j in range(i+1, cols):
                 if input_array[i][j] != 0:
                     return False
+ 
         return True
 
     def is_matrix_lt_convertible(self, input_array):
