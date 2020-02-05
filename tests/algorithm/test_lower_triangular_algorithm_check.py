@@ -19,14 +19,16 @@ class TestlMatrix(unittest.TestCase):
         None
 
         """
+
         test_array = np.array([
-            [0, 1, 0, 1, 0],
             [1, 1, 0, 1, 1],
-            [0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0],
             [1, 1, 1, 1, 1],
             [0, 1, 0, 1, 1],
+            [0, 0, 0, 0, 0],
             [0, 0, 0, 1, 0]
         ])
+        # get lower triangulated matrix
         expected_matrix = np.array([
             [0, 0, 0, 0, 0],
             [1, 0, 0, 0, 0],
@@ -61,7 +63,7 @@ class TestlMatrix(unittest.TestCase):
             [0, 1, 0, 1, 1],
             [0, 0, 0, 1, 0]
         ])
-        is_lt_matrix, final_matrix, _, _, _ = ConvertToLT(test_array).get_lt_matrix_infos()
+        _, final_matrix, _, _, _ = ConvertToLT(test_array).get_lt_matrix_infos()
         expected_matrix = np.array([
             [0, 0, 0, 0, 0],
             [1, 0, 0, 0, 0],
