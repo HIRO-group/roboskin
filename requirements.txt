@@ -7,8 +7,6 @@ sphinx-autobuild
 sphinx_rtd_theme
 mcp3208
 RPI.GPIO
-adafruit-blinka
-adafruit-circuitpython-vcnl4040
 pycodestyle
 nlopt
 smbus2
