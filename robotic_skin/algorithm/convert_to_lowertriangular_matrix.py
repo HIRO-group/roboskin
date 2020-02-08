@@ -103,7 +103,7 @@ class ConvertToLT:
         for _ in range(len(self.zero_array_index)):
             self.input_matrix = np.insert(self.input_matrix, 0, 0, axis=0)
 
-    def numpyarray_toint(self, my_array: np.ndarray, reverse: bool):
+    def numpyarray_toint(self, my_array, reverse):
         """
         This function will convert a numpy 1D array which is considered a binary number into a decimal number
         Parameters
@@ -139,7 +139,7 @@ class ConvertToLT:
         """
         return my_number / math.pow(10, len(str(my_number)))
 
-    def sort_rows_in_ascending_order(self, input_array: np.ndarray):
+    def sort_rows_in_ascending_order(self, input_array):
         """
         Sort rows of input matrix. Algorithm at the top.
         References:
@@ -175,7 +175,7 @@ class ConvertToLT:
             self.rows = row_sum.argsort()
             return input_array[self.rows, :]
 
-    def sort_columns_in_descending_order(self, input_array: np.ndarray):
+    def sort_columns_in_descending_order(self, input_array):
         """
         Sort columns of input matrix. The algorithm is specified at the top.
         Parameters
@@ -258,7 +258,7 @@ class ConvertToLT:
             return True
         return False
 
-    def is_lower_triangular_fn(self, input_array: np.ndarray):
+    def is_lower_triangular_fn(self, input_array):
         """
         Directly copied from: https://www.geeksforgeeks.org/program-check-matrix-lower-triangular/
         And also checked. Will output if input matrix input_array is a lower triangular matrix or not
