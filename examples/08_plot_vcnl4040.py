@@ -2,6 +2,8 @@
 Plot results from vcnl4040 sensor.
 """
 
+# pylint: skip-file
+
 import time
 # import math
 import matplotlib.pyplot as plt

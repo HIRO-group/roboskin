@@ -1,6 +1,9 @@
 """
 Read vcnl4040 sensor example
 """
+
+# pylint: skip-file   
+ 
 import time
 import board
 import busio
