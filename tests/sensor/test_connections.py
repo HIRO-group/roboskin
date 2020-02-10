@@ -13,7 +13,13 @@ class TestCircuit(unittest.TestCase):
         """
         Testing for Acceleromter Connections
         """
-        LSM6DS3_acclerometer()
+        try:
+            LSM6DS3_acclerometer()
+        except AssertionError:
+            try:
+                LSM6DS3_acclerometer(bus_num=1, addr=0x6a)
+            except AssertionError:
+                raise Exception("None of the Accelerometer's I2C ports detected. Accelerometer not reachable")
 
     def test_proximity_connections(self):
         """
