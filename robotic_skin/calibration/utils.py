@@ -9,7 +9,7 @@ class TransMat():
     Manages all its parameters and computation
     It also outputs Rotation Matrix and Position of the transformed result
     """
-    def __init__(self, params=None):
+    def __init__(self, params=None, bounds=None, mat=None):
         """
         Constructor for TransMat. 
         It creates a transformation matrix from DH Parameters
@@ -23,13 +23,26 @@ class TransMat():
             https://robotacademy.net.au/lesson/denavit-hartenberg-notation/
         """
         if params is None:
-            # initialize randomly
-            params = np.random.rand(4)
-        self.n_params = params.size
+            params = np.zeros(4)
+
+        if bounds is not None: 
+            params = np.array([np.random.rand()*(high-low) + low for low, high in bounds])
+
+        params = np.array(params)
+        self.n_params = params.size 
+        
+        if self.n_params not in [1, 2, 4]:
+            raise ValueError('Please provide a valide number of parameters. None, 1, 2 or 4')
         
         th, d, a, al = self.check_params(params)
         self.params = np.array([th, d, a, al]) 
         self.mat = self.transformation_matrix(th, d, a, al)
+
+        # If Matrix is always computed and given
+        if mat is not None:
+            self.mat = mat
+            self.params = None
+            self.n_params = None
 
     def check_params(self, params):
         """
@@ -50,6 +63,7 @@ class TransMat():
         elif params.size == 4: 
             th, d, a, al = params
         else:
+            print(params)
             raise ValueError('Wrong number of parameters passed. It should be 1, 2 or 4')
             
         return th, d, a, al
@@ -59,15 +73,17 @@ class TransMat():
         Create a transformation matrix
         DH Parameters are defined with only 4 parameters.
         2 Translational parameters and 2 Rotations parameters.
+        Here, we follow the "Modified DH Parameter" notation and 
+        not the original classic DH Parameter invnted by Denavit and Hartenberg.
 
-        The (n-1)th coordinate frame is 
-        1. Displace for d [m] along z axis. 
-        2. Rotate for th [rad] around z axis.
-        3. Displace for a [m] along x axis.
-        4. Rotate for al [rad] around x axis.
-        to get the nth coordinate frame.
+        From (n-1)th coordinate frame, 
+        1. Rotate for al [rad] around x axis (Rx).
+        2. Displace for a [m] along x axis (Tx).
+        3. Rotate for th [rad] around z axis (Rz)
+        4. Displace for d [m] along z axis (Tz)
+        to get to the nth coordinate frame in this order.
 
-        ..math:: {}^{n-1}_{n}T = Tz * Rz * Tx * Rx
+        ..math:: {}^{n-1}_{n}T = Rx * Tx * Rz * Tz
         ..math:: 
             \left[
             \begin{array}{c|c}
@@ -89,9 +105,7 @@ class TransMat():
 
             ..math::
                 {}^{0}_{SU_6}T = {}^{0}_{1}T * {}^{1}_{2}T * ... * {}^{6}_{SU_6}T
-                {}^{SU_6}_{0}R = ({}^{0}_{SU_6}T).R_inv
-
-            R_inv is implemented as a function in TransMat
+                {}^{SU_6}_{0}R = ({}^{0}_{SU_6}T).R.T
 
         Note that
             Rz * Tz = Tz * Rz
@@ -118,32 +132,23 @@ class TransMat():
             transformation matrix
             returns 4x4 matrix of the form
         """
+        """ 
+        Classic DH Parameter Transformation
+        ..math:: {}^{n-1}_{n}T = Tz * Rz * Tx * Rz
+
         return np.array([
             [np.cos(th), -np.sin(th)*np.cos(al), np.sin(th)*np.sin(al), a*np.cos(th)],
             [np.sin(th), np.cos(th)*np.cos(al), -np.cos(th)*np.sin(al), a*np.sin(th)],
             [0, np.sin(al), np.cos(al), d],
             [0, 0, 0, 1]
         ])
-
-    def dhparameters(self, mat):
         """
-        Compute DH parameters from a transformation matrix
-
-        Parameters
-        -----------
-        mat: np.ndarray
-            A transformation matrix
-
-        Returns
-        -----------
-        np.array
-            DH Parameters
-        """
-        th = np.arctan2(mat[1, 0], mat[0, 0])
-        d = mat[2, 3]
-        a = np.sqrt(np.square(mat[0, 3]) + np.square(mat[1, 3]))
-        al = np.arctan2(mat[2, 1], mat[2, 2])
-        return np.array([th, d, a, al])
+        return np.array([
+            [np.cos(th), -np.sin(th), 0, a],
+            [np.sin(th)*np.cos(al), np.cos(th)*np.cos(al), -np.sin(al), -d*np.sin(al)],
+            [np.sin(th)*np.sin(al), np.cos(th)*np.sin(al), np.cos(al), d*np.cos(al)],
+            [0, 0, 0, 1],
+        ])
 
     def dot(self, T):
         """
@@ -161,10 +166,7 @@ class TransMat():
             of two transformation matrices
         """
         new_mat = np.dot(self.mat, T.mat)
-        params = self.dhparameters(new_mat)
-        T = TransMat(params)
-        T.mat = new_mat
-        return T
+        return TransMat(mat=new_mat)
 
     @property
     def R(self):
@@ -211,20 +213,23 @@ class TransMat():
         np.array
             DH parameters of this transformation matrix
         """
-        if self.n_params == 1:
+        if self.n_params == None:
+            return None
+        elif self.n_params == 1:
             return self.params[0]
         elif self.n_params == 2:
             return self.params[[0, 1]]
-        else:
-            # self.n_params was specified as 4 or some other value,
-            # return all of the values
-            return self.params
+        else: 
+           return self.params
+
+    def __str__(self):
+        return np.array2string(self.mat)
 
 class ParameterManager():
     """
     Class for managing DH parameters
     """
-    def __init__(self, n_joint, poses, bounds, dhparams=None):
+    def __init__(self, n_joint, poses, bounds, bounds_su, dhparams=None):
         """
         TODO For now, we assume n_sensor is equal to n_joint
         
@@ -240,16 +245,17 @@ class ParameterManager():
         self.n_joint = n_joint
         self.poses = poses
         self.bounds = bounds
+        self.bounds_su = bounds_su
         self.dhparams = dhparams 
 
-        # TODO initialize with randomized value within a certain range
-        if self.dhparams:
-            self.Tdo2fdof = [TransMat(dhparams[i,:]) for i in range(n_joint-1)]
+        if self.dhparams is not None:
+            self.Tdof2dof = [TransMat(dhparams[i, :]) for i in range(n_joint)]
         else:
-            self.Tdof2dof = [TransMat() for i in range(n_joint-1)]
-        self.Tdof2vdof = [TransMat() for i in range(n_joint)]
-        self.Tvdof2su = [TransMat(np.random.rand(2)) for i in range(n_joint)]
-        self.Tposes = [[TransMat(np.array(theta)) for theta in pose] for pose in poses]
+            self.Tdof2dof = [TransMat(bounds=bounds) for i in range(n_joint)]
+
+        self.Tdof2vdof = [TransMat(bounds=bounds_su[:2, :]) for i in range(n_joint)]
+        self.Tvdof2su = [TransMat(bounds=bounds_su[2:, :]) for i in range(n_joint)]
+        self.Tposes = [[TransMat(theta) for theta in pose] for pose in poses]
 
     def get_params_at(self, i):
         """
@@ -265,14 +271,20 @@ class ParameterManager():
         params: np.array
             Next DH parameters to be optimized
         """
-        if i == 0 or self.dhparams is not None:
+        if self.dhparams is not None:
             params = np.r_[self.Tdof2vdof[i].parameters, self.Tvdof2su[i].parameters]
-            bounds = np.hstack([self.bounds[:, :], self.bounds[:, :2]])
+            bounds = self.bounds_su[:, :]
+
+            assert params.size == 6
+            assert bounds.shape == (6, 2)
         else:
-            params = np.r_[self.Tdof2dof[i-1].parameters, 
+            params = np.r_[self.Tdof2dof[i].parameters, 
                            self.Tdof2vdof[i].parameters, 
                            self.Tvdof2su[i].parameters]
-            bounds = np.hstack([self.bounds[:, :], self.bounds[:, :], self.bounds[:, :2]])
+            bounds = np.vstack((self.bounds[:, :], self.bounds_su[:, :]))
+            
+            assert params.size == 10
+            assert bounds.shape == (10, 2)
 
         return params, bounds
 
@@ -293,10 +305,10 @@ class ParameterManager():
             Transformation Rotation Matrices for all joints
         """
         if self.dhparams is not None:
-            Tdof2dofs_until_i_joint = self.Tdof2dof[:i]
+            Tdof2dofs_until_i_joint = self.Tdof2dof[:i+1]
         else: 
-            Tdof2dofs_until_i_joint = self.Tdof2dof[:max(0,i-1)]
-        
+            Tdof2dofs_until_i_joint = self.Tdof2dof[:max(0, i)]
+
         return Tdof2dofs_until_i_joint, [self.Tposes[p][:i+1] for p in range(self.poses.shape[0])]
 
     def set_params_at(self, i, params):
@@ -310,10 +322,10 @@ class ParameterManager():
         parmas: np.array
             DH Parameters
         """
-        if i == 0 or self.dhparams is not None:
-            self.Tdof2vdof[i].set_params(params[:4])
-            self.Tvdof2su[i].set_params(params[4:])
+        if self.dhparams is not None:
+            self.Tdof2vdof[i].set_params(params[:2])
+            self.Tvdof2su[i].set_params(params[2:])
         else:
             self.Tdof2dof[i-1].set_params(params[:4])
-            self.Tdof2vdof[i].set_params(params[4:8])
-            self.Tvdof2su[i].set_params(params[8:])
+            self.Tdof2vdof[i].set_params(params[4:6])
+            self.Tvdof2su[i].set_params(params[6:])
