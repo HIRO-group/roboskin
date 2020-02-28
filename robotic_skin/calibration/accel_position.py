@@ -12,6 +12,9 @@ import nlopt
 import robotic_skin
 import robotic_skin.const as C
 from robotic_skin.calibration.utils import TransMat, ParameterManager
+
+import rospkg
+
 # need to import set_franka_pose, oscillate_franka
 
 # Sawyer IMU Position
@@ -455,7 +458,8 @@ def collect_data(robot):
     poses: np.ndarray
         For all poses for all joints
     """
-    directory = '/home/kandai/catkin_ws/src/ros_robotic_skin/data'
+    ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
+    directory = os.path.join(ros_robotic_skin_path, 'data')
 
     filename = '_'.join(['static_data', robot])
     filepath = os.path.join(directory, filename + '.pickle')
