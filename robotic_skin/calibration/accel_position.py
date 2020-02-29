@@ -99,7 +99,7 @@ class KinematicEstimator():
         For further explanation, read each function.
         """
         # Optimize each joint (& sensor) at a time from the root
-        for i in range(self.n_sensor):
+        for i in range(4, self.n_sensor):
             print("Optimizing %ith SU ..."%(i))
             params, bounds = self.param_manager.get_params_at(i=i)
             n_param = params.shape[0]
@@ -129,9 +129,9 @@ class KinematicEstimator():
             print('Parameters', n2s(params, 4))
             pos, vec = self.get_i_accelerometer_position(i)
             print('Position:', pos)
-            print(n2s(vec[:,0]))
-            print(n2s(vec[:,1]))
-            print(n2s(vec[:,2]))
+            print(n2s(vec[:, 0]))
+            print(n2s(vec[:, 1]))
+            print(n2s(vec[:, 2]))
             print('='*100)
             # save the optimized parameter to the parameter manager
             self.param_manager.set_params_at(i, params)
@@ -189,13 +189,13 @@ class KinematicEstimator():
         Tdof2su = Tdof2vdof.dot(Tvdof2su)
         e1 = self.static_error_function(i, Tdofs, Tdof2su)
         e2 = self.dynamic_error_function(i, Tdofs, Tdof2su)
-        #e3 = self.rotation_error_function(i, Tdofs, Tdof2su)
+        e3 = self.rotation_error_function(i, Tdofs, Tdof2su)
 
         pos, _ = self.get_an_accelerometer_position(Tdofs, Tdof2su)
 
         print(n2s(e1+e2, 3), n2s(e1, 5), n2s(e2, 3), n2s(params), n2s(pos))
-        return e1 + e2
-        #return e1 + e3
+        #return e1 + e2
+        return e1 + e3
         # return e1
 
     def static_error_function(self, i, Tdofs, Tdof2su):
@@ -273,11 +273,11 @@ class KinematicEstimator():
         for p in range(self.n_pose):
             #for d in range(max(0, i-2), i+1):
             for d in range(i+1):
-                data = self.data.constant[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]]
-                meas_qs = data[:,:4]
+                data = self.data.constant[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0]
+                meas_qs = data[:, :4]
                 meas_accels = data[:, 4:7] 
                 joints = data[:, 7:14] 
-                angular_velocities = data[:, 14:17]
+                angular_velocities = data[:, 14]
 
                 for meas_q, meas_accel, joint, curr_w in zip(meas_qs, meas_accels, joints, angular_velocities):
                     # Orientation Error
@@ -286,19 +286,25 @@ class KinematicEstimator():
                     error1 = Quaternion.absolute_distance(model_q, meas_q)
 
                     # Acceleration Error
-                    model_accel = self.estimate_acceleration(Tdofs, Tdof2su, joint[:i+1], d, curr_w, None, constant_velocity_joint_angle)
-                    error2 = np.sum(np.abs(model_accel - meas_accel))
+                    Tjoints = [TransMat(joint) for joint in joint[:i+1]]
+                    model_accel = self.estimate_acceleration(Tdofs, Tjoints, Tdof2su, d, curr_w, None, constant_velocity_joint_angle)
+                    #error2 = np.sum(np.abs(model_accel - meas_accel))
+                    error2 = np.sum(np.linalg.norm(model_accel - meas_accel))
+                    """
+                    print('Constant [(%.3f,  %.3f, %.3f, %.3f), (%.3f,  %.3f, %.3f, %.3f)]   [(%.3f,  %.3f, %.3f), (%.3f,  %.3f, %.3f)]'%\
+                        (model_q[0], model_q[1], model_q[2], model_q[3], meas_q[0], meas_q[1], meas_q[2], meas_q[3], \
+                            model_accel[0], model_accel[1], model_accel[2], meas_accel[0], meas_accel[1], meas_accel[2]))
+                    """
 
-                    erorrs += error1 + error2
+                    errors += error1 + error2
 
         return errors
 
     def estimate_imu_q(self, Tdofs, Tdof2su, joints):
-        for js in joints: # until ith IMU JOINT
-            T = TransMat(np.zeros(4)) 
-            for Tdof, j in zip(Tdofs, js):
-                T = T.dot(Tdof).dot(TransMat(j))
-            T = T.dot(Tdof2su)
+        T = TransMat(np.zeros(4)) 
+        for Tdof, j in zip(Tdofs, joints):
+            T = T.dot(Tdof).dot(TransMat(j))
+        T = T.dot(Tdof2su)
 
         Rrs2su = T.R.T
         x_rs = np.array([1, 0, 0])
@@ -351,7 +357,6 @@ class KinematicEstimator():
                 max_accel_model = self.estimate_acceleration(Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
                 if p == 0:
                     print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
-                    print(joints)
                 error = np.sum(np.abs(max_accel_train - max_accel_model))
                 e2 += error
 
@@ -499,7 +504,7 @@ class KinematicEstimator():
 
         return accelerometer_positions
 
-def collect_data(robot):
+def load_data(robot):
     """
     Function for collecting acceleration data with poses
 
@@ -520,8 +525,13 @@ def collect_data(robot):
     with open(filepath, 'rb') as f:
         dynamic = pickle.load(f, encoding='latin1')
 
-    Data = namedtuple('Data', 'static dynamic')
-    data = Data(static, dynamic)
+    filename = '_'.join(['constant_data', robot])
+    filepath = os.path.join(directory, filename + '.pickle')
+    with open(filepath, 'rb') as f:
+        constant = pickle.load(f, encoding='latin1')
+
+    Data = namedtuple('Data', 'static dynamic constant')
+    data = Data(static, dynamic, constant)
 
     return data
 
@@ -553,14 +563,9 @@ def load_dhparams(robot):
 if __name__ == '__main__':
     # Need data
     robot = sys.argv[1]
-    measured_data = collect_data(robot)
+    measured_data = load_data(robot)
     dhparams = load_dhparams(robot)
     estimator = KinematicEstimator(measured_data, dhparams)
     estimator.optimize()
     Tdof2dof, Tdof2vdof, Tvdof2su = estimator.get_tmat()
     positions = estimator.get_all_accelerometer_positions()
-    
-    """
-    for ind, point in enumerate(positions):
-        print(str(ind)+'th SU: [%02.2f, %02.2f, %02.2f]'%(point[0], point[1], point[2]))
-    """
