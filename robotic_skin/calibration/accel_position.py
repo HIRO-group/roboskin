@@ -18,6 +18,7 @@ from robotic_skin.calibration.utils import (
     tfquat_to_pyquat,
     quaternion_from_two_vectors
 )
+import rospkg
 # Sawyer IMU Position
 # IMU0: [0.070, -0.000, 0.160]
 # IMU1: [0.086, 0.100, 0.387]
@@ -508,7 +509,8 @@ def collect_data(robot):
     data: Data
         Data includes static and dynamic accelerations data
     """
-    directory = '/home/kandai/catkin_ws/src/ros_robotic_skin/data'
+    ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
+    directory = os.path.join(ros_robotic_skin_path, 'data')
 
     filename = '_'.join(['static_data', robot])
     filepath = os.path.join(directory, filename + '.pickle')
