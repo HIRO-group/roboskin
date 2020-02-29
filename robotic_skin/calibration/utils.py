@@ -2,6 +2,7 @@
 Utilities module for Robotic Skin.
 """
 import numpy as np 
+from pyquaternion import Quaternion
 
 class TransMat():
     """
@@ -22,15 +23,17 @@ class TransMat():
             For DH Parameters, please refer to this video
             https://robotacademy.net.au/lesson/denavit-hartenberg-notation/
         """
+        # if nothing is provided, set to zeros
         if params is None:
             params = np.zeros(4)
-
+        # if bounds are provided, apply to params
         if bounds is not None: 
             params = np.array([np.random.rand()*(high-low) + low for low, high in bounds])
 
         params = np.array(params)
         self.n_params = params.size 
         
+        # only 1,2 and 4 parameters are allowed
         if self.n_params not in [1, 2, 4]:
             raise ValueError('Please provide a valide number of parameters. None, 1, 2 or 4')
         
@@ -229,7 +232,7 @@ class ParameterManager():
     """
     Class for managing DH parameters
     """
-    def __init__(self, n_joint, poses, bounds, bounds_su, dhparams=None):
+    def __init__(self, n_joint, bounds, bounds_su, dhparams=None):
         """
         TODO For now, we assume n_sensor is equal to n_joint
         
@@ -237,13 +240,10 @@ class ParameterManager():
         -----------
         n_joints: int
             Number of joints
-        poses: np.ndarray
-            Poses for n_joints
         bounds: np.ndarray
             Bounds for DH parameters
         """
         self.n_joint = n_joint
-        self.poses = poses
         self.bounds = bounds
         self.bounds_su = bounds_su
         self.dhparams = dhparams 
@@ -255,7 +255,6 @@ class ParameterManager():
 
         self.Tdof2vdof = [TransMat(bounds=bounds_su[:2, :]) for i in range(n_joint)]
         self.Tvdof2su = [TransMat(bounds=bounds_su[2:, :]) for i in range(n_joint)]
-        self.Tposes = [[TransMat(theta) for theta in pose] for pose in poses]
 
     def get_params_at(self, i):
         """
@@ -305,11 +304,9 @@ class ParameterManager():
             Transformation Rotation Matrices for all joints
         """
         if self.dhparams is not None:
-            Tdof2dofs_until_i_joint = self.Tdof2dof[:i+1]
+            return self.Tdof2dof[:i+1]
         else: 
-            Tdof2dofs_until_i_joint = self.Tdof2dof[:max(0, i)]
-
-        return Tdof2dofs_until_i_joint, [self.Tposes[p][:i+1] for p in range(self.poses.shape[0])]
+            return self.Tdof2dof[:max(0, i)]
 
     def set_params_at(self, i, params):
         """
@@ -329,3 +326,25 @@ class ParameterManager():
             self.Tdof2dof[i-1].set_params(params[:4])
             self.Tdof2vdof[i].set_params(params[4:6])
             self.Tvdof2su[i].set_params(params[6:])
+
+def tfquat_to_pyquat(q):
+    return Quaternion(axis=q[:3], angle=q[3]) 
+
+def quaternion_l2_distance(q1, q2):
+    """
+    sources: 
+    - https://fgiesen.wordpress.com/2013/01/07/small-note-on-quaternion-distance-metrics/
+    - http://kieranwynn.github.io/pyquaternion/#accessing-individual-elements
+    """
+    return 2*(1 - np.dot(q1.elements, q2.elements))
+
+def quaternion_from_two_vectors(v1, v2):
+    v1 = v1 / np.linalg.norm(v1)
+    v2 = v2 / np.linalg.norm(v2)
+
+    axis = np.cross(v1, v2)
+    costh = np.dot(v1, v2)
+
+    angle = np.arccos(costh)
+
+    return Quaternion(axis=axis, angle=angle)

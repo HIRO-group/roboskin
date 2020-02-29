@@ -3,7 +3,9 @@ Testing utils module
 """
 import unittest
 import numpy as np
+from robotic_skin.calibration import utils
 from robotic_skin.calibration.utils import TransMat, ParameterManager
+from pyquaternion import Quaternion
 
 N_JOINT = 7
 INIT_POSE = np.zeros(N_JOINT)
@@ -330,26 +332,22 @@ class ParameterManagerTest(unittest.TestCase):
         """
         Test the shape of all lists of TransMat
         """
-        poses = np.array([INIT_POSE, SECOND_POSE])
-        param_manager = ParameterManager(N_JOINT, poses, BOUNDS, BOUNDS_SU)
+        param_manager = ParameterManager(N_JOINT, BOUNDS, BOUNDS_SU)
 
         self.assertEqual(len(param_manager.Tdof2dof), N_JOINT)
         self.assertEqual(len(param_manager.Tdof2vdof), N_JOINT)
         self.assertEqual(len(param_manager.Tvdof2su), N_JOINT)
-        self.assertEqual(len(param_manager.Tposes), 2)
-        self.assertEqual(len(param_manager.Tposes[0]), N_JOINT)
 
     def test_get_params(self):
         """
         Test get_params function
         """
-        poses = np.array([INIT_POSE, SECOND_POSE])
-        param_manager = ParameterManager(N_JOINT, poses, BOUNDS, BOUNDS_SU)
+        param_manager = ParameterManager(N_JOINT, BOUNDS, BOUNDS_SU)
         for i in range(N_JOINT):
             params, _ = param_manager.get_params_at(i=i)
             self.assertEqual(params.size, 10)
         
-        param_manager = ParameterManager(N_JOINT, poses, BOUNDS, BOUNDS_SU, PANDA_DHPARAMS)
+        param_manager = ParameterManager(N_JOINT, BOUNDS, BOUNDS_SU, PANDA_DHPARAMS)
         for i in range(N_JOINT):
             params, _ = param_manager.get_params_at(i=i)
             self.assertEqual(params.size, 6)
@@ -358,31 +356,23 @@ class ParameterManagerTest(unittest.TestCase):
         """
         Test get_tmat_until function
         """
-        poses = np.array([INIT_POSE])
-        param_manager = ParameterManager(N_JOINT, poses, BOUNDS, BOUNDS_SU)
+        param_manager = ParameterManager(N_JOINT, BOUNDS, BOUNDS_SU)
 
-        Tdof, Tposes = param_manager.get_tmat_until(i=0)
+        Tdof = param_manager.get_tmat_until(i=0)
         self.assertEqual(len(Tdof), 0)
-        self.assertEqual(len(Tposes), 1)
-        self.assertEqual(len(Tposes[0]), 1)
 
-        Tdof, Tposes = param_manager.get_tmat_until(i=1)
+        Tdof = param_manager.get_tmat_until(i=1)
         self.assertEqual(len(Tdof), 1)
-        self.assertEqual(len(Tposes), 1)
-        self.assertEqual(len(Tposes[0]), 2)
 
         for i in range(2, N_JOINT): 
-            Tdof, Tposes = param_manager.get_tmat_until(i=i)
+            Tdof = param_manager.get_tmat_until(i=i)
             self.assertEqual(len(Tdof), i)
-            self.assertEqual(len(Tposes), 1)
-            self.assertEqual(len(Tposes[0]), i+1)
     
     def test_set_params(self):
         """
         Test set_params function
         """
-        poses = np.array([INIT_POSE])
-        param_manager = ParameterManager(N_JOINT, poses, BOUNDS, BOUNDS_SU)
+        param_manager = ParameterManager(N_JOINT, BOUNDS, BOUNDS_SU)
 
         raised = False
         try:
@@ -400,6 +390,27 @@ class ParameterManagerTest(unittest.TestCase):
             raised = True
         self.assertFalse(raised, 'Exception raised')
 
+class QuaternionTest(unittest.TestCase):
+    def test_quaternion_l2_distance(self):
+        q1 = Quaternion(axis=[1, 0, 0], angle=np.pi/2)
+        q2 = Quaternion(axis=[0, 1, 0], angle=np.pi/2)
+        
+        error = utils.quaternion_l2_distance(q1, q2)
+        self.assertAlmostEqual(error, 1)
+
+        q1 = Quaternion(axis=[1, 0, 0], angle=np.pi/2)
+        q2 = Quaternion(axis=[1, 0, 0], angle=-np.pi/2)
+
+        error = utils.quaternion_l2_distance(q1, q2)
+        self.assertAlmostEqual(error, 2)
+
+    def test_quaternion_from_two_vectors(self):
+        v1 = np.array([1, 0, 0])
+        v2 = np.array([0, 1, 0])
+        
+        q = utils.quaternion_from_two_vectors(v1, v2)
+
+        assert q == Quaternion(axis=[0, 0, 1], angle=np.pi/2)
 
 if __name__ == '__main__':
     unittest.main()
