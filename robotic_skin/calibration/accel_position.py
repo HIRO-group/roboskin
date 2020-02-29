@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Module for Kinematics Estimation
+Module for Kinematics Estimation.
 """
 import os
 import sys
@@ -8,6 +8,7 @@ from collections import namedtuple
 import pickle
 import numpy as np
 import nlopt
+import rospkg
 from pyquaternion import Quaternion
 
 import robotic_skin
@@ -18,19 +19,26 @@ from robotic_skin.calibration.utils import (
     tfquat_to_pyquat,
     quaternion_from_two_vectors
 )
-import rospkg
 # Sawyer IMU Position
+# THESE ARE THE TRUE VALUES of THE IMU POSITIONS
 # IMU0: [0.070, -0.000, 0.160]
-# IMU1: [0.086, 0.100, 0.387]
+# IMU1: [0.086, 0.100, 0.387] 
 # IMU2: [0.324, 0.191, 0.350]
 # IMU3: [0.485, 0.049, 0.335]
 # IMU4: [0.709, 0.023, 0.312]
 # IMU5: [0.883, 0.154, 0.287]
 # IMU6: [1.087, 0.131, 0.228]
 
-n2s = lambda x, precision=2 :  np.array2string(x, precision=precision, separator=',', suppress_small=True)
+
+# converts numpy array to string
+# this function is just for debugging. 
+# might be better to fit move to utils file
+n2s = lambda x, precision=2 : np.array2string(x, precision=precision, separator=',', suppress_small=True)
 
 def max_acceleration_joint_angle(curr_w, max_w, t):
+    """
+    max acceleration along a joint angle.
+    """
     #th_pattern = np.sign(t) * max_w / (curr_w) * (1 - np.cos(curr_w*t))
     #th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
     th_pattern = max_w / (2*np.pi*C.PATTERN_FREQ) * np.sin(2*np.pi*C.PATTERN_FREQ*t) * t
@@ -90,6 +98,8 @@ class KinematicEstimator():
             [0, np.pi]])        # alpha
         self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, dhparams)
 
+        self.previous_params = None
+
     def optimize(self):
         """
         Optimizes DH parameters using the training data.
@@ -100,7 +110,8 @@ class KinematicEstimator():
         For further explanation, read each function.
         """
         # Optimize each joint (& sensor) at a time from the root
-        for i in range(4, self.n_sensor):
+        # currently starting from 6th skin unit
+        for i in range(1, self.n_sensor):
             print("Optimizing %ith SU ..."%(i))
             params, bounds = self.param_manager.get_params_at(i=i)
             n_param = params.shape[0]
@@ -114,19 +125,23 @@ class KinematicEstimator():
             # The objective function only accepts x and grad arguments. 
             # This is the only way to pass other arguments to opt
             # https://github.com/JuliaOpt/NLopt.jl/issues/27
+            self.previous_params = None 
             opt.set_min_objective(lambda x, grad: self.error_function(x, grad, i, Tdofs))
 
             # Set boundaries
             opt.set_lower_bounds(bounds[:, 0])
             opt.set_upper_bounds(bounds[:, 1])
+            # set stopping threshold
             opt.set_stopval(C.GLOBAL_STOP)
+            opt.set_xtol_rel(C.GLOBAL_XTOL)
             # Need to set a local optimizer for the global optimizer
             local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
-            local_opt.set_stopval(C.LOCAL_STOP)
+            #local_opt.set_stopval(C.LOCAL_STOP)
             opt.set_local_optimizer(local_opt)
 
             params = opt.optimize(params)
             print('='*100)
+            # display the parameters
             print('Parameters', n2s(params, 4))
             pos, vec = self.get_i_accelerometer_position(i)
             print('Position:', pos)
@@ -194,7 +209,13 @@ class KinematicEstimator():
 
         pos, _ = self.get_an_accelerometer_position(Tdofs, Tdof2su)
 
-        print(n2s(e1+e2, 3), n2s(e1, 5), n2s(e2, 3), n2s(params), n2s(pos))
+        if self.previous_params is None:
+            self.xdiff = None
+            self.previous_params = np.array(params)
+        else:
+            self.xdiff = np.linalg.norm(np.array(params) - self.previous_params)
+            self.previous_params = np.array(params)
+        print(n2s(e1+e2, 3), n2s(e1, 5), n2s(e2, 3), n2s(params), n2s(pos), self.xdiff)
         #return e1 + e2
         return e1 + e3
         # return e1
@@ -245,7 +266,7 @@ class KinematicEstimator():
             accel_rs = np.dot(Rsu2rs, accel_su)
             gravities[p, :] = accel_rs
 
-        print('[Static Accel] ', n2s(np.mean(gravities, axis=0), 2), n2s(np.std(gravities, axis=0), 2))
+        # print('[Static Accel] ', n2s(np.mean(gravities, axis=0), 2), n2s(np.std(gravities, axis=0), 2))
 
         #return np.sum(np.linalg.norm(gravities - np.mean(gravities, 0), axis=1))
         #return np.sum(np.linalg.norm(gravities - gravity, axis=1))
@@ -356,8 +377,8 @@ class KinematicEstimator():
                 joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][5:5+i+1]
                 Tjoints = [TransMat(joint) for joint in joints]
                 max_accel_model = self.estimate_acceleration(Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
-                if p == 0:
-                    print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
+                # if p == 0:
+                #     print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
                 error = np.sum(np.abs(max_accel_train - max_accel_model))
                 e2 += error
 
@@ -473,10 +494,12 @@ class KinematicEstimator():
             T = T.dot(Tdof)
         T = T.dot(Tdof2su)
 
-        I = np.eye(3)
-        vectors = np.dot(T.R, I)
+        x_rs = np.array([1, 0, 0])
+        x_su = np.dot(T.R.T, x_rs)
+        x_su = x_su / np.linalg.norm(x_su)
+        q_from_x = quaternion_from_two_vectors(x_rs, x_su)
 
-        return T.position, vectors
+        return T.position, q_from_x
 
     def get_i_accelerometer_position(self, i_sensor):
         T = TransMat(np.zeros(4))
@@ -484,10 +507,12 @@ class KinematicEstimator():
             T = T.dot(self.param_manager.Tdof2dof[j])
         T = T.dot(self.param_manager.Tdof2vdof[i_sensor]).dot(self.param_manager.Tvdof2su[i_sensor])
 
-        I = np.eye(3)
-        vectors = np.dot(T.R, I)
+        x_rs = np.array([1, 0, 0])
+        x_su = np.dot(T.R.T, x_rs)
+        x_su = x_su / np.linalg.norm(x_su)
+        q_from_x = quaternion_from_two_vectors(x_rs, x_su)
 
-        return T.position, vectors
+        return T.position, q_from_x 
     
     def get_all_accelerometer_positions(self):
         """
@@ -498,12 +523,12 @@ class KinematicEstimator():
         positions: np.ndarray
             All accelerometer positions
         """
-        accelerometer_positions = np.zeros((self.n_sensor, 3))
+        accelerometer_poses = np.zeros((self.n_sensor, 7))
         for i in range(self.n_sensor):
-            position, _ = self.get_i_accelerometer_position(i)
-            accelerometer_positions[i, :] = position
+            position, quaternion = self.get_i_accelerometer_position(i)
+            accelerometer_poses[i, :] = np.r_[position, quaternion]
 
-        return accelerometer_positions
+        return accelerometer_poses
 
 def load_data(robot):
     """
@@ -514,8 +539,7 @@ def load_data(robot):
     data: Data
         Data includes static and dynamic accelerations data
     """
-    ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
-    directory = os.path.join(ros_robotic_skin_path, 'data')
+    directory = os.path.join(rospkg.RosPack().get_path('ros_robotic_skin'), 'data')
 
     filename = '_'.join(['static_data', robot])
     filepath = os.path.join(directory, filename + '.pickle')
@@ -562,12 +586,19 @@ def load_dhparams(robot):
 
     return dhparams
 
+
 if __name__ == '__main__':
     # Need data
     robot = sys.argv[1]
     measured_data = load_data(robot)
     dhparams = load_dhparams(robot)
+
     estimator = KinematicEstimator(measured_data, dhparams)
     estimator.optimize()
-    Tdof2dof, Tdof2vdof, Tvdof2su = estimator.get_tmat()
-    positions = estimator.get_all_accelerometer_positions()
+
+    data = estimator.get_all_accelerometer_positions()
+    
+    save_path = sys.argv[2]
+    ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
+    save_path = os.path.join(ros_robotic_skin_path, save_path)
+    np.savetxt(save_path, data)

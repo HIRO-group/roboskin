@@ -23,15 +23,17 @@ class TransMat():
             For DH Parameters, please refer to this video
             https://robotacademy.net.au/lesson/denavit-hartenberg-notation/
         """
+        # if nothing is provided, set to zeros
         if params is None:
             params = np.zeros(4)
-
+        # if bounds are provided, apply to params
         if bounds is not None: 
             params = np.array([np.random.rand()*(high-low) + low for low, high in bounds])
 
         params = np.array(params)
         self.n_params = params.size 
         
+        # only 1,2 and 4 parameters are allowed
         if self.n_params not in [1, 2, 4]:
             raise ValueError('Please provide a valide number of parameters. None, 1, 2 or 4')
         
