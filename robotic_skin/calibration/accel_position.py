@@ -231,7 +231,7 @@ class KinematicEstimator():
         print(n2s(e1+e3, 3), n2s(e1, 5), n2s(e3, 3), n2s(params), n2s(pos), self.xdiff)
         #return e1 + e2
         if len(self.parameter_diffs) >= 10:
-            if np.sum(self.parameter_diffs[-11:-1]) <= 0.1:
+            if np.sum(self.parameter_diffs[-11:-1]) <= 0.3:
                 return 0.00001
     
         return e1 + e3
@@ -625,5 +625,5 @@ if __name__ == '__main__':
     
     save_path = sys.argv[2]
     ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
-    save_path = os.path.join(ros_robotic_skin_path, save_path)
+    save_path = os.path.join(ros_robotic_skin_path, 'data', save_path)
     np.savetxt(save_path, data)
