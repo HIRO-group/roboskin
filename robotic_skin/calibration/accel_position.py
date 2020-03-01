@@ -6,6 +6,7 @@ import os
 import sys
 from collections import namedtuple
 import pickle
+import matplotlib.pyplot as plt
 import numpy as np
 import nlopt
 import rospkg
@@ -68,6 +69,8 @@ class KinematicEstimator():
         # Assume n_sensor is equal to n_joint for now
         self.data = data
         self.dhparams = dhparams
+        self.parameter_diffs = np.array([])
+        self.diffs_accum = 0
 
         self.pose_names = list(data.dynamic.keys())
         self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
@@ -112,10 +115,11 @@ class KinematicEstimator():
         # Optimize each joint (& sensor) at a time from the root
         # currently starting from 6th skin unit
         for i in range(1, self.n_sensor):
+            self.parameter_diffs = np.array([])
+
             print("Optimizing %ith SU ..."%(i))
             params, bounds = self.param_manager.get_params_at(i=i)
             n_param = params.shape[0]
-
             Tdofs = self.param_manager.get_tmat_until(i)
 
             assert len(Tdofs) == i + 1, 'Size of Tdofs supposed to be %i, but %i'%(i+1, len(Tdofs))
@@ -127,27 +131,32 @@ class KinematicEstimator():
             # https://github.com/JuliaOpt/NLopt.jl/issues/27
             self.previous_params = None 
             opt.set_min_objective(lambda x, grad: self.error_function(x, grad, i, Tdofs))
-
             # Set boundaries
             opt.set_lower_bounds(bounds[:, 0])
             opt.set_upper_bounds(bounds[:, 1])
             # set stopping threshold
             opt.set_stopval(C.GLOBAL_STOP)
-            opt.set_xtol_rel(C.GLOBAL_XTOL)
+            # opt.set_maxeval(5)
             # Need to set a local optimizer for the global optimizer
             local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
             #local_opt.set_stopval(C.LOCAL_STOP)
+            # local_opt.set_xtol_abs(1)
+            
             opt.set_local_optimizer(local_opt)
-
+            
+            # this is where most of the time is spent - in optimization
             params = opt.optimize(params)
             print('='*100)
             # display the parameters
             print('Parameters', n2s(params, 4))
             pos, vec = self.get_i_accelerometer_position(i)
             print('Position:', pos)
-            print(n2s(vec[:, 0]))
-            print(n2s(vec[:, 1]))
-            print(n2s(vec[:, 2]))
+            print(vec[0])
+            print(vec[1])
+            print(vec[2])
+
+            print(vec[3])
+
             print('='*100)
             # save the optimized parameter to the parameter manager
             self.param_manager.set_params_at(i, params)
@@ -215,10 +224,17 @@ class KinematicEstimator():
         else:
             self.xdiff = np.linalg.norm(np.array(params) - self.previous_params)
             self.previous_params = np.array(params)
-        print(n2s(e1+e2, 3), n2s(e1, 5), n2s(e2, 3), n2s(params), n2s(pos), self.xdiff)
+        if self.xdiff is not None:
+            self.parameter_diffs = np.append(self.parameter_diffs, self.xdiff)
+        # get the difference in parameters
+
+        print(n2s(e1+e3, 3), n2s(e1, 5), n2s(e3, 3), n2s(params), n2s(pos), self.xdiff)
         #return e1 + e2
+        if len(self.parameter_diffs) >= 10:
+            if np.sum(self.parameter_diffs[-11:-1]) <= 0.1:
+                return 0.00001
+    
         return e1 + e3
-        # return e1
 
     def static_error_function(self, i, Tdofs, Tdof2su):
         """ 
@@ -526,9 +542,15 @@ class KinematicEstimator():
         accelerometer_poses = np.zeros((self.n_sensor, 7))
         for i in range(self.n_sensor):
             position, quaternion = self.get_i_accelerometer_position(i)
-            accelerometer_poses[i, :] = np.r_[position, quaternion]
+            print(np.r_[position, quaternion.elements])
+            accelerometer_poses[i, :] = np.r_[position, quaternion.elements]
 
         return accelerometer_poses
+    
+    def plot_param_diffs(self):
+        plt.plot(self.parameter_diffs)
+        plt.title("Parameter Differences")
+        plt.show()
 
 def load_data(robot):
     """
@@ -595,6 +617,9 @@ if __name__ == '__main__':
 
     estimator = KinematicEstimator(measured_data, dhparams)
     estimator.optimize()
+
+    # plot the differences
+    estimator.plot_param_diffs()
 
     data = estimator.get_all_accelerometer_positions()
     
