@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import nlopt
 import rospkg
-from pyquaternion import Quaternion
+import pyquaternion as pyqt
 
 import robotic_skin
 import robotic_skin.const as C
@@ -18,6 +18,7 @@ from robotic_skin.calibration.utils import (
     TransMat, 
     ParameterManager, 
     tfquat_to_pyquat,
+    pyquat_to_numpy,
     quaternion_from_two_vectors
 )
 # Sawyer IMU Position
@@ -149,13 +150,9 @@ class KinematicEstimator():
             # display the parameters
             print('Parameters', n2s(params, 4))
             self.param_manager.set_params_at(i, params)
-            pos, vec = self.get_i_accelerometer_position(i)
+            pos, quat = self.get_i_accelerometer_position(i)
             print('Position:', pos)
-            print(vec[0])
-            print(vec[1])
-            print(vec[2])
-            print(vec[3])
-
+            print('Quaternion:', quat)
             print('='*100)
             # save the optimized parameter to the parameter manager
 
@@ -214,7 +211,7 @@ class KinematicEstimator():
         e2 = self.dynamic_error_function(i, Tdofs, Tdof2su)
         e3 = self.rotation_error_function(i, Tdofs, Tdof2su)
 
-        pos, _ = self.get_an_accelerometer_position(Tdofs, Tdof2su)
+        pos, quat = self.get_an_accelerometer_position(Tdofs, Tdof2su)
 
         if self.previous_params is None:
             self.xdiff = None
@@ -226,7 +223,7 @@ class KinematicEstimator():
             self.parameter_diffs = np.append(self.parameter_diffs, self.xdiff)
         # get the difference in parameters
 
-        print(n2s(e1+e3, 3), n2s(e1, 5), n2s(e3, 3), n2s(params), n2s(pos), self.xdiff)
+        print(n2s(e1+e3, 3), n2s(e1, 5), n2s(e3, 3), n2s(params), n2s(pos), n2s(quat))
         #return e1 + e2
         if len(self.parameter_diffs) >= 10:
             if np.sum(self.parameter_diffs[-11:-1]) <= 0.3:
@@ -319,7 +316,7 @@ class KinematicEstimator():
                     # Orientation Error
                     model_q = self.estimate_imu_q(Tdofs, Tdof2su, joint[:i+1])
                     meas_q = tfquat_to_pyquat(meas_q)
-                    error1 = Quaternion.absolute_distance(model_q, meas_q)
+                    error1 = pyqt.Quaternion.absolute_distance(model_q, meas_q)
 
                     # Acceleration Error
                     Tjoints = [TransMat(joint) for joint in joint[:i+1]]
@@ -358,9 +355,9 @@ class KinematicEstimator():
         q_from_z = quaternion_from_two_vectors(z_rs, z_su)
 
         # TODO: Find a way to average all the estimated quaternions
-        # q = Quaternion.average([q_from_x, q_from_y, q_from_z])
+        # q = pyqt.Quaternion.average([q_from_x, q_from_y, q_from_z])
 
-        return q_from_z
+        return q_from_x
 
     def dynamic_error_function(self, i, Tdofs, Tdof2su):
         """
@@ -511,24 +508,24 @@ class KinematicEstimator():
 
         x_rs = np.array([1, 0, 0])
         x_su = np.dot(T.R.T, x_rs)
-        x_su = x_su / np.linalg.norm(x_su)
-        q_from_x = quaternion_from_two_vectors(x_rs, x_su)
-        return T.position, q_from_x
+        q_from_x = quaternion_from_two_vectors(x_su, x_rs)
+        q = pyquat_to_numpy(q_from_x)
+
+        return T.position, q
 
     def get_i_accelerometer_position(self, i_sensor):
         T = TransMat(np.zeros(4))
         for j in range(i_sensor+1):
             T = T.dot(self.param_manager.Tdof2dof[j])
-        intermediate = self.param_manager.Tdof2vdof[i_sensor].dot(self.param_manager.Tvdof2su[i_sensor])
-        T = T.dot(intermediate)
-
+        T = T.dot(self.param_manager.Tdof2vdof[i_sensor].dot(self.param_manager.Tvdof2su[i_sensor]))
 
         x_rs = np.array([1, 0, 0])
         x_su = np.dot(T.R.T, x_rs)
         x_su = x_su / np.linalg.norm(x_su)
         q_from_x = quaternion_from_two_vectors(x_rs, x_su)
+        q = pyquat_to_numpy(q_from_x)
 
-        return T.position, q_from_x 
+        return T.position, q
     
     def get_all_accelerometer_positions(self):
         """
@@ -542,8 +539,8 @@ class KinematicEstimator():
         accelerometer_poses = np.zeros((self.n_sensor, 7))
         for i in range(self.n_sensor):
             position, quaternion = self.get_i_accelerometer_position(i)
-            print(np.r_[position, quaternion.elements])
-            accelerometer_poses[i, :] = np.r_[position, quaternion.elements]
+            print(np.r_[position, quaternion])
+            accelerometer_poses[i, :] = np.r_[position, quaternion]
 
         return accelerometer_poses
     

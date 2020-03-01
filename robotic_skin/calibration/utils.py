@@ -2,7 +2,8 @@
 Utilities module for Robotic Skin.
 """
 import numpy as np 
-from pyquaternion import Quaternion
+import pyquaternion as pyqt
+from geometry_msgs.msg import Quaternion
 
 class TransMat():
     """
@@ -328,7 +329,15 @@ class ParameterManager():
             self.Tvdof2su[i].set_params(params[6:])
 
 def tfquat_to_pyquat(q):
-    return Quaternion(axis=q[:3], angle=q[3]) 
+    return pyqt.Quaternion(axis=q[:3], angle=q[3]) 
+
+def pyquat_to_tfquat(q):
+    q = q.elements
+    return Quaternion(q[1], q[2], q[3], q[0])
+
+def pyquat_to_numpy(q):
+    q = q.elements
+    return np.array([q[1], q[2], q[3], q[0]])
 
 def quaternion_l2_distance(q1, q2):
     """
@@ -347,4 +356,4 @@ def quaternion_from_two_vectors(v1, v2):
 
     angle = np.arccos(costh)
 
-    return Quaternion(axis=axis, angle=angle)
+    return pyqt.Quaternion(axis=axis, angle=angle)
