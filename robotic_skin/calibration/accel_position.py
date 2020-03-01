@@ -136,8 +136,6 @@ class KinematicEstimator():
             opt.set_upper_bounds(bounds[:, 1])
             # set stopping threshold
             opt.set_stopval(C.GLOBAL_STOP)
-            # func
-            opt.set_xtol_rel(C.GLOBAL_XTOL)
             # opt.set_maxeval(5)
             # Need to set a local optimizer for the global optimizer
             local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
@@ -233,7 +231,7 @@ class KinematicEstimator():
         print(n2s(e1+e3, 3), n2s(e1, 5), n2s(e3, 3), n2s(params), n2s(pos), self.xdiff)
         #return e1 + e2
         if len(self.parameter_diffs) >= 10:
-            if np.sum(self.parameter_diffs[-11:-1]) <= 0.01:
+            if np.sum(self.parameter_diffs[-11:-1]) <= 0.1:
                 return 0.00001
     
         return e1 + e3
