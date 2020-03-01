@@ -149,17 +149,16 @@ class KinematicEstimator():
             print('='*100)
             # display the parameters
             print('Parameters', n2s(params, 4))
+            self.param_manager.set_params_at(i, params)
             pos, vec = self.get_i_accelerometer_position(i)
             print('Position:', pos)
             print(vec[0])
             print(vec[1])
             print(vec[2])
-
             print(vec[3])
 
             print('='*100)
             # save the optimized parameter to the parameter manager
-            self.param_manager.set_params_at(i, params)
 
     def error_function(self, params, grad, i, Tdofs):
         """
@@ -508,20 +507,22 @@ class KinematicEstimator():
         T = TransMat(np.zeros(4))
         for Tdof in Tdofs:
             T = T.dot(Tdof)
+
         T = T.dot(Tdof2su)
 
         x_rs = np.array([1, 0, 0])
         x_su = np.dot(T.R.T, x_rs)
         x_su = x_su / np.linalg.norm(x_su)
         q_from_x = quaternion_from_two_vectors(x_rs, x_su)
-
         return T.position, q_from_x
 
     def get_i_accelerometer_position(self, i_sensor):
         T = TransMat(np.zeros(4))
-        for j in range(i_sensor):
+        for j in range(i_sensor+1):
             T = T.dot(self.param_manager.Tdof2dof[j])
-        T = T.dot(self.param_manager.Tdof2vdof[i_sensor]).dot(self.param_manager.Tvdof2su[i_sensor])
+        intermediate = self.param_manager.Tdof2vdof[i_sensor].dot(self.param_manager.Tvdof2su[i_sensor])
+        T = T.dot(intermediate)
+
 
         x_rs = np.array([1, 0, 0])
         x_su = np.dot(T.R.T, x_rs)
