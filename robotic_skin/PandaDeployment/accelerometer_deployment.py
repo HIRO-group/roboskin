@@ -19,16 +19,17 @@ if __name__ == "__main__":
     r = rospy.Rate(100)
     imu_msg0 = Imu()
     imu_msg1 = Imu()
+    GRAVITATIONAL_CONSTANT = 9.819
     while not rospy.is_shutdown():
         data0_list = accel_0.read()
         data1_list = accel_1.read()
-        imu_msg0.linear_acceleration.x = data0_list[0]
-        imu_msg0.linear_acceleration.y = data0_list[1]
-        imu_msg0.linear_acceleration.z = data0_list[2]
+        imu_msg0.linear_acceleration.x = data0_list[0] * GRAVITATIONAL_CONSTANT
+        imu_msg0.linear_acceleration.y = data0_list[1] * GRAVITATIONAL_CONSTANT
+        imu_msg0.linear_acceleration.z = data0_list[2] * GRAVITATIONAL_CONSTANT
         pub0.publish(imu_msg0)
-        imu_msg1.linear_acceleration.x = data1_list[0]
-        imu_msg1.linear_acceleration.y = data1_list[1]
-        imu_msg1.linear_acceleration.z = data1_list[2]
+        imu_msg1.linear_acceleration.x = data1_list[0] * GRAVITATIONAL_CONSTANT
+        imu_msg1.linear_acceleration.y = data1_list[1] * GRAVITATIONAL_CONSTANT
+        imu_msg1.linear_acceleration.z = data1_list[2] * GRAVITATIONAL_CONSTANT
         pub1.publish(imu_msg0)
         r.sleep()
 
