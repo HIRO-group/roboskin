@@ -36,8 +36,9 @@ class VL53L1X_ProximitySensor(Sensor):
         self.tof.open()
         if range_value in (1, 2, 3):
             self.tof.start_ranging(range_value)
+            self.tof.set_timing(22000, 100)
         else:
-            raise "The range value passed is not 1 or 2 or 3"
+            raise Exception("The range value passed is not 1 or 2 or 3")
 
     def calibrate(self):
         """
