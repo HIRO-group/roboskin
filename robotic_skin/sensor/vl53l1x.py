@@ -11,7 +11,7 @@ class VL53L1X_ProximitySensor(Sensor):
     """
     Code for VL53L1X distance sensor class.
     """
-    def __init__(self, i2c_bus=1, i2c_address=0x29, range_value=0, timing_budget=33000, inter_measurement_period=33):
+    def __init__(self, i2c_bus=1, i2c_address=0x29, range_value=3, timing_budget=100000, inter_measurement_period = 100):
         """
         Initialize the VL53L1X sensor, test if the python code can reach it or not, if not throw an exception
         Parameters
@@ -26,7 +26,7 @@ class VL53L1X_ProximitySensor(Sensor):
             now
         range_value : int
             The proximity sensor has 3 ranges, according to the Python Library:
-                None = 0 (Set this if you want to set timing budgets yourself)
+                NONE = 0
                 SHORT = 1
                 MEDIUM = 2
                 LONG = 3
@@ -43,25 +43,11 @@ class VL53L1X_ProximitySensor(Sensor):
         self.tof = VL53L1X.VL53L1X(i2c_bus, i2c_address)
         self.tof.open()
         if range_value in (0, 1, 2, 3):
-            # Either use inbuilt range values provided by the vl53l1x library
-            # Or set it to 0 and use your own timing budget values
-            if range_value == 0:
-                self.tof.start_ranging(range_value)
-                self.tof.set_timing(timing_budget, inter_measurement_period)
-            else:
-                self.tof.start_ranging(range_value)
+            self.tof.start_ranging(range_value)
+            self.tof.set_timing(timing_budget, inter_measurement_period)
         else:
-            raise Exception("The range value passed is not 1 or 2 or 3")
+            raise "The range value passed is not 0 or 1 or 2 or 3"
 
-    def calibrate(self):
-        """
-        This is the calibration function.
-        # TODO: Decide whether you have to implement it or not
-        Returns
-        -------
-        None
-        """
-     
     def _read_raw(self):
         """
         This is a function which reads the raw values from the sensor, and gives them back to you, unchanged
@@ -71,7 +57,6 @@ class VL53L1X_ProximitySensor(Sensor):
         float
             Raw sensor reading from the proximity sensor
         """
-        # get_distance get's the distance in mm
         return self.tof.get_distance()
 
     def _calibrate_values(self, input_value):
@@ -86,9 +71,8 @@ class VL53L1X_ProximitySensor(Sensor):
         float
             Corrected value from raw value
         """
-        # To Get distance in metres according to ROS msg standards
-        # http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Range.html
-        return input_value/1000
+        #TODO 
+        return input_value
 
     def read(self):
         """
