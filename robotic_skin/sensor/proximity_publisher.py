@@ -3,12 +3,13 @@
 """
 This is a ROS proximity data publisher
 """
+import sys
 import rospy
 from std_msgs.msg import Int16
 import vl53l1x
 
 
-def publish_proximity():
+def publish_proximity(debug=False):
     """
     publish_proximity() function
     """
@@ -19,14 +20,18 @@ def publish_proximity():
 
     while not rospy.is_shutdown():
         proximity = ps.read()
-        print(proximity, type(proximity))
+        
+        if debug:
+            print(proximity)
+        
         pub.publish(proximity)
         rate.sleep()
     ps.stop()
 
 if __name__ == "__main__":
     try: 
-        publish_proximity()
+        debug = sys.argv[1]
+        publish_proximity(debug)
     except rospy.ROSInterruptException:
         print("Stopped publishing proximity data")
         
