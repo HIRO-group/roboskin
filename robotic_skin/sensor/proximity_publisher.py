@@ -1,12 +1,19 @@
 #!/usr/bin/env python
 
+"""
+This is a ROS proximity data publisher
+"""
 import rospy
-import vl53l1x
 from std_msgs.msg import Int16
+import vl53l1x
+
 
 def publish_proximity():
-    pub = rospy.Publisher('/proximity/y', Int16, queue_size=10)
+    """
+    publish_proximity() function
+    """
     rospy.init_node('proximity_publisher', anonymous=True)
+    pub = rospy.Publisher('/proximity/y', Int16, queue_size=10)
     rate = rospy.Rate(100) #10hz
     ps = vl53l1x.VL53L1X_ProximitySensor()
 
@@ -21,4 +28,5 @@ if __name__ == "__main__":
     try: 
         publish_proximity()
     except rospy.ROSInterruptException:
-        pass
+        print("Stopped publishing proximity data")
+        
