@@ -46,8 +46,17 @@ class VL53L1X_ProximitySensor(Sensor):
             self.tof.start_ranging(range_value)
             self.tof.set_timing(timing_budget, inter_measurement_period)
         else:
-            raise "The range value passed is not 0 or 1 or 2 or 3"
+            raise Exception("The range value passed is not 0 or 1 or 2 or 3")
 
+    def calibrate(self):
+        """
+        This is the calibration function.
+        # TODO: Decide whether you have to implement it or not
+        Returns
+        -------
+        None
+        """
+     
     def _read_raw(self):
         """
         This is a function which reads the raw values from the sensor, and gives them back to you, unchanged
