@@ -26,7 +26,6 @@ class VL53L1X_ProximitySensor(Sensor):
             now
         range_value : int
             The proximity sensor has 3 ranges, according to the Python Library:
-                NONE = 0
                 SHORT = 1
                 MEDIUM = 2
                 LONG = 3
@@ -42,12 +41,21 @@ class VL53L1X_ProximitySensor(Sensor):
         super().__init__()
         self.tof = VL53L1X.VL53L1X(i2c_bus, i2c_address)
         self.tof.open()
-        if range_value in range(4):
+        if range_value in (1, 2, 3):
             self.tof.start_ranging(range_value)
             self.tof.set_timing(timing_budget, inter_measurement_period)
         else:
-            raise "The range value passed is not 0 or 1 or 2 or 3"
+            raise Exception("The range value passed is not 1 or 2 or 3")
 
+    def calibrate(self):
+        """
+        This is the calibration function.
+        # TODO: Decide whether you have to implement it or not
+        Returns
+        -------
+        None
+        """
+     
     def _read_raw(self):
         """
         This is a function which reads the raw values from the sensor, and gives them back to you, unchanged
