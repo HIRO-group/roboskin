@@ -3,7 +3,7 @@
 """
 This is a ROS proximity data publisher
 """
-import sys
+import argparse
 import rospy
 from std_msgs.msg import Int16
 import vl53l1x
@@ -30,8 +30,10 @@ def publish_proximity(debug=False):
 
 if __name__ == "__main__":
     try: 
-        debug = sys.argv[1]
-        publish_proximity(debug)
+        parser = argparse.ArgumentParser()
+        parser.add_argument("debug", debug=True)
+        args = parser.parse_args()
+        publish_proximity(args.debug)
     except rospy.ROSInterruptException:
         print("Stopped publishing proximity data")
         
