@@ -32,6 +32,7 @@ class VL53L1X_ProximitySensor(Sensor):
             By default it's kept to long range
         """
         super().__init__()
+        print("Yes local is initialized")
         self.tof = VL53L1X.VL53L1X(i2c_bus, i2c_address)
         self.tof.open()
         if range_value in (1, 2, 3):
