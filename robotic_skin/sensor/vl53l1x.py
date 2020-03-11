@@ -11,7 +11,7 @@ class VL53L1X_ProximitySensor(Sensor):
     """
     Code for VL53L1X distance sensor class.
     """
-    def __init__(self, i2c_bus=1, i2c_address=0x29, range_value=3, timing_budget=33000, inter_measurement_period=33):
+    def __init__(self, i2c_bus=1, i2c_address=0x29, range_value=0, timing_budget=33000, inter_measurement_period=33):
         """
         Initialize the VL53L1X sensor, test if the python code can reach it or not, if not throw an exception
         Parameters
@@ -41,7 +41,7 @@ class VL53L1X_ProximitySensor(Sensor):
         super().__init__()
         self.tof = VL53L1X.VL53L1X(i2c_bus, i2c_address)
         self.tof.open()
-        if range_value in (1, 2, 3):
+        if range_value in (0, 1, 2, 3):
             self.tof.start_ranging(range_value)
             self.tof.set_timing(timing_budget, inter_measurement_period)
         else:
