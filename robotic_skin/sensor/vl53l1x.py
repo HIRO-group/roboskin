@@ -29,7 +29,7 @@ class VL53L1X_ProximitySensor(Sensor):
                 None = 0 (Set this if you want to set timing budgets yourself)
                 SHORT = 1
                 MEDIUM = 2
-                LONG = 3K
+                LONG = 3
             Link: https://pypi.org/project/VL53L1X/
             By default it's kept to long range
         timing_budget : int
@@ -85,7 +85,9 @@ class VL53L1X_ProximitySensor(Sensor):
         float
             Corrected value from raw value
         """
-        return input_value
+        # To Get distance in metres according to ROS msg standards
+        # http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Range.html
+        return input_value/1000
 
     def read(self):
         """
