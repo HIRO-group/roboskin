@@ -32,4 +32,3 @@ if __name__ == "__main__":
         imu_msg1.linear_acceleration.z = data1_list[2] * GRAVITATIONAL_CONSTANT
         pub1.publish(imu_msg0)
         r.sleep()
-

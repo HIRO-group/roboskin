@@ -30,6 +30,7 @@ start = time.time()
 YMAX = -np.inf
 YMIN = np.inf
 
+
 def init():
     """
     set empty data for line
@@ -41,8 +42,9 @@ def init():
     line[0].set_data([], [])
     line[1].set_data([], [])
     line[2].set_data([], [])
-        
+
     return line
+
 
 def animate(T_arr, X_arr, Y_arr, Z_arr):
     """
@@ -55,14 +57,14 @@ def animate(T_arr, X_arr, Y_arr, Z_arr):
     now = time.time()
     t = now - start
     data = accelerometer.read()
-        
+
     # print('T:%03d, X:%04d, Y:%04d, Z:%04d'%(t, x, y, z))
-        
+
     T_arr.append(t)
     X_arr.append(data[0])
     Y_arr.append(data[1])
     Z_arr.append(data[2])
-    
+
     if len(T_arr) > 20:
         T_arr = T_arr[-20:]
         X_arr = X_arr[-20:]
@@ -71,7 +73,7 @@ def animate(T_arr, X_arr, Y_arr, Z_arr):
 
     # assume x is larger than 0
     xlim = [np.min(T_arr)-1, np.max(T_arr)+1]
-       
+
     # compute ylim
     ylim = [-2, 2]
 
@@ -87,6 +89,7 @@ def animate(T_arr, X_arr, Y_arr, Z_arr):
     ax2.set_ylim(ylim)
 
     return line
+
 
 print('start animation')
 anim = animation.FuncAnimation(fig, animate, fargs=(T, X, Y, Z, accelerometer, start, YMIN, YMAX), interval=int(1000/FREQ))

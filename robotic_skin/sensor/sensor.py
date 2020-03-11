@@ -1,6 +1,8 @@
 """
 Generic Sensor Module
 """
+
+
 class Sensor():
     """
     Sensor Class
@@ -20,4 +22,3 @@ class Sensor():
         Fetch sensor data
         """
         raise NotImplementedError()
-        

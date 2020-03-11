@@ -278,7 +278,7 @@ class ConvertToLT:
             for j in range(i+1, cols):
                 if input_array[i][j] != 0:
                     return False
- 
+
         return True
 
     def is_matrix_lt_convertible(self, input_array):

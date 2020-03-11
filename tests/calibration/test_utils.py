@@ -5,6 +5,7 @@ import unittest
 import numpy as np
 from robotic_skin.calibration import utils
 from robotic_skin.calibration.utils import TransMat, ParameterManager
+
 from pyquaternion import Quaternion
 
 N_JOINT = 7
@@ -16,13 +17,13 @@ BOUNDS = np.array([
     [0.0, 1.0],         # a
     [-np.pi, np.pi]])   # alpha
 BOUNDS_SU = np.array([
-    [-np.pi, np.pi],    # th 
+    [-np.pi, np.pi],    # th
     [-1.0, 1.0],        # d
     [-np.pi, np.pi],    # th
     [0.0, 0.2],         # d
     [0.0, 0.0001],      # a     # 0 gives error
     [0, np.pi]])        # alpha
-    
+
 PANDA_DHPARAMS = np.array([
     [0, 0.333,  0,          0],
     [0, 0,      0,          -np.pi/2],
@@ -43,6 +44,7 @@ SAWYER_DHPARAMS = np.array([
     [np.pi,     0.13375,    0,      np.pi/2]
 ])
 
+
 class TransMatTest(unittest.TestCase):
     """
     Transformation Matrix Test Class
@@ -60,7 +62,7 @@ class TransMatTest(unittest.TestCase):
         """
         T = TransMat(np.random.rand(1))
         self.assertEqual(T.n_params, 1)
-        
+
         T = TransMat(np.random.rand(2))
         self.assertEqual(T.n_params, 2)
 
@@ -68,16 +70,19 @@ class TransMatTest(unittest.TestCase):
         self.assertEqual(T.n_params, 4)
 
     def test_bound(self):
+        """
+        Test bounds of transformation matrix
+        """
         iterations = 100
 
-        for i in range(iterations):
+        for _ in range(iterations):
             T = TransMat(bounds=BOUNDS)
             for parameter, bound in zip(T.parameters, BOUNDS):
                 self.assertTrue(bound[0] <= parameter <= bound[1])
 
     def test_wrong_number_of_params(self):
         """
-        Test if a constructor outputs error 
+        Test if a constructor outputs error
         if other than 1, 2, 4 params are given
         """
         self.assertRaises(ValueError, TransMat, np.random.rand(3))
@@ -91,7 +96,7 @@ class TransMatTest(unittest.TestCase):
 
     def test_position_shape(self):
         """
-        Test the shape of the resulting positions 
+        Test the shape of the resulting positions
         """
         T = TransMat(np.zeros(4))
         self.assertEqual(T.position.shape, np.zeros(3).shape)
@@ -107,7 +112,7 @@ class TransMatTest(unittest.TestCase):
         raised = False
         try:
             positions[0, :] = T.position
-        except:
+        except Exception:
             raised = True
 
         self.assertFalse(raised, 'Exception raised')
@@ -124,7 +129,7 @@ class TransMatTest(unittest.TestCase):
             [0, 0, 1]
         ])
         np.testing.assert_array_almost_equal(T.R, expected_R)
-        
+
         # -90 Deg
         T = TransMat(np.array([-np.pi/2, 0, 0, 0]))
         expected_R = np.array([
@@ -155,7 +160,7 @@ class TransMatTest(unittest.TestCase):
             [0, 1, 0]
         ])
         np.testing.assert_array_almost_equal(T.R, expected_R)
-        
+
         # -90 Deg
         T = TransMat(np.array([0, 0, 0, -np.pi/2]))
         expected_R = np.array([
@@ -176,7 +181,7 @@ class TransMatTest(unittest.TestCase):
 
     def test_dot_product(self):
         """
-        Test the tranformation order. 
+        Test the tranformation order.
         Checks whether it rotates T1 first and then T2.
         This also checks whether each TransMat rotates X first and then Z
         It should look like
@@ -185,13 +190,13 @@ class TransMatTest(unittest.TestCase):
             |    /
             |   / 45 degrees (+ 2 )
             -------->
-              2 
+              2
         The resulting position should be [0, 2*sqrt(2)]
         """
-        # 1. Translate x axis for 2 
+        # 1. Translate x axis for 2
         # 2. Rotates 45 degrees + Translate z axis for 4
         T1 = TransMat(np.array([np.pi/4, 4, 2, 0]))
-        # 1. Translate x axis for 2 
+        # 1. Translate x axis for 2
         # 2. Rotates 90 degrees + Translate z axis for 4
         T2 = TransMat(np.array([np.pi/2, 4, 2, 0]))
         T3 = T1.dot(T2)
@@ -227,7 +232,7 @@ class TransMatTest(unittest.TestCase):
 
     def test_vector_rotation_with_joint_rotation(self):
         """
-        1. Rotate 90 deg around the motor axis. 
+        1. Rotate 90 deg around the motor axis.
         2. Rotate 90 deg around the same axis (for SU)
         3. Rotate 90 deg around X axis (for SU)
         """
@@ -258,7 +263,7 @@ class TransMatTest(unittest.TestCase):
         Tvdof2su = TransMat(np.array([0, 0.03, 0, np.pi/2]))
 
         # Tansform  from world to end-effector's IMU
-        T = TransMat(np.zeros(4)) 
+        T = TransMat(np.zeros(4))
         for Tdof, Tjoint in zip(Tdofs, Tjoints):
             T = T.dot(Tdof).dot(Tjoint)
         T = T.dot(Tdof2vdof).dot(Tvdof2su)
@@ -266,7 +271,6 @@ class TransMatTest(unittest.TestCase):
         # Given by TF: Just run `rosrun tf tf_echo /world /imu_link6`
         expected_position = [0.125, 0.020, 0.891]
         np.testing.assert_array_almost_equal(T.position, expected_position, decimal=1)
-
 
         # DEG == 90
         joint_angles = [0, np.pi/2, 0, 0, 0, 0, 0]
@@ -276,7 +280,7 @@ class TransMatTest(unittest.TestCase):
         Tvdof2su = TransMat(np.array([0, 0.03, 0, np.pi/2]))
 
         # Tansform  from world to end-effector's IMU
-        T = TransMat(np.zeros(4)) 
+        T = TransMat(np.zeros(4))
         for Tdof, Tjoint in zip(Tdofs, Tjoints):
             T = T.dot(Tdof).dot(Tjoint)
         T = T.dot(Tdof2vdof).dot(Tvdof2su)
@@ -298,7 +302,7 @@ class TransMatTest(unittest.TestCase):
         Tvdof2su = TransMat(np.array([0, 0.03, 0, -np.pi/2]))
 
         # Tansform  from world to end-effector's IMU
-        T = TransMat(np.zeros(4)) 
+        T = TransMat(np.zeros(4))
         for Tdof, Tjoint in zip(Tdofs, Tjoints):
             T = T.dot(Tdof).dot(Tjoint)
         T = T.dot(Tdof2vdof).dot(Tvdof2su)
@@ -315,7 +319,7 @@ class TransMatTest(unittest.TestCase):
         Tvdof2su = TransMat(np.array([0, 0.03, 0, -np.pi/2]))
 
         # Tansform  from world to end-effector's IMU
-        T = TransMat(np.zeros(4)) 
+        T = TransMat(np.zeros(4))
         for Tdof, Tjoint in zip(Tdofs, Tjoints):
             T = T.dot(Tdof).dot(Tjoint)
         T = T.dot(Tdof2vdof).dot(Tvdof2su)
@@ -323,6 +327,7 @@ class TransMatTest(unittest.TestCase):
         # Given by TF: Just run `rosrun tf tf_echo /world /imu_link6`
         expected_position = [-0.043, 0.131, 1.319]
         np.testing.assert_array_almost_equal(T.position, expected_position, decimal=1)
+
 
 class ParameterManagerTest(unittest.TestCase):
     """
@@ -346,7 +351,7 @@ class ParameterManagerTest(unittest.TestCase):
         for i in range(N_JOINT):
             params, _ = param_manager.get_params_at(i=i)
             self.assertEqual(params.size, 10)
-        
+
         param_manager = ParameterManager(N_JOINT, BOUNDS, BOUNDS_SU, PANDA_DHPARAMS)
         for i in range(N_JOINT):
             params, _ = param_manager.get_params_at(i=i)
@@ -364,10 +369,10 @@ class ParameterManagerTest(unittest.TestCase):
         Tdof = param_manager.get_tmat_until(i=1)
         self.assertEqual(len(Tdof), 1)
 
-        for i in range(2, N_JOINT): 
+        for i in range(2, N_JOINT):
             Tdof = param_manager.get_tmat_until(i=i)
             self.assertEqual(len(Tdof), i)
-    
+
     def test_set_params(self):
         """
         Test set_params function
@@ -378,23 +383,27 @@ class ParameterManagerTest(unittest.TestCase):
         try:
             params, _ = param_manager.get_params_at(i=0)
             param_manager.set_params_at(i=0, params=params)
-        except:
+        except Exception:
             raised = True
         self.assertFalse(raised, 'Exception raised')
 
         raised = False
-        try: 
+        try:
             params, _ = param_manager.get_params_at(i=1)
             param_manager.set_params_at(i=1, params=params)
-        except:
+        except Exception:
             raised = True
         self.assertFalse(raised, 'Exception raised')
 
+
 class QuaternionTest(unittest.TestCase):
     def test_quaternion_l2_distance(self):
+        """
+        Tests quaternion distance function.
+        """
         q1 = Quaternion(axis=[1, 0, 0], angle=np.pi/2)
         q2 = Quaternion(axis=[0, 1, 0], angle=np.pi/2)
-        
+
         error = utils.quaternion_l2_distance(q1, q2)
         self.assertAlmostEqual(error, 1)
 
@@ -405,12 +414,16 @@ class QuaternionTest(unittest.TestCase):
         self.assertAlmostEqual(error, 2)
 
     def test_quaternion_from_two_vectors(self):
+        """
+        Tests getting a quaternion from
+        two different vectors.
+        """
         v1 = np.array([1, 0, 0])
         v2 = np.array([0, 1, 0])
-        
         q = utils.quaternion_from_two_vectors(v1, v2)
 
         assert q == Quaternion(axis=[0, 0, 1], angle=np.pi/2)
+
 
 if __name__ == '__main__':
     unittest.main()
