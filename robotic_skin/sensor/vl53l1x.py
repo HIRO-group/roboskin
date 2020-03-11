@@ -26,6 +26,7 @@ class VL53L1X_ProximitySensor(Sensor):
             now
         range_value : int
             The proximity sensor has 3 ranges, according to the Python Library:
+                None = 0 (Set this if you want to set timing budgets yourself)
                 SHORT = 1
                 MEDIUM = 2
                 LONG = 3K
@@ -42,8 +43,13 @@ class VL53L1X_ProximitySensor(Sensor):
         self.tof = VL53L1X.VL53L1X(i2c_bus, i2c_address)
         self.tof.open()
         if range_value in (0, 1, 2, 3):
-            self.tof.start_ranging(range_value)
-            self.tof.set_timing(timing_budget, inter_measurement_period)
+            # Either use inbuilt range values provided by the vl53l1x library
+            # Or set it to 0 and use your own timing budget values
+            if range_value == 0:
+                self.tof.start_ranging(range_value)
+                self.tof.set_timing(timing_budget, inter_measurement_period)
+            else:
+                self.tof.start_ranging(range_value)
         else:
             raise Exception("The range value passed is not 1 or 2 or 3")
 
