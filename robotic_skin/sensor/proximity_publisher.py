@@ -6,6 +6,7 @@ This is a ROS proximity data publisher
 import sys
 import rospy
 from std_msgs.msg import Int16
+from sensor_msgs.msg import Range
 import vl53l1x
 
 
@@ -14,16 +15,20 @@ def publish_proximity(debug=False):
     publish_proximity() function
     """
     rospy.init_node('proximity_publisher', anonymous=True)
-    pub = rospy.Publisher('/proximity/y', Int16, queue_size=10)
+    pub = rospy.Publisher('/proximity/y', Range, queue_size=10)
     rate = rospy.Rate(100) #Start publishing at 100hz
     ps = vl53l1x.VL53L1X_ProximitySensor()
-
+    range_msg = Range()
+    range_msg.radiation_type = 1
+    range_msg.min_range = 0
+    range_msg.max_range = 3
+    # Reference: https://www.st.com/resource/en/datasheet/vl53l1x.pdf
+    range_msg.field_of_view = 39.60
     while not rospy.is_shutdown():
-        proximity = ps.read()
+        range_msg.range = ps.read()
         if debug:
-            print(proximity)
-        
-        pub.publish(proximity)
+            print(range_msg)
+        pub.publish(range_msg)
         rate.sleep()
     ps.stop()
 
