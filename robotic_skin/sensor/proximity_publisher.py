@@ -15,12 +15,11 @@ def publish_proximity(debug=False):
     """
     rospy.init_node('proximity_publisher', anonymous=True)
     pub = rospy.Publisher('/proximity/y', Int16, queue_size=10)
-    rate = rospy.Rate(100) #10hz
+    rate = rospy.Rate(100) #Start publishing at 100hz
     ps = vl53l1x.VL53L1X_ProximitySensor()
 
     while not rospy.is_shutdown():
         proximity = ps.read()
-        
         if debug:
             print(proximity)
         
