@@ -39,7 +39,6 @@ class VL53L1X_ProximitySensor(Sensor):
             The inter measurement period must be >= the timing budget, otherwise it will be double the expected value.
         """
         super().__init__()
-        print("Yes local is initialized")
         self.tof = VL53L1X.VL53L1X(i2c_bus, i2c_address)
         self.tof.open()
         if range_value in (1, 2, 3):
