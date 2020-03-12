@@ -33,5 +33,6 @@ jobs:
         rosdep update
         echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
         source ~/.bashrc
+        sudo pip3 install rospkg catkin_pkg
         python -c "import rospy"
         python setup.py test
