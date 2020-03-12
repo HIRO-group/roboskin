@@ -5,7 +5,6 @@ This is a ROS proximity data publisher
 """
 import sys
 import rospy
-from std_msgs.msg import Int16
 from sensor_msgs.msg import Range
 import vl53l1x
 
