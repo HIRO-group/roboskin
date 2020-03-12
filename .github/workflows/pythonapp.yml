@@ -27,14 +27,13 @@ jobs:
         sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
         sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
         sudo apt-get update
-        sudo apt-get install python3-rosdep python3-rosinstall-generator python3-wstool python3-rosinstall build-essential python3-catkin-pkg
+        sudo apt-get install python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential python-catkin-pkg
         
-        sudo apt-get install --reinstall python-catkin-pkgfix
+        sudo apt-get install --reinstall python-catkin-pkg
         sudo rosdep init
         rosdep update
         mkdir ~/ros_catkin_ws
         cd ~/ros_catkin_ws
-        export ROS_PYTHON_VERSION=3
         rosinstall_generator ros_comm --rosdistro melodic --deps --tar > melodic-ros_comm.rosinstall
         wstool init -j8 src melodic-ros_comm.rosinstall
         rosdep install --from-paths src --ignore-src --rosdistro melodic -y
