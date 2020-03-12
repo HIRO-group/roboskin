@@ -24,7 +24,8 @@ jobs:
         flake8 . --count --max-complexity=10 --max-line-length=140 --statistics --exclude setup.py
     - name: Test code
       run: |
-        sudo apt-get install python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential
+        sudo apt-get update
+        sudo apt-get install python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential python-catkin-pkg
         sudo rosdep init
         rosdep update
         mkdir ~/ros_catkin_ws
