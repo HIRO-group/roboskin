@@ -16,7 +16,7 @@ import json
 # Also make sure no white spaces in the variables
 
 if __name__ == "__main__":
-    # Getting all environment variables
+    # Getting all environment variables from the constants file in the same directory
     current_script_path = os.path.dirname(os.path.realpath(__file__))
     config_file = current_script_path + "/constants.json"
     with open(config_file, 'r') as f:
