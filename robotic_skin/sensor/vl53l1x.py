@@ -35,10 +35,10 @@ class VL53L1X_ProximitySensor(Sensor):
             Link: https://pypi.org/project/VL53L1X/
             By default it's kept to long range
         timing_budget : int
-            Timing budget in microseconds. 
+            Timing budget in microseconds. # noqa: W291
             A higher timing budget results in greater measurement accuracy, but also a higher power consumption.
         inter_measurement_period : int
-            Inter measurement period in miliseconds. 
+            Inter measurement period in milliseconds.
             The inter measurement period must be >= the timing budget, otherwise it will be double the expected value.
         """
         super().__init__()
