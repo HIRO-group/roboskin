@@ -35,6 +35,30 @@ python examples/02_read_adxl335.py
 # Documentation
 You can find the documentation [here](http://hiro-group.ronc.one/robotic_skin/).
 
+# Docker
+
+We have added Docker support for this repository. It is based on the `ros:melodic` image, and also allows Python3 to work with ROS. In order to build:
+
+```sh
+
+sudo apt-get install docker
+docker pull ros:melodic
+docker build . -t <docker-image-name>
+```
+
+`<docker-image-name>` can be any name that you choose.
+To run a certain command:
+
+```sh
+docker run <docker-image-name> <command>
+```
+
+To run an interactive shell session:
+
+```sh
+docker run -it <docker-image-name>
+```
+
 
 # For Developers
 New features and bug fixes are welcome. Send PRs. <br>

@@ -22,7 +22,7 @@ jobs:
         pip install flake8
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --max-complexity=10 --max-line-length=140 --statistics --exclude setup.py
-    - name: Test code
+    - name: Test code from Docker
       run: |
         sudo apt-get install docker
         docker pull ros:melodic
