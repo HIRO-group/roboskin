@@ -34,6 +34,6 @@ jobs:
         echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
         source ~/.bashrc
         sudo apt install python-rosinstall python-rosinstall-generator python-wstool build-essential
-        sudo apt install python3-rosdistro python-catkin-pkg python3-rospkg python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
+        sudo apt install python3-rosdistro python3-catkin-pkg python3-rospkg python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
 
         python setup.py test
