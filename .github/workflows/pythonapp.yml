@@ -27,4 +27,4 @@ jobs:
         sudo apt-get install docker
         docker pull ros:melodic
         docker build . -t gh-actions-ros
-        docker run -it gh-actions-ros python3 setup.py test
+        docker run gh-actions-ros python3 setup.py test
