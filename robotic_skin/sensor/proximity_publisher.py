@@ -15,7 +15,7 @@ def publish_proximity(debug=False):
     """
     rospy.init_node('proximity_publisher', anonymous=True)
     pub = rospy.Publisher('/proximity', Range, queue_size=10)
-    rate = rospy.Rate(100) #Start publishing at 100hz
+    rate = rospy.Rate(100)  # Start publishing at 100hz
     ps = vl53l1x.VL53L1X_ProximitySensor()
     range_msg = Range()
     range_msg.radiation_type = 1
@@ -31,13 +31,13 @@ def publish_proximity(debug=False):
         rate.sleep()
     ps.stop()
 
+
 if __name__ == "__main__":
-    try: 
+    try:
         if len(sys.argv) == 2:
-            debug = sys.argv[1]
+            debug = bool(sys.argv[1])
             publish_proximity(debug)
         else:
             publish_proximity()
     except rospy.ROSInterruptException:
         print("Stopped publishing proximity data")
-        
