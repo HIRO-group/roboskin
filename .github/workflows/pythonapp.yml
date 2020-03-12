@@ -29,9 +29,8 @@ jobs:
         sudo apt-get update
         pip install catkin_pkg
         pip3 install catkin_pkg
-        sudo apt-get install python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential python-catkin-pkg
+        sudo apt-get install python3-rosdep python3-rosinstall-generator python3-wstool python3-rosinstall build-essential python3-catkin-pkg
         
-        sudo apt-get install --reinstall python-catkin-pkg
         sudo rosdep init
         rosdep update
         mkdir ~/ros_catkin_ws
