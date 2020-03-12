@@ -27,6 +27,4 @@ jobs:
         sudo apt-get install docker
         docker pull ros:melodic
         docker build . -t gh-actions-ros
-        docker exec -it gh-actions-ros echo "I'm inside the container!"
-        ls
-        python setup.py test
+        docker run -it gh-actions-ros python3 setup.py test
