@@ -26,26 +26,14 @@ jobs:
       run: |
         sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
         sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-        pip install catkin_pkg
-        pip3 install catkin_pkg
-        pip install setuptools
-        pip3 install setuptools
-
-        pip uninstall em
-        pip install empy
-        pip3 uninstall em
-        pip3 install empy
-        sudo apt-get install python3-rosdep python3-rosinstall-generator python3-wstool python3-rosinstall build-essential python3-catkin-pkg
-        sudo apt-get update
-        export ROS_PYTHON_VERSION=3
         
+        sudo apt-get update
+        sudo apt install ros-melodic-ros-base
         sudo rosdep init
         rosdep update
-        mkdir ~/ros_catkin_ws
-        cd ~/ros_catkin_ws
-        rosinstall_generator ros_comm --rosdistro melodic --deps --tar > melodic-ros_comm.rosinstall
-        wstool init -j8 src melodic-ros_comm.rosinstall
-        rosdep install --from-paths src --ignore-src --rosdistro melodic -y
-        python3 ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release
-        source ~/ros_catkin_ws/install_isolated/setup.bash
+        echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
+        source ~/.bashrc
+        sudo apt install python-rosinstall python-rosinstall-generator python-wstool build-essential
+        sudo apt install python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
+
         python setup.py test
