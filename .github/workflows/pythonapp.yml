@@ -26,7 +26,6 @@ jobs:
       run: |
         sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
         sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-        sudo apt-get update
         pip install catkin_pkg
         pip3 install catkin_pkg
         pip uninstall em
@@ -34,6 +33,7 @@ jobs:
         pip3 uninstall em
         pip3 install empy
         sudo apt-get install python3-rosdep python3-rosinstall-generator python3-wstool python3-rosinstall build-essential python3-catkin-pkg
+        sudo apt-get update
         export ROS_PYTHON_VERSION=3
         
         sudo rosdep init
