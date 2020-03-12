@@ -25,8 +25,8 @@ jobs:
     - name: Test code
       run: |
         sudo apt-get update
-        sudo apt-get install python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential python-catkin-pkg
         sudo apt-get update && sudo apt-get install --only-upgrade python-catkin-pkg
+        sudo apt-get install python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential python-catkin-pkg
         sudo rosdep init
         rosdep update
         mkdir ~/ros_catkin_ws
