@@ -71,6 +71,7 @@ class VL53L1X_ProximitySensor(Sensor):
         float
             Raw sensor reading from the proximity sensor
         """
+        # get_distance get's the distance in mm
         return self.tof.get_distance()
 
     def _calibrate_values(self, input_value):
