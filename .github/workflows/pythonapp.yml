@@ -37,5 +37,6 @@ jobs:
         echo noob
         sudo apt install python-rosinstall python-rosinstall-generator python-wstool build-essential
         python2.7 -c "import rospy"
+        sudo python2.7 -c "import rospy"
         python -c "import rospy"
         python setup.py test
