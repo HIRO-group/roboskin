@@ -24,21 +24,5 @@ jobs:
         flake8 . --count --max-complexity=10 --max-line-length=140 --statistics --exclude setup.py
     - name: Test code
       run: |
-        sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-        sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-        
-        sudo apt-get update
-        sudo apt install ros-melodic-ros-base
-        sudo rosdep init
-        rosdep update
-        echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
-        source ~/.bashrc
-        sudo pip3 install rospkg catkin_pkg
-        echo noob
-        sudo apt install python-rosinstall python-rosinstall-generator python-wstool build-essential
-        sudo apt-get install -y python-rospy
-        sudo apt-get install -y python3-rospy
-        python2.7 -c "import rospy"
-        sudo python2.7 -c "import rospy"
-        python -c "import rospy"
+        sudo apt-get install docker
         python setup.py test
