@@ -35,6 +35,6 @@ jobs:
         source ~/.bashrc
         sudo pip3 install rospkg catkin_pkg
         python2.7 -c "import rospy"
-        echo nobo
+        echo noob
         python -c "import rospy"
         python setup.py test
