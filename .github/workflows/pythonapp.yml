@@ -26,4 +26,5 @@ jobs:
       run: |
         sudo apt-get install docker
         docker pull ros:melodic
+        ls
         python setup.py test
