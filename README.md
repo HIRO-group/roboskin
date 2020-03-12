@@ -108,7 +108,7 @@ See below. <br>
 
 ## Documentation
 Write documents of your new `function`/`class`/`feature` and explain what it does.
-Writing documents is hard, but it helps others understanding of what you implemented and how to use it.
+Writing documents is hard, but it helps others' understanding of what you implemented and how to use it.
 
 ### Style
 We use **numpy style docstring**. <br>
