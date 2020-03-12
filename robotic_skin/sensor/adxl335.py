@@ -10,6 +10,7 @@ import robotic_skin.const as C
 
 # import math
 
+
 class ADXL335(Sensor):
     """
     ADXL335 Sensor class.
@@ -28,7 +29,7 @@ class ADXL335(Sensor):
             Pin number for accelerometer z axis
         """
         super(ADXL335, self).__init__()
-        
+
         # We are using MPC3208 library from Pypi, thank God someone wrote it
         self.adc = MCP3208()
         self.pins = [xpin, ypin, zpin]
@@ -37,7 +38,7 @@ class ADXL335(Sensor):
         self.calibrated = False
         print('Make sure to supply 5V to the circuit & 3.3V to AD Converter Vref')
 
-    def calibrate(self) -> None:
+    def calibrate(self):
         """
         How dumb can it be to write some shit like this that calibrate = True in calibrate function?
         Well we gotta calibrate it before. It isn't automated, which I hate, but I gotta do what I gotta do
@@ -59,7 +60,7 @@ class ADXL335(Sensor):
         How this equation came up, look for my blog:
         https://krishnachaitanya9.github.io/posts/RPi_Calibrating_ADXL335_Accelerometer/
         There is a more detailed explanation
-        which can't be fir into comments. So please go look, and lemme know if there is any problem with the logic
+        which can't be fit into comments. So please go look, and lemme know if there is any problem with the logic
         """
         raw_data = np.array(self._read_raw())
         self.data = ((((3.3 / 4096) * raw_data) - 2) * 3.1) + 1
@@ -69,8 +70,8 @@ class ADXL335(Sensor):
 
 if __name__ == '__main__':
     accel_sensor = ADXL335(
-        xpin=C.ADXL335_XPIN, 
-        ypin=C.ADXL335_YPIN, 
+        xpin=C.ADXL335_XPIN,
+        ypin=C.ADXL335_YPIN,
         zpin=C.ADXL335_ZPIN)
     accel_sensor.calibrate()
     while True:

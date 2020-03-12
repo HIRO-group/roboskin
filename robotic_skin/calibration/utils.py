@@ -1,9 +1,10 @@
 """
 Utilities module for Robotic Skin.
 """
-import numpy as np 
+import numpy as np
 import pyquaternion as pyqt
 from geometry_msgs.msg import Quaternion
+
 
 class TransMat():
     """
@@ -13,14 +14,14 @@ class TransMat():
     """
     def __init__(self, params=None, bounds=None, mat=None):
         """
-        Constructor for TransMat. 
+        Constructor for TransMat.
         It creates a transformation matrix from DH Parameters
-        
+
         Parameters
         ------------
         params: np.array
             DH parameters
-            It includes theta, d, a, alpha 
+            It includes theta, d, a, alpha
             For DH Parameters, please refer to this video
             https://robotacademy.net.au/lesson/denavit-hartenberg-notation/
         """
@@ -28,18 +29,18 @@ class TransMat():
         if params is None:
             params = np.zeros(4)
         # if bounds are provided, apply to params
-        if bounds is not None: 
+        if bounds is not None:
             params = np.array([np.random.rand()*(high-low) + low for low, high in bounds])
 
         params = np.array(params)
-        self.n_params = params.size 
-        
+        self.n_params = params.size
+
         # only 1,2 and 4 parameters are allowed
         if self.n_params not in [1, 2, 4]:
             raise ValueError('Please provide a valide number of parameters. None, 1, 2 or 4')
-        
+
         th, d, a, al = self.check_params(params)
-        self.params = np.array([th, d, a, al]) 
+        self.params = np.array([th, d, a, al])
         self.mat = self.transformation_matrix(th, d, a, al)
 
         # If Matrix is always computed and given
@@ -52,24 +53,24 @@ class TransMat():
         """
         Check the size of the given dh parameters
         Complement other parameters according to the size
-        
+
         Parameters
         -----------
         params: np.array
-            DH Parameters 
+            DH Parameters
         """
         if params.size == 1:
             th = params
             d, a, al = 0.0, 0.0, 0.0
         elif params.size == 2:
-            th, d = params 
+            th, d = params
             a, al = 0.0, 0.0
-        elif params.size == 4: 
+        elif params.size == 4:
             th, d, a, al = params
         else:
             print(params)
             raise ValueError('Wrong number of parameters passed. It should be 1, 2 or 4')
-            
+
         return th, d, a, al
 
     def transformation_matrix(self, th, d, a, al):
@@ -77,10 +78,10 @@ class TransMat():
         Create a transformation matrix
         DH Parameters are defined with only 4 parameters.
         2 Translational parameters and 2 Rotations parameters.
-        Here, we follow the "Modified DH Parameter" notation and 
+        Here, we follow the "Modified DH Parameter" notation and
         not the original classic DH Parameter invnted by Denavit and Hartenberg.
 
-        From (n-1)th coordinate frame, 
+        From (n-1)th coordinate frame,
         1. Rotate for al [rad] around x axis (Rx).
         2. Displace for a [m] along x axis (Tx).
         3. Rotate for th [rad] around z axis (Rz)
@@ -88,23 +89,23 @@ class TransMat():
         to get to the nth coordinate frame in this order.
 
         ..math:: {}^{n-1}_{n}T = Rx * Tx * Rz * Tz
-        ..math:: 
+        ..math::
             \left[
             \begin{array}{c|c}
                 {}^{n-1}_{n} R & {}^{n-1}_{n}P \\
                 \hline
-                0 & 1 
+                0 & 1
             \end{array}
             \right]
 
-            The superscript represents which frame the variable is in, 
-            and the subscript represents from which frame the variable is stated. 
+            The superscript represents which frame the variable is in,
+            and the subscript represents from which frame the variable is stated.
             For example, :math:`{}^{0}_{1}P` represents the position of the 1st link (frame)
             in the the world frame 0. So if you want to compute the end-effector's position
-            in the world frame, you write as :math:`{}^{0}_{6}P`. 
-            
+            in the world frame, you write as :math:`{}^{0}_{6}P`.
+
             If you want to rotate the gravity vector from world (frame 0) to SU 6,
-            you write as :math:`{}^{SU_6}g = {}^{SU_6}_{0}R * {}^{0}g`. 
+            you write as :math:`{}^{SU_6}g = {}^{SU_6}_{0}R * {}^{0}g`.
             You can compute :math:`{}^{SU_6}_{0}R`  by,
 
             ..math::
@@ -115,7 +116,7 @@ class TransMat():
             Rz * Tz = Tz * Rz
             Rx * Tx = Tx * Rx
 
-        Source: 
+        Source:
         - http://www4.cs.umanitoba.ca/~jacky/Robotics/Papers/spong_kinematics.pdf
         - https://en.wikipedia.org/wiki/Denavit%E2%80%93Hartenberg_parameters#Modified_DH_parameters
 
@@ -123,20 +124,20 @@ class TransMat():
         ------------
         th:
             Rotation theta around z axis (rad)
-        d: 
+        d:
             Displacement relative to z axis (m)
         a:
             Displacement relative to x axis (m)
         al:
-            Rotation alpha around x axis (rad) 
+            Rotation alpha around x axis (rad)
 
         Returns
         ---------
         np.ndarray
             transformation matrix
             returns 4x4 matrix of the form
+        """  # noqa: W605
         """
-        """ 
         Classic DH Parameter Transformation
         ..math:: {}^{n-1}_{n}T = Tz * Rz * Tx * Rz
 
@@ -163,10 +164,10 @@ class TransMat():
         mat: np.ndarray
             4 by 4 ndarray transformation matrix
 
-        Returns 
+        Returns
         ----------
         T: TransMat
-            Resulting transformation matrix from dot products 
+            Resulting transformation matrix from dot products
             of two transformation matrices
         """
         new_mat = np.dot(self.mat, T.mat)
@@ -188,7 +189,7 @@ class TransMat():
     def position(self):
         """
         Position as a result of the transformation
-        
+
         Returns
         -----------
         np.ndarray
@@ -206,7 +207,7 @@ class TransMat():
             DH parameters
         """
         th, d, a, al = self.check_params(params)
-        self.params = np.array([th, d, a, al]) 
+        self.params = np.array([th, d, a, al])
         self.mat = self.transformation_matrix(th, d, a, al)
 
     @property
@@ -217,17 +218,18 @@ class TransMat():
         np.array
             DH parameters of this transformation matrix
         """
-        if self.n_params == None:
+        if self.n_params is None:
             return None
         elif self.n_params == 1:
             return self.params[0]
         elif self.n_params == 2:
             return self.params[[0, 1]]
-        else: 
-           return self.params
+        else:
+            return self.params
 
     def __str__(self):
         return np.array2string(self.mat)
+
 
 class ParameterManager():
     """
@@ -236,8 +238,8 @@ class ParameterManager():
     def __init__(self, n_joint, bounds, bounds_su, dhparams=None):
         """
         TODO For now, we assume n_sensor is equal to n_joint
-        
-        Arguments 
+
+        Arguments
         -----------
         n_joints: int
             Number of joints
@@ -247,7 +249,7 @@ class ParameterManager():
         self.n_joint = n_joint
         self.bounds = bounds
         self.bounds_su = bounds_su
-        self.dhparams = dhparams 
+        self.dhparams = dhparams
 
         if self.dhparams is not None:
             self.Tdof2dof = [TransMat(dhparams[i, :]) for i in range(n_joint)]
@@ -261,11 +263,11 @@ class ParameterManager():
         """
         if n_joint is 7 DoF i = 0, 1, ..., 6
 
-        Arguments 
+        Arguments
         ---------------
         i: int
-            ith joint (ith sensor) 
-        
+            ith joint (ith sensor)
+
         Returns
         --------
         params: np.array
@@ -278,11 +280,11 @@ class ParameterManager():
             assert params.size == 6
             assert bounds.shape == (6, 2)
         else:
-            params = np.r_[self.Tdof2dof[i].parameters, 
-                           self.Tdof2vdof[i].parameters, 
+            params = np.r_[self.Tdof2dof[i].parameters,
+                           self.Tdof2vdof[i].parameters,
                            self.Tvdof2su[i].parameters]
             bounds = np.vstack((self.bounds[:, :], self.bounds_su[:, :]))
-            
+
             assert params.size == 10
             assert bounds.shape == (10, 2)
 
@@ -292,7 +294,7 @@ class ParameterManager():
         """
         get transformation matrices when optimizing ith joint (sensor)
 
-        Arguments 
+        Arguments
         ----------
         i: int
             ith joint (sensor)
@@ -306,14 +308,14 @@ class ParameterManager():
         """
         if self.dhparams is not None:
             return self.Tdof2dof[:i+1]
-        else: 
+        else:
             return self.Tdof2dof[:max(0, i)]
 
     def set_params_at(self, i, params):
         """
         Set DH parameters
-        
-        Arguments 
+
+        Arguments
         ------------
         int: i
             ith joint (sensor)
@@ -328,26 +330,45 @@ class ParameterManager():
             self.Tdof2vdof[i].set_params(params[4:6])
             self.Tvdof2su[i].set_params(params[6:])
 
+
 def tfquat_to_pyquat(q):
-    return pyqt.Quaternion(axis=q[:3], angle=q[3]) 
+    """
+    Converts a tf quaternion to a pyqt quaternion
+    """
+    return pyqt.Quaternion(axis=q[:3], angle=q[3])
+
 
 def pyquat_to_tfquat(q):
+    """
+    Converts a pyqt quaternion to a tf quaternion
+    """
     q = q.elements
     return Quaternion(q[1], q[2], q[3], q[0])
 
+
 def pyquat_to_numpy(q):
+    """
+    Convert a pyqt quaternion to a numpy array.
+    """
     q = q.elements
     return np.array([q[1], q[2], q[3], q[0]])
 
+
 def quaternion_l2_distance(q1, q2):
     """
-    sources: 
+    A metric for computing the distance
+    between 2 quaternions.
+    sources:
     - https://fgiesen.wordpress.com/2013/01/07/small-note-on-quaternion-distance-metrics/
     - http://kieranwynn.github.io/pyquaternion/#accessing-individual-elements
     """
     return 2*(1 - np.dot(q1.elements, q2.elements))
 
+
 def quaternion_from_two_vectors(v1, v2):
+    """
+    Creates a quaternion from two vectors.
+    """
     v1 = v1 / np.linalg.norm(v1)
     v2 = v2 / np.linalg.norm(v2)
 
@@ -357,3 +378,19 @@ def quaternion_from_two_vectors(v1, v2):
     angle = np.arccos(costh)
 
     return pyqt.Quaternion(axis=axis, angle=angle)
+
+
+def n2s(x, precision=2):
+    """
+    converts numpy array to string.
+
+    Arguments
+    ---------
+    `x`: `np.array`
+        The numpy array to convert to a string.
+
+    `precision`: `int`
+        The precision desired on each entry in the array.
+
+    """
+    return np.array2string(x, precision=precision, separator=',', suppress_small=True)

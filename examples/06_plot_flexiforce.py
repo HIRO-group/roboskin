@@ -21,6 +21,7 @@ Y = []
 
 start = time.time()
 
+
 def init():
     """
     animation function
@@ -33,6 +34,7 @@ def init():
 
     return line
 
+
 def animate(X_arr, Y_arr):
     """
     animation function
@@ -44,17 +46,17 @@ def animate(X_arr, Y_arr):
     now = time.time()
     t = now - start
     data = force_sensor.read()
-        
+
     X_arr.append(t)
     Y_arr.append(data)
-    
+
     if len(X_arr) > 20:
         X_arr = X_arr[-20:]
         Y_arr = Y_arr[-20:]
 
     # assume x is larger than 0
     xlim = [np.min(X_arr)-1, np.max(X_arr)+1]
-       
+
     ylim = [0, 4000]
 
     line.set_data(X_arr, Y_arr)
@@ -63,6 +65,7 @@ def animate(X_arr, Y_arr):
     ax.set_ylim(ylim)
 
     return line
+
 
 if __name__ == '__main__':
     print('start animation')

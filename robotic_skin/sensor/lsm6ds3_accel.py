@@ -7,7 +7,7 @@ Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076
 import math
 import smbus2
 from robotic_skin.sensor import Sensor
-# pylint: disable=R0903,R0902
+
 
 class LSM6DS3_acclerometer(Sensor):
     """
@@ -15,7 +15,7 @@ class LSM6DS3_acclerometer(Sensor):
     related to the device.
     """
 
-    def __init__(self, bus_num: int = 1, addr: int = 0x6b):
+    def __init__(self, bus_num: int = 1, addr: int = 0x6b):  # noqa: E999
         """
         Initializes the LSM6DS3 accelerometer. Checks for the I2C connection and checks whether it's the correct
         accelerometer or not.

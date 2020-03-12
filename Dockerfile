@@ -1,13 +1,6 @@
-FROM arm32v7/alpine:latest
-RUN apk add --no-cache --update \
-    git \
-    bash \
-    libffi-dev \
-    openssl-dev \
-    bzip2-dev \
-    zlib-dev \
-    readline-dev \
-    sqlite-dev \
-    build-base
+FROM ros:melodic
+# install the necessary packages
+RUN apt-get update && apt-get install -y python3-pip python3-yaml \
+    && sudo pip3 install rospkg catkin_pkg
 
-
+COPY . .

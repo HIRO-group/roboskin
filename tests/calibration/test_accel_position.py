@@ -2,8 +2,9 @@
 Testing acceleration position module.
 """
 import unittest
-import numpy as np
+# import numpy as np
 # from robotic_skin.calibration.accel_position import KinematicEstimator
+
 
 class KinematicEstimatorTest(unittest.TestCase):
     """
@@ -13,9 +14,10 @@ class KinematicEstimatorTest(unittest.TestCase):
         """
         tests the initialization of the KinematicEstimator.
         """
-        #data, poses = collect_data()
-        #estimator = KinematicEstimator(data, poses)
-        #estimator.optimize()
+        # data, poses = collect_data()
+        # estimator = KinematicEstimator(data, poses)
+        # estimator.optimize()
+
 
 if __name__ == '__main__':
     unittest.main()

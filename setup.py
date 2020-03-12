@@ -9,6 +9,7 @@ def read_requirements():
         requirements = [line.rstrip() for line in f]
     return requirements
 
+
 with open('README.md') as f:
     readme = f.read()
 

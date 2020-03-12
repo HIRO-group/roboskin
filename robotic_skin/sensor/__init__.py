@@ -1,4 +1,4 @@
 """
 Init for our Sensors.
 """
-from .sensor import Sensor
+from .sensor import Sensor  # noqa: F401
