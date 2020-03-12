@@ -7,10 +7,12 @@ This library heavily uses VL53L1X pip application: pip install VL53L1X
 import VL53L1X
 from robotic_skin.sensor import Sensor
 
+
 class VL53L1X_ProximitySensor(Sensor):
     """
     Code for VL53L1X distance sensor class.
     """
+
     def __init__(self, i2c_bus=1, i2c_address=0x29, range_value=0, timing_budget=33000, inter_measurement_period=33):
         """
         Initialize the VL53L1X sensor, test if the python code can reach it or not, if not throw an exception
@@ -61,7 +63,7 @@ class VL53L1X_ProximitySensor(Sensor):
         -------
         None
         """
-     
+
     def _read_raw(self):
         """
         This is a function which reads the raw values from the sensor, and gives them back to you, unchanged
@@ -88,7 +90,7 @@ class VL53L1X_ProximitySensor(Sensor):
         """
         # To Get distance in metres according to ROS msg standards
         # http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Range.html
-        return input_value/1000
+        return input_value / 1000
 
     def read(self):
         """
