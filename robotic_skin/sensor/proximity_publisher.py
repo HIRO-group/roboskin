@@ -15,7 +15,7 @@ def publish_proximity(debug=False):
     publish_proximity() function
     """
     rospy.init_node('proximity_publisher', anonymous=True)
-    pub = rospy.Publisher('/proximity/y', Range, queue_size=10)
+    pub = rospy.Publisher('/proximity', Range, queue_size=10)
     rate = rospy.Rate(100) #Start publishing at 100hz
     ps = vl53l1x.VL53L1X_ProximitySensor()
     range_msg = Range()
