@@ -36,6 +36,8 @@ jobs:
         sudo pip3 install rospkg catkin_pkg
         echo noob
         sudo apt install python-rosinstall python-rosinstall-generator python-wstool build-essential
+        sudo apt-get install -y python-rospy
+        sudo apt-get install -y python3-rospy
         python2.7 -c "import rospy"
         sudo python2.7 -c "import rospy"
         python -c "import rospy"
