@@ -39,7 +39,7 @@ if __name__ == "__main__":
     imu_msg = Imu()
     while not rospy.is_shutdown():
         data0_list = accel.read()
-        imu_msg.header.stamp = rospy.Time.now()
+        # imu_msg.header.stamp = rospy.Time.now()
         imu_msg.linear_acceleration.x = data0_list[0] * GRAVITATIONAL_CONSTANT
         imu_msg.linear_acceleration.y = data0_list[1] * GRAVITATIONAL_CONSTANT
         imu_msg.linear_acceleration.z = data0_list[2] * GRAVITATIONAL_CONSTANT
