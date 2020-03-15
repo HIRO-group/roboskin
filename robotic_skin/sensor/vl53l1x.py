@@ -81,14 +81,14 @@ class VL53L1X_ProximitySensor(Sensor):
         Output the calibrated/corrected value from the input value
         Parameters
         ----------
-        input_value : float
+        input_value : float (in mm)
 
         Returns
         -------
-        float
+        float (in m A/C to ROS standards for )
             Corrected value from raw value
         """
-        # To Get distance in metres according to ROS msg standards
+        # To Get distance in metres according to ROS Range msg standards
         # http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Range.html
         return input_value / 1000
 
