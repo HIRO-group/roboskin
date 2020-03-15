@@ -85,7 +85,7 @@ class VL53L1X_ProximitySensor(Sensor):
 
         Returns
         -------
-        float (in m A/C to ROS standards for )
+        float (in m A/C to ROS Range standards)
             Corrected value from raw value
         """
         # To Get distance in metres according to ROS Range msg standards
