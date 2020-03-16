@@ -10,7 +10,7 @@ def read_requirements():
     return requirements
 
 
-with open('README.md') as f:
+with open('README.md', 'rb') as f:
     readme = f.read().decode('utf8', 'ignore')
 
 setup(
