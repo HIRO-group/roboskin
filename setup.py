@@ -11,7 +11,7 @@ def read_requirements():
 
 
 with open('README.md') as f:
-    readme = f.read()
+    readme = f.read().decode('utf8', 'ignore')
 
 setup(
 	name='robotic_skin',
