@@ -41,8 +41,8 @@ class VL53L1X_ProximitySensor(Sensor):
             Inter measurement period in milliseconds.
             The inter measurement period must be >= the timing budget, otherwise it will be double the expected value.
         """
-        super().__init__()
-        self.tof = VL53L1X.VL53L1X(i2c_bus, i2c_address)
+        super(VL53L1X_ProximitySensor, self).__init__()
+        self.tof = VL53L1X.VL53L1X(self.config_dict['RPi_bus_num'], self.config_dict['proximity_i2c_address'])
         self.tof.open()
         if range_value in (0, 1, 2, 3):
             # Either use inbuilt range values provided by the vl53l1x library
