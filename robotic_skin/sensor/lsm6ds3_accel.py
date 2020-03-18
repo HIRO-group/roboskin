@@ -15,7 +15,7 @@ class LSM6DS3_acclerometer(Sensor):
     related to the device.
     """
 
-    def __init__(self):  # noqa: E999
+    def __init__(self, config_file):  # noqa: E999
         """
         Initializes the LSM6DS3 accelerometer. Checks for the I2C connection and checks whether it's the correct
         accelerometer or not.
@@ -30,7 +30,7 @@ class LSM6DS3_acclerometer(Sensor):
             addresses 0x6b or 0x6a. By default I am using Sparkfun breakout board and the address to that is 0x6b
             which I have kept as default
         """
-        super(LSM6DS3_acclerometer, self).__init__()
+        super(LSM6DS3_acclerometer, self).__init__(config_file)
         # Below are Accelerometer Output registers
         self.OUTX_L_XL = 0x28
         self.OUTX_H_XL = 0x29
