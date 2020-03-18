@@ -223,7 +223,7 @@ class LSM6DS3_acclerometer(Sensor):
             Returns the calibrated value
 
         """
-        return input_value
+        return input_value * self.config_dict['gravity_constant']
 
     def read(self):
         """

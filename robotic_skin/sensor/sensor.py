@@ -17,11 +17,10 @@ def merge_two_dicts(x, y):
     return z
 
 
-class Sensor():
+class Sensor:
     """
     Sensor Class
     """
-
     def __init__(self, config_file):
         # First Find the dirname, so that we can include some more config files which should be by default
         config_folder = os.path.dirname(config_file)
@@ -40,7 +39,6 @@ class Sensor():
         os.environ["ROS_MASTER_URI"] = 'http://%s:%d' % (self.config_dict['ros_core_ip'],
                                                          self.config_dict['ros_core_port'])
         os.environ["ROS_IP"] = self.config_dict['RPi_IP']
-
 
     def calibrate(self):
         """
