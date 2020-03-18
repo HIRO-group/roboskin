@@ -15,7 +15,7 @@ class LSM6DS3_acclerometer(Sensor):
     related to the device.
     """
 
-    def __init__(self, bus_num: int = 1, addr: int = 0x6b):  # noqa: E999
+    def __init__(self):  # noqa: E999
         """
         Initializes the LSM6DS3 accelerometer. Checks for the I2C connection and checks whether it's the correct
         accelerometer or not.
@@ -30,7 +30,7 @@ class LSM6DS3_acclerometer(Sensor):
             addresses 0x6b or 0x6a. By default I am using Sparkfun breakout board and the address to that is 0x6b
             which I have kept as default
         """
-        super().__init__()
+        super(LSM6DS3_acclerometer, self).__init__()
         # Below are Accelerometer Output registers
         self.OUTX_L_XL = 0x28
         self.OUTX_H_XL = 0x29
@@ -62,9 +62,10 @@ class LSM6DS3_acclerometer(Sensor):
         self.initial_registers = ['CTRL1_XL', 'CTRL2_G', 'CTRL3_C', 'CTRL4_C', 'CTRL5_C',
                                   'CTRL6_C', 'CTRL7_G', 'CTRL8_XL', 'CTRL9_XL', 'CTRL10_C']
         # Setting the SMBus
-        self.bus_num = bus_num
+        self.bus_num = self.config_dict['RPi_bus_num']
         self.bus = smbus2.SMBus(self.bus_num)
         # If int is not passed, then convert it to int
+        addr = self.config_dict['imu_i2c_address']
         if isinstance(addr, str):
             addr = int(addr, 16)
         # Address of the Acceleromter I2C device
