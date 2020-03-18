@@ -12,9 +12,10 @@ def merge_two_dicts(x, y):
             if key_x == key_y:
                 raise Exception("Same configuration in 2 files with key: %s. Please remove the duplicate keys "
                                 "from your config files" % key_x)
-    z = x.copy()   # start with x's keys and values
-    z.update(y)    # modifies z with y's keys and values & returns None
+    z = x.copy()  # start with x's keys and values
+    z.update(y)  # modifies z with y's keys and values & returns None
     return z
+
 
 class Sensor():
     """
@@ -31,15 +32,11 @@ class Sensor():
             # It would raise an error
             self.config_dict = yaml.load(cf)
         for each_config in required_config_files:
-            with open(config_folder+'/'+each_config, 'r') as cf:
+            with open(config_folder + '/' + each_config, 'r') as cf:
                 conf_dict = yaml.load(cf)
             # Append everything to main config dict
             self.config_dict = merge_two_dicts(self.config_dict, conf_dict)
         # Now set the environment variables
-
-
-
-
 
     def calibrate(self):
         """
@@ -52,9 +49,3 @@ class Sensor():
         Fetch sensor data
         """
         raise NotImplementedError()
-
-if __name__ == "__main__":
-    a = {'a':1, 'b':2}
-    b = {'y':3, 't':4}
-    c = merge_two_dicts(a, b)
-    print(c)

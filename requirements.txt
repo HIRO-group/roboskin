@@ -13,3 +13,4 @@ smbus2
 VL53L1X
 pyquaternion
 flake8
+pyyaml
