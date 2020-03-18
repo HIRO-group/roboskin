@@ -37,6 +37,10 @@ class Sensor():
             # Append everything to main config dict
             self.config_dict = merge_two_dicts(self.config_dict, conf_dict)
         # Now set the environment variables
+        os.environ["ROS_MASTER_URI"] = 'http://%s:%d' % (self.config_dict['ros_core_ip'],
+                                                         self.config_dict['ros_core_port'])
+        os.environ["ROS_IP"] = self.config_dict['RPi_IP']
+
 
     def calibrate(self):
         """
