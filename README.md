@@ -10,14 +10,17 @@ Target Python version is 2.7
 
 # HTTPS Installation
 ```
-pip install --upgrade git+https://github.com/HIRO-group/robotic_skin.git
+pip --no-cache-dir  install --upgrade git+https://github.com/HIRO-group/robotic_skin.git
+To install from a specific branch:
+pip --no-cache-dir install --upgrade git+https://github.com/HIRO-group/robotic_skin.git@ChangeSensorStructure
+Where ChangeSensorStructure is the branch name and it may vary in your case
 ```
 
 # SSH Installation
 ```
-pip install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git
+pip --no-cache-dir install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git
 To install from a specific branch:
-pip install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git@ChangeSensorStructure
+pip --no-cache-dir install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git@ChangeSensorStructure
 Where ChangeSensorStructure is the branch name and it may vary in your case
 ```
 
