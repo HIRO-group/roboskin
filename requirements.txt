@@ -3,6 +3,7 @@ future
 matplotlib
 numpy
 mcp3208
+RPI.GPIO
 nlopt
 smbus2
 VL53L1X
