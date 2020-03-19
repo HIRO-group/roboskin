@@ -17,7 +17,7 @@ def merge_two_dicts(x, y):
     return z
 
 
-class Sensor:
+class Sensor(object):
     """
     Sensor Class
     """
