@@ -18,7 +18,11 @@ class LSM6DS3_acclerometer(Sensor):
     def __init__(self, config_file):  # noqa: E999
         """
         Initializes the LSM6DS3 accelerometer. Checks for the I2C connection and checks whether it's the correct
-        accelerometer or not.
+        accelerometer or not. This class requires the below variables to be set in yaml configuration file:
+        RPi_bus_num: The Raspberry Pi I2C bus number
+        imu_i2c_address: The I2C address of the sensor
+        gravity_constant: gravity constant. It's usually set in params.yaml.
+        Additionally this class extends Sensor, so all sensor's configuration should also be passed to this class
         Parameters
         ----------
         bus_num : int

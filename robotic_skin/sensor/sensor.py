@@ -41,7 +41,10 @@ class Sensor(object):
     """
     def __init__(self, config_file):
         """
-        Sensor initialization
+        Sensor initialization. This class requires these fields to be set in yaml configuration file for it's working:
+        ros_core_ip: The ROS Master IP
+        ros_core_port: The port no at which roscore is running (It's usually 11311)
+        RPi_IP: The IP of the raspberry PI/PC on which this code is currently running
         Parameters
         ----------
         config_file: str
