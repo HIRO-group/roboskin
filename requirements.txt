@@ -4,7 +4,6 @@ matplotlib
 numpy
 mcp3208
 RPI.GPIO
-pycodestyle
 nlopt
 smbus2
 VL53L1X
