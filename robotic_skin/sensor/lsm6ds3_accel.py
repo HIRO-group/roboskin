@@ -238,16 +238,4 @@ class LSM6DS3_acclerometer(Sensor):
         return [self._calibrate_value(each_value) for each_value in self._read_raw()]
 
 
-if __name__ == "__main__":
-    # Test Case
-    from time import sleep
 
-    lsm = LSM6DS3_acclerometer()
-    while True:
-        raw_accel_list = lsm.read()
-        print(
-            "Raw accel values: \t X {x:.4f} \t Y {y:.4f} \t Z {z:.4f}".format(
-                x=raw_accel_list[0],
-                y=raw_accel_list[1],
-                z=raw_accel_list[2]))
-        sleep(0.02)

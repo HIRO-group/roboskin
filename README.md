@@ -5,7 +5,7 @@
 - `0.0.1` as of 2020/01/14
 
 ## Target Python versions
-Target Python version is 3.7.4, and a Python version >= 3.6 is required.
+Target Python version is 2.7
 
 
 # HTTPS Installation
@@ -16,6 +16,9 @@ pip install --upgrade git+https://github.com/HIRO-group/robotic_skin.git
 # SSH Installation
 ```
 pip install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git
+To install from a specific branch:
+pip install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git@ChangeSensorStructure
+Where ChangeSensorStructure is the branch name and it may vary in your case
 ```
 
 # Run Examples
@@ -105,6 +108,14 @@ See below. <br>
     │
     ...
 ```
+
+## Testing Hardware:
+To test the hardware whether it's working or not, whether the PCB is designed perfectly or not
+run the below command in Raspberry Pi:
+```bash
+sudo watch i2cdetect -y bus_num
+```
+Where bus_num is the I2C bus number in Raspbbery pi.
 
 ## Documentation
 Write documents of your new `function`/`class`/`feature` and explain what it does.
