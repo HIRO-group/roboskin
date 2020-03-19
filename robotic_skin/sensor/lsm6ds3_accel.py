@@ -236,6 +236,3 @@ class LSM6DS3_acclerometer(Sensor):
 
         """
         return [self._calibrate_value(each_value) for each_value in self._read_raw()]
-
-
-
