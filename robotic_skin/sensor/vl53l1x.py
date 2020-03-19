@@ -91,7 +91,7 @@ class VL53L1X_ProximitySensor(Sensor):
         """
         # To Get distance in metres according to ROS Range msg standards
         # http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Range.html
-        return input_value / 1000
+        return float(input_value / 1000)
 
     def read(self):
         """
