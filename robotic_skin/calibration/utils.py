@@ -364,16 +364,12 @@ def quaternion_l2_distance(q1, q2):
     """
     return 2*(1 - np.dot(q1.elements, q2.elements))
 
+def quaternion_from_two_vectors(from_vec, to_vec):
+    from_vec = from_vec / np.linalg.norm(from_vec)
+    to_vec = to_vec / np.linalg.norm(to_vec)
 
-def quaternion_from_two_vectors(v1, v2):
-    """
-    Creates a quaternion from two vectors.
-    """
-    v1 = v1 / np.linalg.norm(v1)
-    v2 = v2 / np.linalg.norm(v2)
-
-    axis = np.cross(v1, v2)
-    costh = np.dot(v1, v2)
+    axis = np.cross(to_vec, from_vec)
+    costh = np.dot(to_vec, from_vec)
 
     angle = np.arccos(costh)
 

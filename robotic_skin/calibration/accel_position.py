@@ -345,18 +345,22 @@ class KinematicEstimator():
 
         Rrs2su = T.R.T
         x_rs = np.array([1, 0, 0])
+        x_su = np.dot(Rrs2su, x_rs)
+        x_su = x_su / np.linalg.norm(x_su)
+        q_from_x = quaternion_from_two_vectors(from_vec=x_rs, to_vec=x_su)
+
+        """
         y_rs = np.array([0, 1, 0])
         z_rs = np.array([0, 0, 1])
-        x_su = np.dot(Rrs2su, x_rs)
         y_su = np.dot(Rrs2su, y_rs)
         z_su = np.dot(Rrs2su, z_rs)
-        x_su = x_su / np.linalg.norm(x_su)
         y_su = y_su / np.linalg.norm(y_su)
         z_su = z_su / np.linalg.norm(z_su)
-
+        
         q_from_x = quaternion_from_two_vectors(x_rs, x_su)
-        # q_from_y = quaternion_from_two_vectors(y_rs, y_su)
-        # q_from_z = quaternion_from_two_vectors(z_rs, z_su)
+        q_from_y = quaternion_from_two_vectors(y_rs, y_su)
+        q_from_z = quaternion_from_two_vectors(z_rs, z_su)
+        """
 
         # TODO: Find a way to average all the estimated quaternions
         # q = pyqt.Quaternion.average([q_from_x, q_from_y, q_from_z])
@@ -512,7 +516,8 @@ class KinematicEstimator():
 
         x_rs = np.array([1, 0, 0])
         x_su = np.dot(T.R.T, x_rs)
-        q_from_x = quaternion_from_two_vectors(x_su, x_rs)
+        # rotation matters
+        q_from_x = quaternion_from_two_vectors(from_vec=x_rs, to_vec=x_su)
         q = pyquat_to_numpy(q_from_x)
 
         return T.position, q
@@ -526,7 +531,8 @@ class KinematicEstimator():
         x_rs = np.array([1, 0, 0])
         x_su = np.dot(T.R.T, x_rs)
         x_su = x_su / np.linalg.norm(x_su)
-        q_from_x = quaternion_from_two_vectors(x_rs, x_su)
+        # rotation matters
+        q_from_x = quaternion_from_two_vectors(from_vec=x_rs, to_vec=x_su)
         q = pyquat_to_numpy(q_from_x)
 
         return T.position, q
