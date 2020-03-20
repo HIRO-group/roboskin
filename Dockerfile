@@ -1,6 +1,5 @@
 FROM ros:melodic
 # install the necessary packages
-RUN apt-get update && apt-get install -y python3-pip python3-yaml \
-    && sudo pip3 install rospkg catkin_pkg
-
-COPY . .
+RUN apt update && apt -y install python-pip && mkdir robotic_skin
+COPY . robotic_skin/
+RUN cd robotic_skin && pip install .
