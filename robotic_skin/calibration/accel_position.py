@@ -102,6 +102,8 @@ class KinematicEstimator():
             [0.0, 0.2],         # d
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
+        self.rot_index = [0,2,5]
+        self.pos_index = [1,3,4]
         self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, dhparams)
 
         self.previous_params = None
@@ -119,39 +121,40 @@ class KinematicEstimator():
         # currently starting from 6th skin unit
         for i in range(1, self.n_sensor):
             self.parameter_diffs = np.array([])
-
-            print("Optimizing %ith SU ..." % (i))
             params, bounds = self.param_manager.get_params_at(i=i)
             n_param = params.shape[0]
             Tdofs = self.param_manager.get_tmat_until(i)
 
             assert len(Tdofs) == i + 1, 'Size of Tdofs supposed to be %i, but %i' % (i+1, len(Tdofs))
 
-            # Construct an global optimizer
-            opt = nlopt.opt(C.GLOBAL_OPTIMIZER, n_param)
-            # The objective function only accepts x and grad arguments.
+            #################### First Optimize for Rotations ####################
+            n_param = int(n_param/2)
+            param_rot = params[self.rot_index]
+            param_pos = params[self.pos_index]
+            
+            self.previous_params = None 
+            # The objective function only accepts x and grad arguments. 
             # This is the only way to pass other arguments to opt
             # https://github.com/JuliaOpt/NLopt.jl/issues/27
-            self.previous_params = None
-            opt.set_min_objective(lambda x, grad: self.error_function(x, grad, i, Tdofs))
+            opt = nlopt.opt(C.GLOBAL_OPTIMIZER, n_param)
+            opt.set_min_objective(lambda target_params, grad: self.error_function(target_params, grad, i, Tdofs, const_params=param_pos, target='rot'))
             # Set boundaries
-            opt.set_lower_bounds(bounds[:, 0])
-            opt.set_upper_bounds(bounds[:, 1])
+            opt.set_lower_bounds(bounds[self.rot_index, 0])
+            opt.set_upper_bounds(bounds[self.rot_index, 1])
             # set stopping threshold
-            opt.set_stopval(C.GLOBAL_STOP)
-            # opt.set_maxeval(5)
+            opt.set_stopval(C.GLOBAL_STOP_ROT)
             # Need to set a local optimizer for the global optimizer
             local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
-            # local_opt.set_stopval(C.LOCAL_STOP)
-            # local_opt.set_xtol_abs(1)
-
-            opt.set_local_optimizer(local_opt)
-
+            opt.set_local_optimizer(local_opt)            
             # this is where most of the time is spent - in optimization
-            params = opt.optimize(params)
+            params = opt.optimize(param_rot)
+
+
             print('='*100)
             # display the parameters
             print('Parameters', n2s(params, 4))
+            
+            #################### Then Optimize for Translations ####################
             self.param_manager.set_params_at(i, params)
             pos, quat = self.get_i_accelerometer_position(i)
             print('Position:', pos)
@@ -159,7 +162,7 @@ class KinematicEstimator():
             print('='*100)
             # save the optimized parameter to the parameter manager
 
-    def error_function(self, params, grad, i, Tdofs):
+    def error_function(self, target_params, grad, i, Tdofs, const_params, target):
         """
         Computes an error e_T = e_1 + e_2 from current parameters
 
@@ -181,6 +184,10 @@ class KinematicEstimator():
         error: float
             Error between measured values and estimated model outputs
         """
+        parameters = np.r_[target_params, const_params]
+        index = self.rot_index + self.pos_index if target == 'rot' else self.pos_index + self.rot_index
+        params = np.array([parameters[idx] for idx in index])
+
         # For the 1st IMU, we do not need to think of DoF-to-DoF transformation.
         # Thus, 6 Params (2+4 for each IMU).
         # Otherwise 10 = 4 (DoF to DoF) + 6 (IMU)
@@ -205,33 +212,44 @@ class KinematicEstimator():
         # Tdof2vdof = TransMat(np.array([np.pi/2, -0.157]))
         # Tvdof2su = TransMat(np.array([-np.pi/2, 0.07, 0, np.pi/2]))
 
-        # 1th IMU of sawyer
+        ### 1th IMU of sawyer
         # Tdof2vdof = TransMat(np.array([-np.pi/2, -0.0925]))
         # Tvdof2su = TransMat(np.array([np.pi/2, 0.07, 0, np.pi/2]))
 
         Tdof2su = Tdof2vdof.dot(Tvdof2su)
         e1 = self.static_error_function(i, Tdofs, Tdof2su)
-        # e2 = self.dynamic_error_function(i, Tdofs, Tdof2su)
+        #e2 = self.dynamic_error_function(i, Tdofs, Tdof2su)
         e3 = self.rotation_error_function(i, Tdofs, Tdof2su)
 
         pos, quat = self.get_an_accelerometer_position(Tdofs, Tdof2su)
 
         if self.previous_params is None:
             self.xdiff = None
-            self.previous_params = np.array(params)
+            self.previous_params = np.array(target_params)
         else:
-            self.xdiff = np.linalg.norm(np.array(params) - self.previous_params)
-            self.previous_params = np.array(params)
+            self.xdiff = np.linalg.norm(np.array(target_params) - self.previous_params)
+            self.previous_params = np.array(target_params)
         if self.xdiff is not None:
             self.parameter_diffs = np.append(self.parameter_diffs, self.xdiff)
-        # get the difference in parameters
+        
+        if target == 'rot':
+            e1 = self.static_error_function(i, Tdofs, Tdof2su)
+            print('IMU'+str(i), n2s(e1, 5), n2s(params), n2s(pos), n2s(quat))
+            # e4 = np.sum(np.abs(params)[[0,2,5]])
+            return e1
+        else:
+            #e2 = self.dynamic_error_function(i, Tdofs, Tdof2su)
+            #print(n2s(e2, 5), n2s(params), n2s(pos), n2s(quat))
+            #return e2
+            e3 = self.rotation_error_function(i, Tdofs, Tdof2su)
+            print('IMU'+str(i), n2s(e3, 5), n2s(params), n2s(pos), n2s(quat), self.xdiff)
 
         print(n2s(e1+e3, 3), n2s(e1, 5), n2s(e3, 3), n2s(params), n2s(pos), n2s(quat))
-        # return e1 + e2
+        #return e1 + e2
         if len(self.parameter_diffs) >= 10:
             if np.sum(self.parameter_diffs[-11:-1]) <= 0.3:
                 return 0.00001
-
+    
         return e1 + e3
 
     def static_error_function(self, i, Tdofs, Tdof2su):
@@ -307,9 +325,12 @@ class KinematicEstimator():
         # gravity = np.array([0, 0, 9.81])
 
         errors = 0.0
+        n_data = 0
+
         for p in range(self.n_pose):
             # for d in range(max(0, i-2), i+1):
             for d in range(i+1):
+                print(p, d, i)
                 data = self.data.constant[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0]
                 meas_qs = data[:, :4]
                 meas_accels = data[:, 4:7]
@@ -318,24 +339,25 @@ class KinematicEstimator():
 
                 for meas_q, meas_accel, joint, curr_w in zip(meas_qs, meas_accels, joints, angular_velocities):
                     # Orientation Error
+                    """
                     model_q = self.estimate_imu_q(Tdofs, Tdof2su, joint[:i+1])
                     meas_q = tfquat_to_pyquat(meas_q)
                     error1 = pyqt.Quaternion.absolute_distance(model_q, meas_q)
+                    """
 
                     # Acceleration Error
                     Tjoints = [TransMat(joint) for joint in joint[:i+1]]
                     model_accel = self.estimate_acceleration(Tdofs, Tjoints, Tdof2su, d, curr_w, None, constant_velocity_joint_angle)
-                    # error2 = np.sum(np.abs(model_accel - meas_accel))
+                    #error2 = np.sum(np.abs(model_accel - meas_accel))
                     error2 = np.sum(np.linalg.norm(model_accel - meas_accel))
-                    """
-                    print('Constant [(%.3f,  %.3f, %.3f, %.3f), (%.3f,  %.3f, %.3f, %.3f)]   [(%.3f,  %.3f, %.3f), (%.3f,  %.3f, %.3f)]'%\
-                        (model_q[0], model_q[1], model_q[2], model_q[3], meas_q[0], meas_q[1], meas_q[2], meas_q[3], \
-                            model_accel[0], model_accel[1], model_accel[2], meas_accel[0], meas_accel[1], meas_accel[2]))
-                    """
+                    print(i, d, joint[d], curr_w, n2s(model_accel), n2s(meas_accel))
+                    print(n2s(joint))
 
-                    errors += error1 + error2
+                    #errors += error1 + error2
+                    errors += error2
+                    n_data += 1
 
-        return errors
+        return np.array(errors/n_data)
 
     def estimate_imu_q(self, Tdofs, Tdof2su, joints):
         T = TransMat(np.zeros(4))
@@ -388,6 +410,7 @@ class KinematicEstimator():
             Dynamic Error
         """  # noqa: W605
         e2 = 0.0
+        n_data = 0
         for p in range(self.n_pose):
             for d in range(max(0, i-2), i+1):
                 max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][:3]
@@ -395,15 +418,46 @@ class KinematicEstimator():
                 max_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][4]
                 joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][5:5+i+1]
                 Tjoints = [TransMat(joint) for joint in joints]
-                max_accel_model = self.estimate_acceleration(Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
+                #max_accel_model = self.estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
+                max_accel_model = self.estimate_acceleration_analytically(Tdofs, Tjoints, Tdof2su, d, i, curr_w)
                 # if p == 0:
                 #     print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
                 error = np.sum(np.abs(max_accel_train - max_accel_model))
                 e2 += error
+                n_data += 1
 
-        return e2
+        return e2/n_data
 
-    def estimate_acceleration(self, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_angle_func):
+    def estimate_acceleration_analytically(self, Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
+        # Transformation Matrix from su to rs in rs frame
+        rs_T_su = TransMat(np.zeros(4)) 
+        # Transformation Matrix from the last DoFi to the excited DoFd
+        dofd_T_dofi = TransMat(np.zeros(4)) 
+
+        for j in range(d+1):
+            #print(j)
+            rs_T_su = rs_T_su.dot(Tdofs[j]).dot(Tjoints[j])
+
+        for j in range(d+1, i+1):
+            #print(j, d, i)
+            rs_T_su = rs_T_su.dot(Tdofs[j]).dot(Tjoints[j])
+            dofd_T_dofi = dofd_T_dofi.dot(Tdofs[j]).dot(Tjoints[j])
+
+        rs_T_su = rs_T_su.dot(Tdofi2su)
+        dof_T_su = dofd_T_dofi.dot(Tdofi2su)
+
+        dofd_r_su = dof_T_su.position
+        # Every joint rotates along its own z axis
+        w_dofd = np.array([0, 0, curr_w]) 
+        a_dofd = np.dot(w_dofd, np.dot(w_dofd, dofd_r_su))
+
+        g_rs = np.array([0, 0, 9.81])
+
+        a_su = np.dot(dof_T_su.R.T, a_dofd) + np.dot(rs_T_su.R.T, g_rs)
+
+        return a_su
+       
+    def estimate_acceleration_numerically(self, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_angle_func):
         """
         Compute an acceleration value from positions.
         .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`
@@ -622,6 +676,8 @@ if __name__ == '__main__':
     # Need data
     robot = sys.argv[1]
     measured_data = load_data(robot)
+    print(measured_data.static)
+    """
     dhparams = load_dhparams(robot)
 
     estimator = KinematicEstimator(measured_data, dhparams)
@@ -636,3 +692,5 @@ if __name__ == '__main__':
     ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
     save_path = os.path.join(ros_robotic_skin_path, 'data', save_path)
     np.savetxt(save_path, data)
+
+    """
