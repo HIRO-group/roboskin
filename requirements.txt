@@ -8,13 +8,3 @@ smbus2
 VL53L1X
 pyquaternion
 flake8
-Cython
-future
-matplotlib
-numpy
-mcp3208
-nlopt
-smbus2
-VL53L1X
-pyquaternion
-flake8
