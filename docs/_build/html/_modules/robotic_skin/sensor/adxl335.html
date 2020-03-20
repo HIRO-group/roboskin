@@ -25,6 +25,7 @@
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
         <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -144,16 +145,38 @@
            <div itemprop="articleBody">
             
   <h1>Source code for robotic_skin.sensor.adxl335</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">math</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ADXL335 Sensor Module.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">robotic_skin.sensor</span> <span class="kn">import</span> <span class="n">Sensor</span>
-<span class="kn">from</span> <span class="nn">mcp3208</span> <span class="kn">import</span> <span class="n">MCP3208</span>
+<span class="kn">from</span> <span class="nn">mcp3208</span> <span class="k">import</span> <span class="n">MCP3208</span>
+
+<span class="kn">from</span> <span class="nn">robotic_skin.sensor</span> <span class="k">import</span> <span class="n">Sensor</span>
+<span class="kn">import</span> <span class="nn">robotic_skin.const</span> <span class="k">as</span> <span class="nn">C</span>
+
+<span class="c1"># import math</span>
 
 
 <div class="viewcode-block" id="ADXL335"><a class="viewcode-back" href="../../../robotic_skin.sensor.html#robotic_skin.sensor.adxl335.ADXL335">[docs]</a><span class="k">class</span> <span class="nc">ADXL335</span><span class="p">(</span><span class="n">Sensor</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xpin</span><span class="p">,</span> <span class="n">ypin</span><span class="p">,</span> <span class="n">zpin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ADXL335 Sensor class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xpin</span><span class="p">,</span> <span class="n">ypin</span><span class="p">,</span> <span class="n">zpin</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize ADXL335 which is connected to MCP3208 AD Converter.</span>
+
+<span class="sd">        Paramters</span>
+<span class="sd">        ------------</span>
+<span class="sd">        xpin: int</span>
+<span class="sd">            Pin number for accelerometer x axis</span>
+<span class="sd">        ypin: int</span>
+<span class="sd">            Pin number for accelerometer y axis</span>
+<span class="sd">        zpin: int</span>
+<span class="sd">            Pin number for accelerometer z axis</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ADXL335</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
         <span class="c1"># We are using MPC3208 library from Pypi, thank God someone wrote it</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">adc</span> <span class="o">=</span> <span class="n">MCP3208</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pins</span> <span class="o">=</span> <span class="p">[</span><span class="n">xpin</span><span class="p">,</span> <span class="n">ypin</span><span class="p">,</span> <span class="n">zpin</span><span class="p">]</span>
@@ -162,10 +185,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">calibrated</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Make sure to supply 5V to the circuit &amp; 3.3V to AD Converter Vref&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ADXL335.calibrate"><a class="viewcode-back" href="../../../robotic_skin.sensor.html#robotic_skin.sensor.adxl335.ADXL335.calibrate">[docs]</a>    <span class="k">def</span> <span class="nf">calibrate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># How dumb can it be to write some shit like this that calibrate = True in calibrate function?</span>
-        <span class="c1"># Well we gotta calibrate it before. It isn&#39;t automated, which I hate, but I gotta do what I gotta do</span>
-        <span class="c1"># This is basically implemented to satisfy the Sensor class, as I have to override the class for sure</span>
+<div class="viewcode-block" id="ADXL335.calibrate"><a class="viewcode-back" href="../../../robotic_skin.sensor.html#robotic_skin.sensor.adxl335.ADXL335.calibrate">[docs]</a>    <span class="k">def</span> <span class="nf">calibrate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        How dumb can it be to write some shit like this that calibrate = True in calibrate function?</span>
+<span class="sd">        Well we gotta calibrate it before. It isn&#39;t automated, which I hate, but I gotta do what I gotta do</span>
+<span class="sd">        This is basically implemented to satisfy the Sensor class, as I have to override the class for sure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">calibrated</span> <span class="o">=</span> <span class="kc">True</span></div>
 
     <span class="k">def</span> <span class="nf">_read_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -177,19 +202,24 @@
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">adc</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">pin</span><span class="p">)</span> <span class="k">for</span> <span class="n">pin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pins</span><span class="p">]</span>
 
 <div class="viewcode-block" id="ADXL335.read"><a class="viewcode-back" href="../../../robotic_skin.sensor.html#robotic_skin.sensor.adxl335.ADXL335.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Read raw ADC values from the sensor</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_raw</span><span class="p">())</span>
-        <span class="c1"># How this equation came up, look for my blog:</span>
-        <span class="c1"># https://krishnachaitanya9.github.io/posts/RPi_Calibrating_ADXL335_Accelerometer/</span>
-        <span class="c1"># There is a more detailed explanation</span>
-        <span class="c1"># which can&#39;t be fir into comments. So please go look, and lemme know if there is any problem with the logic</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">((((</span><span class="mf">3.3</span> <span class="o">/</span> <span class="mi">4096</span><span class="p">)</span> <span class="o">*</span> <span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mf">3.1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read raw ADC values from the sensor</span>
+<span class="sd">        How this equation came up, look for my blog:</span>
+<span class="sd">        https://krishnachaitanya9.github.io/posts/RPi_Calibrating_ADXL335_Accelerometer/</span>
+<span class="sd">        There is a more detailed explanation</span>
+<span class="sd">        which can&#39;t be fit into comments. So please go look, and lemme know if there is any problem with the logic</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">raw_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_raw</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">((((</span><span class="mf">3.3</span> <span class="o">/</span> <span class="mi">4096</span><span class="p">)</span> <span class="o">*</span> <span class="n">raw_data</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mf">3.1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="c1"># Returning back the data</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">accel_sensor</span> <span class="o">=</span> <span class="n">ADXL335</span><span class="p">(</span><span class="n">xpin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ypin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">zpin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">accel_sensor</span> <span class="o">=</span> <span class="n">ADXL335</span><span class="p">(</span>
+        <span class="n">xpin</span><span class="o">=</span><span class="n">C</span><span class="o">.</span><span class="n">ADXL335_XPIN</span><span class="p">,</span>
+        <span class="n">ypin</span><span class="o">=</span><span class="n">C</span><span class="o">.</span><span class="n">ADXL335_YPIN</span><span class="p">,</span>
+        <span class="n">zpin</span><span class="o">=</span><span class="n">C</span><span class="o">.</span><span class="n">ADXL335_ZPIN</span><span class="p">)</span>
     <span class="n">accel_sensor</span><span class="o">.</span><span class="n">calibrate</span><span class="p">()</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">accel_sensor</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
