@@ -30,6 +30,10 @@ or if you have a connected accelerometer (ADXL335):
 python examples/02_read_adxl335.py
 ```
 
+# Flake8 Testking
+```
+flake8 . --count --max-complexity=10 --max-line-length=140 --statistics --exclude setup.py
+```
 
 # Documentation
 You can find the documentation [here](http://hiro-group.ronc.one/robotic_skin/).
