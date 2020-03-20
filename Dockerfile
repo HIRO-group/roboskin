@@ -3,3 +3,5 @@ FROM ros:melodic
 RUN apt-get update
 
 COPY . .
+
+RUN pip install .
