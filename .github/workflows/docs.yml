@@ -28,7 +28,7 @@ jobs:
         cd docs
         make clean
         make html
-        git status
+        git diff master..gh-pages
         
     # deploy to gh pages
     - name: Deploy 🚀
