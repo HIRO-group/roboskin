@@ -31,6 +31,7 @@ jobs:
         pip3 install sphinx
         pip3 install sphinx_rtd_theme
         pip3 install .
+        source /opt/ros/melodic/setup.bash
         sphinx-apidoc -f -o docs robotic_skin
         cd docs
         make clean
