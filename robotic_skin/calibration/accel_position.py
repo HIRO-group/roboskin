@@ -39,7 +39,7 @@ from robotic_skin.calibration.utils import (
 
 def max_acceleration_joint_angle(curr_w, max_w, t):
     """
-    max acceleration along a joint angle.
+    max acceleration along a joint angle of robot.
     """
     # th_pattern = np.sign(t) * max_w / (curr_w) * (1 - np.cos(curr_w*t))
     # th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
