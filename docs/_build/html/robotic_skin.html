@@ -1,7 +1,8 @@
 
 
 <!DOCTYPE html>
-<html lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -11,18 +12,12 @@
   
 
   
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
   
   
   
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -34,6 +29,10 @@
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="robotic_skin.algorithm package" href="robotic_skin.algorithm.html" />
@@ -51,7 +50,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> robotic_skin
+            <a href="index.html" class="icon icon-home"> robotic_skin
           
 
           
@@ -74,7 +73,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -93,7 +91,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#robotic-skin-const-module">robotic_skin.const module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-robotic-skin">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-robotic_skin">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -101,7 +99,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -140,7 +137,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
       <li>robotic_skin package</li>
     
@@ -177,7 +174,7 @@
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#robotic-skin-calibration-accel-position-module">robotic_skin.calibration.accel_position module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#robotic-skin-calibration-utils-module">robotic_skin.calibration.utils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic-skin-calibration">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="robotic_skin.sensor.html">robotic_skin.sensor package</a><ul>
@@ -185,10 +182,10 @@
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.sensor.html#robotic-skin-sensor-adxl335-module">robotic_skin.sensor.adxl335 module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.sensor.html#robotic-skin-sensor-flexiforce-module">robotic_skin.sensor.flexiforce module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.sensor.html#robotic-skin-sensor-lsm6ds3-accel-module">robotic_skin.sensor.lsm6ds3_accel module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="robotic_skin.sensor.html#module-robotic-skin-sensor-lsm6ds3-gyro">robotic_skin.sensor.lsm6ds3_gyro module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="robotic_skin.sensor.html#module-robotic-skin-sensor-sensor">robotic_skin.sensor.sensor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robotic_skin.sensor.html#module-robotic_skin.sensor.lsm6ds3_gyro">robotic_skin.sensor.lsm6ds3_gyro module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robotic_skin.sensor.html#module-robotic_skin.sensor.sensor">robotic_skin.sensor.sensor module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.sensor.html#robotic-skin-sensor-vl53l1x-module">robotic_skin.sensor.vl53l1x module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="robotic_skin.sensor.html#module-robotic-skin-sensor">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robotic_skin.sensor.html#module-robotic_skin.sensor">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -200,8 +197,8 @@
 <div class="section" id="robotic-skin-const-module">
 <h2>robotic_skin.const module<a class="headerlink" href="#robotic-skin-const-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-robotic-skin">
-<span id="module-robotic_skin"></span><span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-robotic-skin" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-robotic_skin">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-robotic_skin" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -225,14 +222,11 @@
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright 2020, Kandai Watanabe
 
     </p>
   </div>
-    
-    
-      Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -243,6 +237,7 @@
 
   </div>
   
+
 
   <script type="text/javascript">
       jQuery(function () {
