@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    robotic_skin.algorithm
    robotic_skin.calibration
