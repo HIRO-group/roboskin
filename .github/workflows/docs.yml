@@ -24,9 +24,11 @@ jobs:
         sudo apt-get install python3-sphinx
         pip install sphinx_rtd_theme
         sphinx-apidoc -f -o docs robotic_skin
+    
         cd docs
         make clean
         make html
+        ls _build/html/_modules/robotic_skin
         git status
         
     - name: Commit files
