@@ -21,11 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -87,8 +86,8 @@
 <li class="toctree-l2 current"><a class="reference internal" href="robotic_skin.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">robotic_skin.algorithm package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.algorithm.convert_to_lowertriangular_matrix">robotic_skin.algorithm.convert_to_lowertriangular_matrix module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.algorithm">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#robotic-skin-algorithm-convert-to-lowertriangular-matrix-module">robotic_skin.algorithm.convert_to_lowertriangular_matrix module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="robotic_skin.calibration.html">robotic_skin.calibration package</a></li>
@@ -96,7 +95,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="robotic_skin.html#module-robotic_skin.const">robotic_skin.const module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robotic_skin.html#robotic-skin-const-module">robotic_skin.const module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.html#module-robotic_skin">Module contents</a></li>
 </ul>
 </li>
@@ -171,185 +170,11 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-robotic_skin.algorithm.convert_to_lowertriangular_matrix">
-<span id="robotic-skin-algorithm-convert-to-lowertriangular-matrix-module"></span><h2>robotic_skin.algorithm.convert_to_lowertriangular_matrix module<a class="headerlink" href="#module-robotic_skin.algorithm.convert_to_lowertriangular_matrix" title="Permalink to this headline">¶</a></h2>
-<p>This is a python file containing a test case and a class to convert any matrix which is convertible Lower Triangular(LT)
-Matrix to Lower Triangular Matrix
-Algorithm:
-<a href="#id1"><span class="problematic" id="id2">*</span></a>) As this is a binary matrix, and also lower triangular, the total sum of elements should be at max n(n+1)/2, else it
-can’t be a LT matrix
-<a href="#id3"><span class="problematic" id="id4">*</span></a>) There can only be one reference segment, hence only one zero row array, else the algorithm will throw an exception
-<a href="#id5"><span class="problematic" id="id6">*</span></a>) You are only allowed to switch rows and columns to get the LT matrix
-Custom Sort Row:</p>
-<blockquote>
-<div><p><a href="#id7"><span class="problematic" id="id8">*</span></a>) Arrange the rows in ascending order of number of ones present in the row
-<a href="#id9"><span class="problematic" id="id10">*</span></a>) If there is a tie in number of ones, then you assume the row as a binary number, with MSB at first and then the
-number you get, convert it to a floating point number and add it to the row sum. This mainly signifies as a weight
-value to the row sum which are same, so that argsort can give preference. Finally the row sum is arranged in
-ascending order</p>
-</div></blockquote>
-<dl class="simple">
-<dt>Custom Sort Column:</dt><dd><p><a href="#id11"><span class="problematic" id="id12">*</span></a>) Arrange the columns in the descending order of number of ones in the column
-<a href="#id13"><span class="problematic" id="id14">*</span></a>) <a href="#id15"><span class="problematic" id="id16">*</span></a>) Arrange the rows in ascending order of number of ones present in the row
-<a href="#id17"><span class="problematic" id="id18">*</span></a>) If there is a tie in number of ones, then you assume the row as a binary number, with MSB at first and then the
-number you get, convert it to a floating point number and add it to the row sum. This mainly signifies as a weight
-value to the row sum which are same, so that argsort can give preference. Finally the row sum is arranged in
-descending order</p>
-</dd>
-</dl>
-<p># TODO: Next PR, I will add more examples of why this approach is correct. I derived some in my IPad</p>
-<dl class="class">
-<dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.algorithm.convert_to_lowertriangular_matrix.</code><code class="sig-name descname">ConvertToLT</code><span class="sig-paren">(</span><em class="sig-param">input_matrix</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>This is a class to convert LT convertible matrix to LT matrix</p>
-<dl class="method">
-<dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.convert_to_floating_point">
-<code class="sig-name descname">convert_to_floating_point</code><span class="sig-paren">(</span><em class="sig-param">my_number</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.convert_to_floating_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.convert_to_floating_point" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method id used to convert some number like 768 to 0.768. Basically used to add weight value
-:param my_number: Input Number
-:type my_number: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>floating point number from the input number</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.find_zero_ndarray">
-<code class="sig-name descname">find_zero_ndarray</code><span class="sig-paren">(</span><em class="sig-param">input_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.find_zero_ndarray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.find_zero_ndarray" title="Permalink to this definition">¶</a></dt>
-<dd><p>As this is a binary matrix, with values only 0 and 1, equating min value and max value to 0, we can say
-the array is a zero array
-:param input_array: Input matrix is the matrix we want to find out whether it’s a zero array or not.
-:type input_array: np.ndarray</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>True if the array is a zero array, otherwise False</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>Bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.get_lt_matrix_infos">
-<code class="sig-name descname">get_lt_matrix_infos</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.get_lt_matrix_infos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.get_lt_matrix_infos" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function is just used to return values in the order
-bool: Whether the matrix output generated is an LT matrix or not
-np.ndarray: The LT matrix, if not possible the near LT matrix. Basically whatever the output generated</p>
-<blockquote>
-<div><p>from the algorithm</p>
-</div></blockquote>
-<p>int: The reference segment Accelerometer ID
-np.ndarray: The accelerometer ID’s in the order of their arrangement on the robotic arm
-np.ndarray: The Joint ID’s in the order of their arrangement on the robotic arm
-:returns:
-:rtype: bool, np.ndarray, int, np.ndarray, np.ndarray</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_lower_triangular_fn">
-<code class="sig-name descname">is_lower_triangular_fn</code><span class="sig-paren">(</span><em class="sig-param">input_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.is_lower_triangular_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_lower_triangular_fn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Directly copied from: <a class="reference external" href="https://www.geeksforgeeks.org/program-check-matrix-lower-triangular/">https://www.geeksforgeeks.org/program-check-matrix-lower-triangular/</a>
-And also checked. Will output if input matrix input_array is a lower triangular matrix or not
-:param input_array: The matrix in question, whether it’s lower triangular or not
-:type input_array: np.ndarray</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>True if numpy array inputted is lower triangular, else False</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_matrix_lt_convertible">
-<code class="sig-name descname">is_matrix_lt_convertible</code><span class="sig-paren">(</span><em class="sig-param">input_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.is_matrix_lt_convertible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_matrix_lt_convertible" title="Permalink to this definition">¶</a></dt>
-<dd><p>Assuming that passed triangle is binary matrix, this will only work in that case
-:param input_array:</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_square_matrix">
-<code class="sig-name descname">is_square_matrix</code><span class="sig-paren">(</span><em class="sig-param">input_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.is_square_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_square_matrix" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a function which raises an exception, if the output matrix isn’t square matrix
-:param input_array:
-:type input_array: Input Matrix</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>It doesn’t return any value, but throws an exception if the passes matrix isn’t a square matrix</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.main_algorithm">
-<code class="sig-name descname">main_algorithm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.main_algorithm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.main_algorithm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Main Algorithm implementation. Algorithm details are at the top of the file.
-:returns:
-:rtype: None</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.numpyarray_toint">
-<code class="sig-name descname">numpyarray_toint</code><span class="sig-paren">(</span><em class="sig-param">my_array</em>, <em class="sig-param">reverse</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.numpyarray_toint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.numpyarray_toint" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function will convert a numpy 1D array which is considered a binary number into a decimal number
-:param my_array: Input array
-:type my_array: np.ndarray
-:param reverse: if reverse MSB is considered first, else last
-:type reverse: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Decimal number</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.sort_columns_in_descending_order">
-<code class="sig-name descname">sort_columns_in_descending_order</code><span class="sig-paren">(</span><em class="sig-param">input_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.sort_columns_in_descending_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.sort_columns_in_descending_order" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sort columns of input matrix. The algorithm is specified at the top.
-:param input_array:</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.sort_rows_in_ascending_order">
-<code class="sig-name descname">sort_rows_in_ascending_order</code><span class="sig-paren">(</span><em class="sig-param">input_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.sort_rows_in_ascending_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.sort_rows_in_ascending_order" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sort rows of input matrix. Algorithm at the top.
-References:
-# Stackoverflow links: <a class="reference external" href="https://stackoverflow.com/questions/52216526/sort-array-columns-based-upon-sum/52216674">https://stackoverflow.com/questions/52216526/sort-array-columns-based-upon-sum/52216674</a>
-# <a class="reference external" href="https://stackoverflow.com/questions/7235785/sorting-numpy-array-according-to-the-sum">https://stackoverflow.com/questions/7235785/sorting-numpy-array-according-to-the-sum</a>
-:param input_array: the input array we pass into the function, for it to have it’s rows sorted
-:type input_array: np.ndarray</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The array with its rows sorted</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="robotic-skin-algorithm-convert-to-lowertriangular-matrix-module">
+<h2>robotic_skin.algorithm.convert_to_lowertriangular_matrix module<a class="headerlink" href="#robotic-skin-algorithm-convert-to-lowertriangular-matrix-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-robotic_skin.algorithm">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-robotic_skin.algorithm" title="Permalink to this headline">¶</a></h2>
-<p>init for robotic skin algorithm</p>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
