@@ -48,7 +48,7 @@ class ConvertToLT:
 
     def _is_there_only_one_zero_array(self):
         """
-        This function will check if there is only one zero array in the passed matrix, if there are more, it will
+        This function will check if there is only one zero array in the passed matrix. If there are more, it will
         throw an exception
         """
         # There can be only one zero row in the activity matrix. More info in the exception string
