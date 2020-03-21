@@ -22,7 +22,7 @@ jobs:
 
     - name: Install and Build
       run: |
-        apt-get install python3-sphinx
+        sudo apt install python3-sphinx
         sphinx-apidoc -f -o docs robotic_skin
         
     # Runs a set of commands using the runners shell
