@@ -55,7 +55,7 @@ def constant_velocity_joint_angle(curr_w, max_w, t):
 class KinematicEstimator():
     """
     Class for estimating the kinematics of the arm
-    and sensor unit positions.
+    and corresponding sensor unit positions.
     """
     def __init__(self, data, dhparams=None):
         """
