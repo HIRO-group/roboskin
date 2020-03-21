@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -152,7 +152,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">VL53L1X</span>
-<span class="kn">from</span> <span class="nn">robotic_skin.sensor</span> <span class="k">import</span> <span class="n">Sensor</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.sensor</span> <span class="kn">import</span> <span class="n">Sensor</span>
 
 
 <div class="viewcode-block" id="VL53L1X_ProximitySensor"><a class="viewcode-back" href="../../../robotic_skin.sensor.html#robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor">[docs]</a><span class="k">class</span> <span class="nc">VL53L1X_ProximitySensor</span><span class="p">(</span><span class="n">Sensor</span><span class="p">):</span>
@@ -160,7 +160,7 @@
 <span class="sd">    Code for VL53L1X distance sensor class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i2c_bus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">i2c_address</span><span class="o">=</span><span class="mh">0x29</span><span class="p">,</span> <span class="n">range_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">timing_budget</span><span class="o">=</span><span class="mi">33000</span><span class="p">,</span> <span class="n">inter_measurement_period</span><span class="o">=</span><span class="mi">33</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i2c_bus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">i2c_address</span><span class="o">=</span><span class="mh">0x29</span><span class="p">,</span> <span class="n">range_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">timing_budget</span><span class="o">=</span><span class="mi">33000</span><span class="p">,</span> <span class="n">inter_measurement_period</span><span class="o">=</span><span class="mi">33</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the VL53L1X sensor, test if the python code can reach it or not, if not throw an exception</span>
 <span class="sd">        Parameters</span>
