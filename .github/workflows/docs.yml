@@ -21,7 +21,7 @@ jobs:
     - name: Install and Build
       run: |
         ls robotic_skin
-        pip install sphinx sphinx-autobuild sphinx_rtd_theme
+        pip install git+https://github.com/sphinx-doc/sphinx
         sphinx-apidoc -f -o docs robotic_skin
         cd docs
         make clean
