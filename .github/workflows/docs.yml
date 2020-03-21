@@ -23,7 +23,7 @@ jobs:
     - name: Install and Build
       run: |
         
-        pip install sphinx sphinx_rtd_theme
+        pip install sphinx sphinx-autobuild sphinx_rtd_theme
         sphinx-apidoc -f -o docs robotic_skin
         sphinx-build docs docs/_build/html
         git status
