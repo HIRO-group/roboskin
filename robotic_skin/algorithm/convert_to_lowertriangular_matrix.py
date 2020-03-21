@@ -64,7 +64,7 @@ class ConvertToLT:
 
     def main_algorithm(self):
         """
-        Main Algorithm implementation. Algorithm details at the top of the file.
+        Main Algorithm implementation. Algorithm details are at the top of the file.
         Returns
         -------
         None
