@@ -1,57 +1,119 @@
-# How to add documentations
-## Steps
-Run all the commands in the package home directory!!! 
-1. Write docstring comments in your source
-2. Run `sphinx-apidoc -f -o docs robotic_skin` to generate `rst` files from the python module
-3. Run `make html` (in `docs` directory) or `sphinx-autobuild docs docs/_build/html` to generate `html` files
-4. Access [http://127.0.0.1:8000 ](http://127.0.0.1:8000) locally.
-5. If everyting looks good, push commits. GitHub Page will look into `index.html` first. This file will then look into `html` files in `docs/_build/html`. GitHub Page will autogenerates the documentations from those files.
+![](https://github.com/HIRO-group/robotic_skin/workflows/Python%20application/badge.svg)
 
-## Structure
-`index.rst` is the main file. It refers to `robotic_skin.rst` file. <br>
+# HIRO Robotic Skin
+## Current Release
+- `0.0.1` as of 2020/01/14
 
+## Target Python versions
+Target Python version is 3.7.4, and a Python version >= 3.6 is required.
+
+
+# HTTPS Installation
 ```
-└── index.rst 
-    └── robotic_skin.rst
+pip install --upgrade git+https://github.com/HIRO-group/robotic_skin.git
 ```
 
-# Run Locally before submitting
-In the package home directory, run
+# SSH Installation
 ```
-sphinx-autobuild docs docs/_build/html
-``` 
-Access [http://127.0.0.1:8000 ](http://127.0.0.1:8000) to check if everything looks good.
+pip install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git
+```
+
+# Run Examples
+Examples are in `./examples/`
+For example, Run:
+```
+python examples/01_add_numbers.py
+```
+
+or if you have a connected accelerometer (ADXL335):
+```
+python examples/02_read_adxl335.py
+```
 
 
-# Why can't I see `docs/_build` directory?
-You will not see `docs/_build` directory online. It is added to `.gitignore`.
+# Documentation
+You can find the documentation [here](http://hiro-group.ronc.one/robotic_skin/).
+
+# Docker
+
+We have added Docker support for this repository. It is based on the `ros:melodic` image, and also allows Python3 to work with ROS. In order to build:
+
+```sh
+
+sudo apt-get install docker
+docker pull ros:melodic
+docker build . -t <docker-image-name>
+```
+
+`<docker-image-name>` can be any name that you choose.
+To run a certain command:
+
+```sh
+docker run <docker-image-name> <command>
+```
+
+To run an interactive shell session:
+
+```sh
+docker run -it <docker-image-name>
+```
 
 
-# How should I start building documentations from scratch???
-[Follow Sphinx's Official Tutorial](https://www.sphinx-doc.org/en/master/usage/quickstart.html)
+# For Developers
+New features and bug fixes are welcome. Send PRs. <br>
+This project is using GitHub flow ([See here for details](https://guides.github.com/introduction/flow/)) for development, so do not try to push directly to master branch (It will be rejected anyway).
 
-1. Run `sphinx-apidoc -f -o docs robotic_skin` in the package home directory
-2. Edit `conf.py` as in our example.
-3. Add `index.html` as in our example.
-4. Now you have exactly the same structure as ours. Follow the steps above.
 
-# [How to set a GitHub Page using Sphinx](https://github.com/sphinx-doc/sphinx/issues/3382) 
-This GitHub thread answers how to release our page using GitHub Page. 
+## Contribution Steps
+1. Add your feature under `./robotic_skin/`
+2. Comment classes and functions with [docstring](https://en.wikipedia.org/wiki/Docstring)
+3. Add Example 
+4. Write Unit Test under `./tests/`
+5. Run Test Locally `python setup.py test`
+6. Run Test Remotely (Travis automatically deals this)
+7. Run Pylint Locally with `pylint robotic_skin examples tests`, and correct the errors from this command.
+8. Write Documentations under `./docs/`. See [docs/README.md](docs/README.md). 
 
-# Sphinx Commands
-There were few commands that confused me so I will list them with their functions. More information can be found [here](https://www.sphinx-doc.org/en/master/man/index.html). You can also generate `pdf` instead of `html` files, but we won't do it anyways. 
+## Test [MUST]
+When adding new feature such as `function`/`class`, you always and must write test(s) unless it will be rejected. <br>
+Then run the test
 
-- `sphinx-quickstart` <br>
-Generates essential files like `Makefile`, `conf.py` and `index.rst`<br>
+```
+python setup.py test
+```
 
-- `sphinx-build`<br>
-Generates documentation from `rst` files in source directory and output `html` files to output directory.<br>
+You can also use `pycodestyle`:
 
-- `sphinx-apidoc` <br>
-Auto-Generates a documentation from Python Package.
-`sphinx-apidoc _build/html ../robotic_skin` will generates `rst` files automatically.<br>
-Usage: `sphinx-apidoc <OUTPUT_DIR> <MODULE_DIR>`
+```
+pycodestyle <script-name>.py
+```
 
-- `sphinx-autobuild` (after pip installed it)<br>
-Generates `html` files and run server to host it to see it locally.<br>
-Usage: `sphinx-autobuild <SOURCE_DIR> <OUTPUT_DIR>`
+### Where should I write my features tests?
+When writing tests, for example for feature_module.py, please create test module file of name test_feature_module_name.py and place exactly at the same layer of your feature module.
+See below. <br>
+
+```
+├── robotic_skin 
+│   ├── __init__.py
+│   ...
+│   ├── your_awesome_module.py
+...
+└── tests
+    ├── __init__.py
+    ...
+    ├── test_your_awesome_module.py
+    │
+    ...
+```
+
+## Documentation
+Write documents of your new `function`/`class`/`feature` and explain what it does.
+Writing documents is hard, but it helps others understanding of what you implemented and how to use it.
+
+### Style
+We use **numpy style docstring**. <br>
+When writing the docs, please follow numpy style. <br>
+[See here](https://numpydoc.readthedocs.io/en/latest/) for details. 
+
+## Release
+Change the release version in `setup.py` and in `docs/conf.py`
