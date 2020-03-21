@@ -22,10 +22,12 @@ jobs:
       run: |
         ls robotic_skin
         pip install git+https://github.com/sphinx-doc/sphinx
+        pip install git+https://github.com/readthedocs/sphinx_rtd_theme
         sphinx-apidoc -f -o docs robotic_skin
         cd docs
         make clean
         make html
+        git status
         
     - name: Commit files
       run: |
