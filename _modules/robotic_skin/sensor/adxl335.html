@@ -21,10 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -149,9 +150,9 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">mcp3208</span> <span class="kn">import</span> <span class="n">MCP3208</span>
+<span class="kn">from</span> <span class="nn">mcp3208</span> <span class="k">import</span> <span class="n">MCP3208</span>
 
-<span class="kn">from</span> <span class="nn">robotic_skin.sensor</span> <span class="kn">import</span> <span class="n">Sensor</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.sensor</span> <span class="k">import</span> <span class="n">Sensor</span>
 <span class="kn">import</span> <span class="nn">robotic_skin.const</span> <span class="k">as</span> <span class="nn">C</span>
 
 <span class="c1"># import math</span>
@@ -161,7 +162,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    ADXL335 Sensor class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xpin</span><span class="p">,</span> <span class="n">ypin</span><span class="p">,</span> <span class="n">zpin</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xpin</span><span class="p">,</span> <span class="n">ypin</span><span class="p">,</span> <span class="n">zpin</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize ADXL335 which is connected to MCP3208 AD Converter.</span>
 
