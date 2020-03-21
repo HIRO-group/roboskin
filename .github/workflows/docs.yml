@@ -20,7 +20,7 @@ jobs:
 
     - name: Install and Build
       run: |
-        sudo apt-get install update
+        sudo apt-get update
         sudo apt-get install python3-sphinx
         pip install sphinx_rtd_theme
         sphinx-apidoc -f -o docs robotic_skin
