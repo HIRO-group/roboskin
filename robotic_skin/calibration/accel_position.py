@@ -524,6 +524,7 @@ class KinematicEstimator():
         T = T.dot(self.param_manager.Tdof2vdof[i_sensor].dot(self.param_manager.Tvdof2su[i_sensor]))
 
         x_rs = np.array([1, 0, 0])
+
         x_su = np.dot(T.R.T, x_rs)
         x_su = x_su / np.linalg.norm(x_su)
         q_from_x = quaternion_from_two_vectors(x_rs, x_su)
