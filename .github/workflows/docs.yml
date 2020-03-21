@@ -18,9 +18,18 @@ jobs:
       with:
         python-version: 3.7
 
-    - uses: ammaraskar/sphinx-action@master
-      with:
-        docs-folder: "docs/"
+    - name: Install and Build
+      run: |
+        ls robotic_skin
+        sudo apt install python3-pip
+        pip3 install sphinx
+        pip3 install sphinx_rtd_theme
+        pip3 install .
+        sphinx-apidoc -f -o docs robotic_skin
+        cd docs
+        make clean
+        make html
+        git status
         
     - name: Commit files
       run: |
