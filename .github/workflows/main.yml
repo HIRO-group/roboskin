@@ -24,6 +24,7 @@ jobs:
       run: |
         sudo apt install python3-sphinx
         sphinx-apidoc -f -o docs robotic_skin
+        sphinx-autobuild docs docs/_build/html
         
     # Runs a set of commands using the runners shell
     - name: Deploy 🚀
