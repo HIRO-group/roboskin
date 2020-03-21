@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -179,7 +179,7 @@
 <span class="sd">    This is a class to convert LT convertible matrix to LT matrix</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_matrix</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_matrix</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the class and start the main algorithm</span>
 <span class="sd">        Parameters</span>
@@ -195,7 +195,7 @@
 
     <span class="k">def</span> <span class="nf">_is_there_only_one_zero_array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The function will check if there is only one zero array in the passed matrix. If there are more, it will</span>
+<span class="sd">        This function will check if there is only one zero array in the passed matrix. If there are more, it will</span>
 <span class="sd">        throw an exception</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># There can be only one zero row in the activity matrix. More info in the exception string</span>
@@ -211,7 +211,7 @@
 
 <div class="viewcode-block" id="ConvertToLT.main_algorithm"><a class="viewcode-back" href="../../../robotic_skin.algorithm.html#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.main_algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">main_algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This is the main algo implementation. The algorithm details are at the top of the file.</span>
+<span class="sd">        This is the main algorithm implementation. The algorithm details are at the top of the file.</span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        None</span>
