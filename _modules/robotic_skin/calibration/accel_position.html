@@ -186,7 +186,7 @@
 
 <div class="viewcode-block" id="max_acceleration_joint_angle"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.max_acceleration_joint_angle">[docs]</a><span class="k">def</span> <span class="nf">max_acceleration_joint_angle</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    max acceleration along a joint angle.</span>
+<span class="sd">    max acceleration along a joint angle of robot.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># th_pattern = np.sign(t) * max_w / (curr_w) * (1 - np.cos(curr_w*t))</span>
     <span class="c1"># th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))</span>
@@ -202,7 +202,7 @@
 <div class="viewcode-block" id="KinematicEstimator"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator">[docs]</a><span class="k">class</span> <span class="nc">KinematicEstimator</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class for estimating the kinematics of the arm</span>
-<span class="sd">    and sensor unit positions.</span>
+<span class="sd">    and corresponding sensor unit positions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">dhparams</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
