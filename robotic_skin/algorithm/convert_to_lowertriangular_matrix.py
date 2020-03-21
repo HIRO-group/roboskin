@@ -125,7 +125,7 @@ class ConvertToLT:
 
     def convert_to_floating_point(self, my_number):
         """
-        This method id used to convert some number like 768 to 0.768. Basically used to add weight value
+        This method is used to convert some number like 768 to 0.768. Basically used to add weight value
         Parameters
         ----------
         my_number : int
