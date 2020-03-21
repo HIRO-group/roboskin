@@ -36,6 +36,7 @@ jobs:
         cd docs
         make clean
         make html
+        git status
       
         
     # deploy to gh pages
