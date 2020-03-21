@@ -24,10 +24,10 @@ jobs:
         ls robotic_skin
         sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
         sudo apt update
+        sudo apt install ros-melodic-ros-base
         sudo apt install ros-melodic-geometry-msgs
-        
-        sudo apt install python3-pip
-        pip3 install rospkg
+        sudo apt install python3-pip python3-yaml
+        pip3 install rospkg catkin_pkg
         pip3 install sphinx
         pip3 install sphinx_rtd_theme
         pip3 install .
