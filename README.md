@@ -10,18 +10,12 @@ Target Python version is 2.7
 
 # HTTPS Installation
 ```
-pip --no-cache-dir  install --upgrade git+https://github.com/HIRO-group/robotic_skin.git
-To install from a specific branch:
-pip --no-cache-dir install --upgrade git+https://github.com/HIRO-group/robotic_skin.git@ChangeSensorStructure
-Where ChangeSensorStructure is the branch name and it may vary in your case
+pip install --upgrade git+https://github.com/HIRO-group/robotic_skin.git
 ```
 
 # SSH Installation
 ```
-pip --no-cache-dir install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git
-To install from a specific branch:
-pip --no-cache-dir install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git@ChangeSensorStructure
-Where ChangeSensorStructure is the branch name and it may vary in your case
+pip install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git
 ```
 
 # Run Examples
@@ -116,9 +110,13 @@ See below. <br>
 To test the hardware whether it's working or not, whether the PCB is designed perfectly or not
 run the below command in Raspberry Pi:
 ```bash
-sudo watch i2cdetect -y bus_num
+sudo watch -n 1 i2cdetect -y bus_num
 ```
 Where bus_num is the I2C bus number in Raspbbery pi.
+The output in the terminal should look something like this:
+![](images/hardware_test.png)
+The numbers 29 and 6b which are I2C addresses(Unless you change the default I2C addresses, in that case they should appear in place of 29 and 6b) of proximity sensor and accelerometer
+should be visible without flickering.
 
 ## Documentation
 Write documents of your new `function`/`class`/`feature` and explain what it does.
