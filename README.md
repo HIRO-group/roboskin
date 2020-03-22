@@ -115,8 +115,8 @@ sudo watch -n 1 i2cdetect -y bus_num
 Where bus_num is the I2C bus number in Raspbbery pi.
 The output in the terminal should look something like this:
 ![](images/hardware_test.png)
-The numbers 29 and 6b which are I2C addresses(Unless you change the default I2C addresses, in that case they should appear in place of 29 and 6b) of proximity sensor and accelerometer
-should be visible without flickering.
+The numbers 29 and 6b which are I2C addresses (Unless you change the default I2C addresses, in that case they should appear in place of 29 and 6b) of proximity sensor and accelerometer
+respectively should be visible without flickering.
 
 ## Documentation
 Write documents of your new `function`/`class`/`feature` and explain what it does.

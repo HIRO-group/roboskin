@@ -7,6 +7,7 @@ Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076
 import math
 import smbus2
 from robotic_skin.sensor import Sensor
+from ..const import *
 
 
 class LSM6DS3_acclerometer(Sensor):
@@ -14,7 +15,6 @@ class LSM6DS3_acclerometer(Sensor):
     This is the Python Class for LSM6DS3. This includes all subroutines including calibration to handle everything
     related to the device.
     """
-
     def __init__(self, config_file):  # noqa: E999
         """
         Initializes the LSM6DS3 accelerometer. Checks for the I2C connection and checks whether it's the correct
@@ -25,14 +25,9 @@ class LSM6DS3_acclerometer(Sensor):
         Additionally this class extends Sensor, so all sensor's configuration should also be passed to this class
         Parameters
         ----------
-        bus_num : int
-            This is the bus number. Basically The I2C port number. For our circuit, I connected it I2C port 1,
-            So by default it's value I kept as 1. Feel free to pass your own value if you need it.
-        addr : int
-            (It would be easy for you to pass hexadecimal int of the form 0xNN, directly according to the datasheet)
-            The I2C address of the accelerometer. According to the datasheet of LSM6DS3, there can be only two
-            addresses 0x6b or 0x6a. By default I am using Sparkfun breakout board and the address to that is 0x6b
-            which I have kept as default
+        config_file : str
+            config_file is the full path to the config file which contains all parameters in yaml to execute
+            successfully as explained above
         """
         super(LSM6DS3_acclerometer, self).__init__(config_file)
         # Below are Accelerometer Output registers
@@ -227,7 +222,7 @@ class LSM6DS3_acclerometer(Sensor):
             Returns the calibrated value
 
         """
-        return input_value * self.config_dict['gravity_constant']
+        return input_value * GRAVITATIONAL_CONSTANT
 
     def read(self):
         """
