@@ -160,19 +160,15 @@
 <span class="sd">    Code for VL53L1X distance sensor class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i2c_bus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">i2c_address</span><span class="o">=</span><span class="mh">0x29</span><span class="p">,</span> <span class="n">range_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">timing_budget</span><span class="o">=</span><span class="mi">33000</span><span class="p">,</span> <span class="n">inter_measurement_period</span><span class="o">=</span><span class="mi">33</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">,</span> <span class="n">range_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">timing_budget</span><span class="o">=</span><span class="mi">33000</span><span class="p">,</span> <span class="n">inter_measurement_period</span><span class="o">=</span><span class="mi">33</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize the VL53L1X sensor, test if the python code can reach it or not, if not throw an exception</span>
+<span class="sd">        Initialize the VL53L1X sensor, test if the python code can reach it or not, if not throw an exception.</span>
+<span class="sd">        This class requires the below variables to be set in yaml configuration file:</span>
+<span class="sd">        RPi_bus_num: The Raspberry Pi I2C bus number</span>
+<span class="sd">        proximity_i2c_address: The I2C address of the sensor</span>
+<span class="sd">        Additionally this class extends Sensor, so all sensor&#39;s configuration should also be passed to this class</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        i2c_bus : int</span>
-<span class="sd">            This is the bus number. Basically The I2C port number. For our circuit, I connected it I2C port 1,</span>
-<span class="sd">            So by default it&#39;s value I kept as 1. Feel free to pass your own value if you need it.</span>
-<span class="sd">        i2c_address : int</span>
-<span class="sd">            (It would be easy for you to pass hexadecimal int of the form 0xNN, directly according to the datasheet)</span>
-<span class="sd">            The I2C address of the accelerometer. According to the datasheet of VL53L1X the address is 0x29. For future</span>
-<span class="sd">            note this can be changed to anything if you wish so. This library doesn&#39;t handle changing I2C address as of</span>
-<span class="sd">            now</span>
 <span class="sd">        range_value : int</span>
 <span class="sd">            The proximity sensor has 3 ranges, according to the Python Library:</span>
 <span class="sd">                None = 0 (Set this if you want to set timing budgets yourself)</span>
@@ -188,8 +184,8 @@
 <span class="sd">            Inter measurement period in milliseconds.</span>
 <span class="sd">            The inter measurement period must be &gt;= the timing budget, otherwise it will be double the expected value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tof</span> <span class="o">=</span> <span class="n">VL53L1X</span><span class="o">.</span><span class="n">VL53L1X</span><span class="p">(</span><span class="n">i2c_bus</span><span class="p">,</span> <span class="n">i2c_address</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VL53L1X_ProximitySensor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tof</span> <span class="o">=</span> <span class="n">VL53L1X</span><span class="o">.</span><span class="n">VL53L1X</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_dict</span><span class="p">[</span><span class="s1">&#39;RPi_bus_num&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_dict</span><span class="p">[</span><span class="s1">&#39;proximity_i2c_address&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tof</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">range_value</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
             <span class="c1"># Either use inbuilt range values provided by the vl53l1x library</span>
@@ -238,7 +234,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># To Get distance in metres according to ROS Range msg standards</span>
         <span class="c1"># http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Range.html</span>
-        <span class="k">return</span> <span class="n">input_value</span> <span class="o">/</span> <span class="mi">1000</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">input_value</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span>
 
 <div class="viewcode-block" id="VL53L1X_ProximitySensor.read"><a class="viewcode-back" href="../../../robotic_skin.sensor.html#robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

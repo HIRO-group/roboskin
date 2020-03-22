@@ -229,7 +229,7 @@ Thanks Homie!
 Datasheet Link: <a class="reference external" href="https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf">https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf</a></p>
 <dl class="class">
 <dt id="robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.lsm6ds3_accel.</code><code class="sig-name descname">LSM6DS3_acclerometer</code><span class="sig-paren">(</span><em class="sig-param">bus_num: int = 1</em>, <em class="sig-param">addr: int = 107</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.lsm6ds3_accel.</code><code class="sig-name descname">LSM6DS3_acclerometer</code><span class="sig-paren">(</span><em class="sig-param">config_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#robotic_skin.sensor.sensor.Sensor" title="robotic_skin.sensor.sensor.Sensor"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.sensor.sensor.Sensor</span></code></a></p>
 <p>This is the Python Class for LSM6DS3. This includes all subroutines including calibration to handle everything
 related to the device.</p>
@@ -373,7 +373,7 @@ length. So that’s what we will pass</p>
 <p>Generic Sensor Module</p>
 <dl class="class">
 <dt id="robotic_skin.sensor.sensor.Sensor">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.sensor.</code><code class="sig-name descname">Sensor</code><a class="reference internal" href="_modules/robotic_skin/sensor/sensor.html#Sensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.sensor.Sensor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.sensor.</code><code class="sig-name descname">Sensor</code><span class="sig-paren">(</span><em class="sig-param">config_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/sensor.html#Sensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.sensor.Sensor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Sensor Class</p>
 <dl class="method">
@@ -398,7 +398,7 @@ Datasheet Link: <a class="reference external" href="https://www.st.com/resource/
 This library heavily uses VL53L1X pip application: pip install VL53L1X</p>
 <dl class="class">
 <dt id="robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.vl53l1x.</code><code class="sig-name descname">VL53L1X_ProximitySensor</code><span class="sig-paren">(</span><em class="sig-param">i2c_bus=1</em>, <em class="sig-param">i2c_address=41</em>, <em class="sig-param">range_value=0</em>, <em class="sig-param">timing_budget=33000</em>, <em class="sig-param">inter_measurement_period=33</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/vl53l1x.html#VL53L1X_ProximitySensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.vl53l1x.</code><code class="sig-name descname">VL53L1X_ProximitySensor</code><span class="sig-paren">(</span><em class="sig-param">config_file</em>, <em class="sig-param">range_value=0</em>, <em class="sig-param">timing_budget=33000</em>, <em class="sig-param">inter_measurement_period=33</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/vl53l1x.html#VL53L1X_ProximitySensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#robotic_skin.sensor.sensor.Sensor" title="robotic_skin.sensor.sensor.Sensor"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.sensor.sensor.Sensor</span></code></a></p>
 <p>Code for VL53L1X distance sensor class.</p>
 <dl class="method">

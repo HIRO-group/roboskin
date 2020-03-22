@@ -154,6 +154,7 @@
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">smbus2</span>
 <span class="kn">from</span> <span class="nn">robotic_skin.sensor</span> <span class="kn">import</span> <span class="n">Sensor</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.const</span> <span class="kn">import</span> <span class="n">GRAVITATIONAL_CONSTANT</span>
 
 
 <div class="viewcode-block" id="LSM6DS3_acclerometer"><a class="viewcode-back" href="../../../robotic_skin.sensor.html#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer">[docs]</a><span class="k">class</span> <span class="nc">LSM6DS3_acclerometer</span><span class="p">(</span><span class="n">Sensor</span><span class="p">):</span>
@@ -161,23 +162,21 @@
 <span class="sd">    This is the Python Class for LSM6DS3. This includes all subroutines including calibration to handle everything</span>
 <span class="sd">    related to the device.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bus_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">addr</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mh">0x6b</span><span class="p">):</span>  <span class="c1"># noqa: E999</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">):</span>  <span class="c1"># noqa: E999</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the LSM6DS3 accelerometer. Checks for the I2C connection and checks whether it&#39;s the correct</span>
-<span class="sd">        accelerometer or not.</span>
+<span class="sd">        accelerometer or not. This class requires the below variables to be set in yaml configuration file:</span>
+<span class="sd">        RPi_bus_num: The Raspberry Pi I2C bus number</span>
+<span class="sd">        imu_i2c_address: The I2C address of the sensor</span>
+<span class="sd">        gravity_constant: gravity constant. It&#39;s usually set in params.yaml.</span>
+<span class="sd">        Additionally this class extends Sensor, so all sensor&#39;s configuration should also be passed to this class</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        bus_num : int</span>
-<span class="sd">            This is the bus number. Basically The I2C port number. For our circuit, I connected it I2C port 1,</span>
-<span class="sd">            So by default it&#39;s value I kept as 1. Feel free to pass your own value if you need it.</span>
-<span class="sd">        addr : int</span>
-<span class="sd">            (It would be easy for you to pass hexadecimal int of the form 0xNN, directly according to the datasheet)</span>
-<span class="sd">            The I2C address of the accelerometer. According to the datasheet of LSM6DS3, there can be only two</span>
-<span class="sd">            addresses 0x6b or 0x6a. By default I am using Sparkfun breakout board and the address to that is 0x6b</span>
-<span class="sd">            which I have kept as default</span>
+<span class="sd">        config_file : str</span>
+<span class="sd">            config_file is the full path to the config file which contains all parameters in yaml to execute</span>
+<span class="sd">            successfully as explained above</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">LSM6DS3_acclerometer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
         <span class="c1"># Below are Accelerometer Output registers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">OUTX_L_XL</span> <span class="o">=</span> <span class="mh">0x28</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">OUTX_H_XL</span> <span class="o">=</span> <span class="mh">0x29</span>
@@ -209,9 +208,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">initial_registers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CTRL1_XL&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL2_G&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL3_C&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL4_C&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL5_C&#39;</span><span class="p">,</span>
                                   <span class="s1">&#39;CTRL6_C&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL7_G&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL8_XL&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL9_XL&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL10_C&#39;</span><span class="p">]</span>
         <span class="c1"># Setting the SMBus</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bus_num</span> <span class="o">=</span> <span class="n">bus_num</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bus_num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_dict</span><span class="p">[</span><span class="s1">&#39;RPi_bus_num&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bus</span> <span class="o">=</span> <span class="n">smbus2</span><span class="o">.</span><span class="n">SMBus</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bus_num</span><span class="p">)</span>
         <span class="c1"># If int is not passed, then convert it to int</span>
+        <span class="n">addr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_dict</span><span class="p">[</span><span class="s1">&#39;imu_i2c_address&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">addr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
         <span class="c1"># Address of the Acceleromter I2C device</span>
@@ -369,7 +369,7 @@
 <span class="sd">            Returns the calibrated value</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">input_value</span>
+        <span class="k">return</span> <span class="n">input_value</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span>
 
 <div class="viewcode-block" id="LSM6DS3_acclerometer.read"><a class="viewcode-back" href="../../../robotic_skin.sensor.html#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -382,21 +382,6 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_calibrate_value</span><span class="p">(</span><span class="n">each_value</span><span class="p">)</span> <span class="k">for</span> <span class="n">each_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_raw</span><span class="p">()]</span></div></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="c1"># Test Case</span>
-    <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
-
-    <span class="n">lsm</span> <span class="o">=</span> <span class="n">LSM6DS3_acclerometer</span><span class="p">()</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">raw_accel_list</span> <span class="o">=</span> <span class="n">lsm</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span>
-            <span class="s2">&quot;Raw accel values: </span><span class="se">\t</span><span class="s2"> X </span><span class="si">{x:.4f}</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> Y </span><span class="si">{y:.4f}</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> Z </span><span class="si">{z:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">x</span><span class="o">=</span><span class="n">raw_accel_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="n">y</span><span class="o">=</span><span class="n">raw_accel_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                <span class="n">z</span><span class="o">=</span><span class="n">raw_accel_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
-        <span class="n">sleep</span><span class="p">(</span><span class="mf">0.02</span><span class="p">)</span>
 </pre></div>
 
            </div>
