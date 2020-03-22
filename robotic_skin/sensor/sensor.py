@@ -20,8 +20,6 @@ class Sensor(object):
         config_file: str
             The input is full path string from where the class can read the yaml configuration file
         """
-        # First Find the dirname, so that we can include some more config files which should included be by default
-        config_folder = os.path.dirname(config_file)
         with open(config_file, 'r') as cf:
             # We would be saving everything in a dictionary, so that if there are any duplicates
             # It would raise an error
