@@ -7,6 +7,7 @@ Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076
 import math
 import smbus2
 from robotic_skin.sensor import Sensor
+from robotic_skin.const import GRAVITATIONAL_CONSTANT
 
 
 class LSM6DS3_acclerometer(Sensor):
@@ -14,23 +15,21 @@ class LSM6DS3_acclerometer(Sensor):
     This is the Python Class for LSM6DS3. This includes all subroutines including calibration to handle everything
     related to the device.
     """
-
-    def __init__(self, bus_num: int = 1, addr: int = 0x6b):  # noqa: E999
+    def __init__(self, config_file):  # noqa: E999
         """
         Initializes the LSM6DS3 accelerometer. Checks for the I2C connection and checks whether it's the correct
-        accelerometer or not.
+        accelerometer or not. This class requires the below variables to be set in yaml configuration file:
+        RPi_bus_num: The Raspberry Pi I2C bus number
+        imu_i2c_address: The I2C address of the sensor
+        gravity_constant: gravity constant. It's usually set in params.yaml.
+        Additionally this class extends Sensor, so all sensor's configuration should also be passed to this class
         Parameters
         ----------
-        bus_num : int
-            This is the bus number. Basically The I2C port number. For our circuit, I connected it I2C port 1,
-            So by default it's value I kept as 1. Feel free to pass your own value if you need it.
-        addr : int
-            (It would be easy for you to pass hexadecimal int of the form 0xNN, directly according to the datasheet)
-            The I2C address of the accelerometer. According to the datasheet of LSM6DS3, there can be only two
-            addresses 0x6b or 0x6a. By default I am using Sparkfun breakout board and the address to that is 0x6b
-            which I have kept as default
+        config_file : str
+            config_file is the full path to the config file which contains all parameters in yaml to execute
+            successfully as explained above
         """
-        super().__init__()
+        super(LSM6DS3_acclerometer, self).__init__(config_file)
         # Below are Accelerometer Output registers
         self.OUTX_L_XL = 0x28
         self.OUTX_H_XL = 0x29
@@ -62,9 +61,10 @@ class LSM6DS3_acclerometer(Sensor):
         self.initial_registers = ['CTRL1_XL', 'CTRL2_G', 'CTRL3_C', 'CTRL4_C', 'CTRL5_C',
                                   'CTRL6_C', 'CTRL7_G', 'CTRL8_XL', 'CTRL9_XL', 'CTRL10_C']
         # Setting the SMBus
-        self.bus_num = bus_num
+        self.bus_num = self.config_dict['RPi_bus_num']
         self.bus = smbus2.SMBus(self.bus_num)
         # If int is not passed, then convert it to int
+        addr = self.config_dict['imu_i2c_address']
         if isinstance(addr, str):
             addr = int(addr, 16)
         # Address of the Acceleromter I2C device
@@ -222,7 +222,7 @@ class LSM6DS3_acclerometer(Sensor):
             Returns the calibrated value
 
         """
-        return input_value
+        return input_value * GRAVITATIONAL_CONSTANT
 
     def read(self):
         """
@@ -235,18 +235,3 @@ class LSM6DS3_acclerometer(Sensor):
 
         """
         return [self._calibrate_value(each_value) for each_value in self._read_raw()]
-
-
-if __name__ == "__main__":
-    # Test Case
-    from time import sleep
-
-    lsm = LSM6DS3_acclerometer()
-    while True:
-        raw_accel_list = lsm.read()
-        print(
-            "Raw accel values: \t X {x:.4f} \t Y {y:.4f} \t Z {z:.4f}".format(
-                x=raw_accel_list[0],
-                y=raw_accel_list[1],
-                z=raw_accel_list[2]))
-        sleep(0.02)

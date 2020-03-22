@@ -5,7 +5,7 @@
 - `0.0.1` as of 2020/01/14
 
 ## Target Python versions
-Target Python version is 3.7.4, and a Python version >= 3.6 is required.
+Target Python version is 2.7
 
 
 # HTTPS Installation
@@ -105,6 +105,18 @@ See below. <br>
     │
     ...
 ```
+
+## Testing Hardware:
+To test the hardware whether it's working or not, whether the PCB is designed perfectly or not
+run the below command in Raspberry Pi:
+```bash
+sudo watch -n 1 i2cdetect -y bus_num
+```
+Where bus_num is the I2C bus number in Raspbbery pi.
+The output in the terminal should look something like this:
+![](images/hardware_test.png)
+The numbers 29 and 6b which are I2C addresses (Unless you change the default I2C addresses, in that case they should appear in place of 29 and 6b) of proximity sensor and accelerometer
+respectively should be visible without flickering.
 
 ## Documentation
 Write documents of your new `function`/`class`/`feature` and explain what it does.
