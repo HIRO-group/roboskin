@@ -7,7 +7,7 @@ Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076
 import math
 import smbus2
 from robotic_skin.sensor import Sensor
-from ..const import GRAVITATIONAL_CONSTANT
+from robotic_skin.const import GRAVITATIONAL_CONSTANT
 
 
 class LSM6DS3_acclerometer(Sensor):
