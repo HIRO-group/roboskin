@@ -1,12 +1,9 @@
 ![](https://github.com/HIRO-group/robotic_skin/workflows/Python%20application/badge.svg)
 
 # HIRO Robotic Skin
-## Current Release
-- `0.0.1` as of 2020/01/14
-
-## Target Python versions
-Target Python version is 2.7
-
+- **Current Release**: `0.0.1` as of 2020/01/14
+- **Target Python versions**: Python 2.7
+- **Documentation**: http://hiro-group.ronc.one/robotic_skin/
 
 # HTTPS Installation
 ```
@@ -17,22 +14,6 @@ pip install --upgrade git+https://github.com/HIRO-group/robotic_skin.git
 ```
 pip install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git
 ```
-
-# Run Examples
-Examples are in `./examples/`
-For example, Run:
-```
-python examples/01_add_numbers.py
-```
-
-or if you have a connected accelerometer (ADXL335):
-```
-python examples/02_read_adxl335.py
-```
-
-
-# Documentation
-You can find the documentation [here](http://hiro-group.ronc.one/robotic_skin/).
 
 # Docker
 
@@ -67,12 +48,12 @@ This project is using GitHub flow ([See here for details](https://guides.github.
 ## Contribution Steps
 1. Add your feature under `./robotic_skin/`
 2. Comment classes and functions with [docstring](https://en.wikipedia.org/wiki/Docstring)
-3. Add Example 
+3. Add Example
 4. Write Unit Test under `./tests/`
 5. Run Test Locally `python setup.py test`
 6. Run Test Remotely (Travis automatically deals this)
 7. Run Pylint Locally with `pylint robotic_skin examples tests`, and correct the errors from this command.
-8. Write Documentations under `./docs/`. See [docs/README.md](docs/README.md). 
+8. Write Documentations under `./docs/`. See [docs/README.md](docs/README.md).
 
 ## Test [MUST]
 When adding new feature such as `function`/`class`, you always and must write test(s) unless it will be rejected. <br>
@@ -93,7 +74,7 @@ When writing tests, for example for feature_module.py, please create test module
 See below. <br>
 
 ```
-├── robotic_skin 
+├── robotic_skin
 │   ├── __init__.py
 │   ...
 │   ├── your_awesome_module.py
@@ -125,7 +106,7 @@ Writing documents is hard, but it helps others understanding of what you impleme
 ### Style
 We use **numpy style docstring**. <br>
 When writing the docs, please follow numpy style. <br>
-[See here](https://numpydoc.readthedocs.io/en/latest/) for details. 
+[See here](https://numpydoc.readthedocs.io/en/latest/) for details.
 
 ## Release
 Change the release version in `setup.py` and in `docs/conf.py`
