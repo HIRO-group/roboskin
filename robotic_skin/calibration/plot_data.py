@@ -146,21 +146,29 @@ if __name__ == '__main__':
                     A_measured = np.linalg.norm(meas_accels, axis=1)
                     A_model = np.linalg.norm(model_accels, axis=1)
 
-                    fig = plt.figure()
-                    ax = fig.add_subplot(211)
+                    fig = plt.figure(figsize=(12,8))
+                    ax = fig.add_subplot(311)
                     ax.plot(np.arange(meas_accels.shape[0]), A_measured, label='Measured')
                     ax.plot(np.arange(model_accels.shape[0]), A_model, label='Model')
                     ax.hlines(y=9.81, xmin=0, xmax=meas_accels.shape[0], color='r', label='G=9.81')
                     ax.set_ylim([9, 11])
                     ax.legend()
 
-                    ax = fig.add_subplot(212)
-                    for
-                    ax.plot(np.arange(meas_accels.shape[0]), meas_accels, label='Measured')
-                    ax.plot(np.arange(model_accels.shape[0]), model_accels, label='Model')
+                    ax = fig.add_subplot(312)
+                    labels = ['x', 'y', 'z']
+                    for j, label in enumerate(labels):
+                        ax.plot(np.arange(meas_accels.shape[0]), meas_accels[:,j], label='Measured ' + label)
+                    ax.set_ylim([-11, 11])
+                    ax.legend()
+
+                    ax = fig.add_subplot(313)
+                    labels = ['x', 'y', 'z']
+                    for j, label in enumerate(labels):
+                        ax.plot(np.arange(model_accels.shape[0]), model_accels[:,j], label='Model ' + label)
                     ax.set_ylim([-11, 11])
                     ax.legend()
 
                     savepath = os.path.join(images_dir, 'max_accel_Pose%i_Joint%i_IMU%i.png'%(p,d,i))
+                    print(savepath)
                     plt.savefig(savepath)
                     plt.close()
