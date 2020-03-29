@@ -9,7 +9,7 @@ from robotic_skin.calibration.utils import TransMat, ParameterManager
 
 PACKAGE_HOME_DIR = os.path.abspath(__file__ + "/../../../")
 
-def load_data(robot='sawyer'):
+def load_data(robot='panda'):
     directory = os.path.join(rospkg.RosPack().get_path('ros_robotic_skin'), 'data')
 
     filename = '_'.join(['constant_data', robot])
@@ -19,7 +19,7 @@ def load_data(robot='sawyer'):
 
     return constant
 
-def load_dhparams(robot='sawyer'):
+def load_dhparams(robot='panda'):
     # th, d, a, al
     if robot == 'sawyer':
         dhparams = np.array([
@@ -46,9 +46,9 @@ def load_dhparams(robot='sawyer'):
 
 def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
     # Transformation Matrix from su to rs in rs frame
-    rs_T_su = TransMat(np.zeros(4)) 
+    rs_T_su = TransMat(np.zeros(4))
     # Transformation Matrix from the last DoFi to the excited DoFd
-    dofd_T_dofi = TransMat(np.zeros(4)) 
+    dofd_T_dofi = TransMat(np.zeros(4))
 
     for j in range(d+1):
         #print(j)
@@ -64,7 +64,7 @@ def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
 
     dofd_r_su = dof_T_su.position
     # Every joint rotates along its own z axis
-    w_dofd = np.array([0, 0, curr_w]) 
+    w_dofd = np.array([0, 0, curr_w])
     a_dofd = np.dot(w_dofd, np.dot(w_dofd, dofd_r_su))
 
     g_rs = np.array([0, 0, 9.81])
@@ -86,7 +86,7 @@ def get_su_transmat(i):
 
     Tdof2vdof = TransMat(params[i, :2])
     Tvdof2su = TransMat(params[i, 2:])
-    
+
     return Tdof2vdof.dot(Tvdof2su)
 
 if __name__ == '__main__':
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     dhparams = load_dhparams()
 
     param_manager = ParameterManager(n_joint, bounds, bounds_su, dhparams)
-    
+
     images_dir = os.path.join(PACKAGE_HOME_DIR, 'images')
     if not os.path.exists(images_dir):
         os.makedirs(images_dir)
@@ -147,12 +147,20 @@ if __name__ == '__main__':
                     A_model = np.linalg.norm(model_accels, axis=1)
 
                     fig = plt.figure()
-                    ax = fig.add_subplot(111)
+                    ax = fig.add_subplot(211)
                     ax.plot(np.arange(meas_accels.shape[0]), A_measured, label='Measured')
                     ax.plot(np.arange(model_accels.shape[0]), A_model, label='Model')
                     ax.hlines(y=9.81, xmin=0, xmax=meas_accels.shape[0], color='r', label='G=9.81')
-                    ax.set_ylim([0, 15])
+                    ax.set_ylim([9, 11])
                     ax.legend()
+
+                    ax = fig.add_subplot(212)
+                    for
+                    ax.plot(np.arange(meas_accels.shape[0]), meas_accels, label='Measured')
+                    ax.plot(np.arange(model_accels.shape[0]), model_accels, label='Model')
+                    ax.set_ylim([-11, 11])
+                    ax.legend()
+
                     savepath = os.path.join(images_dir, 'max_accel_Pose%i_Joint%i_IMU%i.png'%(p,d,i))
                     plt.savefig(savepath)
                     plt.close()
