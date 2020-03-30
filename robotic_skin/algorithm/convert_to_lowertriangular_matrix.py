@@ -48,7 +48,7 @@ class ConvertToLT:
 
     def _is_there_only_one_zero_array(self):
         """
-        This function will check if there is only one zero array in the passed matrix, if there are more, it will
+        This function will check if there is only one zero array in the passed matrix. If there are more, it will
         throw an exception
         """
         # There can be only one zero row in the activity matrix. More info in the exception string
@@ -64,7 +64,7 @@ class ConvertToLT:
 
     def main_algorithm(self):
         """
-        Main Algorithm implementation. Algorithm details at the top of the file.
+        This is the main algorithm implementation. The algorithm details are at the top of the file.
         Returns
         -------
         None
@@ -125,7 +125,7 @@ class ConvertToLT:
 
     def convert_to_floating_point(self, my_number):
         """
-        This method id used to convert some number like 768 to 0.768. Basically used to add weight value
+        This method is used to convert some number like 768 to 0.768. Basically used to add weight value
         Parameters
         ----------
         my_number : int

@@ -1,0 +1,60 @@
+# documentation generation for robotic_skin
+name: Documentation Generation Github Pages
+
+# only deploys documentation on pushes to master
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+
+    - name: Install and Build
+      run: |
+        sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+        ls robotic_skin
+        sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+        sudo apt update
+
+        sudo apt install ros-melodic-ros-base
+        sudo apt install ros-melodic-geometry-msgs
+        sudo apt install python3-pip python3-yaml
+        pip3 install rospkg catkin_pkg
+        pip3 install sphinx
+        pip3 install sphinx_rtd_theme
+        pip3 install .
+        source /opt/ros/melodic/setup.bash
+        sphinx-apidoc -f -o docs robotic_skin
+        cd docs
+        make clean
+        make html
+      
+    - name: Commit files
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git commit -m "Add changes" -a
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.ACCESS_TOKEN }}
+        branch: master
+
+    # deploy to gh pages
+    - name: Deploy 🚀
+      uses: JamesIves/github-pages-deploy-action@releases/v3
+      with:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        BASE_BRANCH: master
+        BRANCH: gh-pages # The branch the action should deploy to.
+        FOLDER: docs/_build/html # The folder the action should deploy.
