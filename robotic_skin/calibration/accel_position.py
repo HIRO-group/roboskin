@@ -42,6 +42,7 @@ from robotic_skin.calibration.utils import (
 # IMU5: [-1.57, 0.03, 1.57, 0.05, 0, 1.57] [-0.023, -0.030, 1.041] [0.482, -0.482, -0.517, 0.517]
 # IMU6: [1.57, 0, -1.57, 0.05, 0, 1.57] [0.165, 0.000, 1.028] [[0.732, 0.000, 0.682, -0.000]
 
+
 def max_acceleration_joint_angle(curr_w, max_w, t):
     """
     max acceleration along a joint angle.
@@ -52,8 +53,10 @@ def max_acceleration_joint_angle(curr_w, max_w, t):
     # print('-'*20, th_pattern, curr_w, '-'*20)
     return TransMat(th_pattern)
 
+
 def constant_velocity_joint_angle(curr_w, max_w, t):
     return TransMat(curr_w*t)
+
 
 class KinematicEstimator():
     """
@@ -123,14 +126,14 @@ class KinematicEstimator():
         # Optimize each joint (& sensor) at a time from the root
         # currently starting from 6th skin unit
         for i in range(1, self.n_sensor):
-            print("Optimizing %ith SU ..."%(i))
+            print("Optimizing %ith SU ..." % (i))
             params, bounds = self.param_manager.get_params_at(i=i)
             n_param = params.shape[0]
             Tdofs = self.param_manager.get_tmat_until(i)
 
             assert len(Tdofs) == i + 1, 'Size of Tdofs supposed to be %i, but %i' % (i+1, len(Tdofs))
 
-            #################### First Optimize Rotations ####################
+            # ################### First Optimize Rotations ####################
             n_param = int(n_param/2)
             param_rot = params[self.rot_index]
             param_pos = params[self.pos_index]
@@ -221,7 +224,7 @@ class KinematicEstimator():
             Tdof2vdof = TransMat(params[4:6])
             Tvdof2su = TransMat(params[6:])
 
-        # Tdof2su = Tdof2vdof.dot(Tvdof2su)
+        Tdof2su = Tdof2vdof.dot(Tvdof2su)
         Tdof2su = get_su_transmat(i, 'panda')
 
         pos, quat = self.get_an_accelerometer_position(Tdofs, Tdof2su)
@@ -241,9 +244,9 @@ class KinematicEstimator():
             # e4 = np.sum(np.abs(params)[[0,2,5]])
             return e1
         else:
-            #e2 = self.dynamic_error_function(i, Tdofs, Tdof2su)
-            #print(n2s(e2, 5), n2s(params), n2s(pos), n2s(quat))
-            #return e2
+            # e2 = self.dynamic_error_function(i, Tdofs, Tdof2su)
+            # print(n2s(e2, 5), n2s(params), n2s(pos), n2s(quat))
+            # return e2
             e3 = self.rotation_error_function(i, Tdofs, Tdof2su)
             print('IMU'+str(i), n2s(e3, 5), n2s(params), n2s(pos), n2s(quat), self.xdiff)
 
@@ -301,8 +304,8 @@ class KinematicEstimator():
 
         # print('[Static Accel] ', n2s(np.mean(gravities, axis=0), 2), n2s(np.std(gravities, axis=0), 2))
 
-        #return np.sum(np.linalg.norm(gravities - np.mean(gravities, 0), axis=1))
-        #return np.sum(np.linalg.norm(gravities - gravity, axis=1))
+        # return np.sum(np.linalg.norm(gravities - np.mean(gravities, 0), axis=1))
+        # return np.sum(np.linalg.norm(gravities - gravity, axis=1))
         return np.mean(np.linalg.norm(gravities - gravity, axis=1))
 
     def rotation_error_function(self, i, Tdofs, Tdof2su):
@@ -346,14 +349,15 @@ class KinematicEstimator():
 
                     # Acceleration Error
                     Tjoints = [TransMat(joint) for joint in joint[:i+1]]
-                    # model_accel = self.estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, curr_w, None, constant_velocity_joint_angle)
+                    # model_accel = self.estimate_acceleration_numerically(
+                    # Tdofs, Tjoints, Tdof2su, d, curr_w, None, constant_velocity_joint_angle)
                     model_accel = self.estimate_acceleration_analytically(Tdofs, Tjoints, Tdof2su, d, i, curr_w)
                     # error2 = np.sum(np.abs(model_accel - meas_accel))
                     error2 = np.sum(np.linalg.norm(model_accel - meas_accel))
                     print(i, d, joint[d], curr_w, n2s(model_accel), n2s(meas_accel))
                     print(n2s(joint))
 
-                    #errors += error1 + error2
+                    # errors += error1 + error2
                     errors += error2
                     n_data += 1
 
@@ -370,7 +374,7 @@ class KinematicEstimator():
         x_su = np.dot(Rrs2su, x_rs)
         x_su = x_su / np.linalg.norm(x_su)
         q_from_x = quaternion_from_two_vectors(from_vec=x_rs, to_vec=x_su)
-        #q_from_x = quaternion_from_two_vectors(from_vec=x_su, to_vec=x_rs)
+        # q_from_x = quaternion_from_two_vectors(from_vec=x_su, to_vec=x_rs)
 
         """
         y_rs = np.array([0, 1, 0])
@@ -418,7 +422,8 @@ class KinematicEstimator():
                 # max_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][4]
                 joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][5:5+i+1]
                 Tjoints = [TransMat(joint) for joint in joints]
-                #max_accel_model = self.estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
+                # max_accel_model = self.estimate_acceleration_numerically(
+                # Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
                 max_accel_model = self.estimate_acceleration_analytically(Tdofs, Tjoints, Tdof2su, d, i, curr_w)
                 # if p == 0:
                 #     print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
@@ -435,11 +440,11 @@ class KinematicEstimator():
         dofd_T_dofi = TransMat(np.zeros(4))
 
         for j in range(d+1):
-            #print(j)
+            # print(j)
             rs_T_su = rs_T_su.dot(Tdofs[j]).dot(Tjoints[j])
 
         for j in range(d+1, i+1):
-            #print(j, d, i)
+            # print(j, d, i)
             rs_T_su = rs_T_su.dot(Tdofs[j]).dot(Tjoints[j])
             dofd_T_dofi = dofd_T_dofi.dot(Tdofs[j]).dot(Tjoints[j])
 
@@ -456,7 +461,6 @@ class KinematicEstimator():
         a_su = np.dot(dof_T_su.R.T, a_dofd) + np.dot(rs_T_su.R.T, g_rs)
 
         return a_su
-
 
     def estimate_acceleration_numerically(self, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_angle_func):
         """

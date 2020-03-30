@@ -3,11 +3,11 @@ import rospkg
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-from pathlib import Path
 
 from robotic_skin.calibration.utils import TransMat, ParameterManager
 
 PACKAGE_HOME_DIR = os.path.abspath(__file__ + "/../../../")
+
 
 def load_data(robot='panda'):
     directory = os.path.join(rospkg.RosPack().get_path('ros_robotic_skin'), 'data')
@@ -18,6 +18,7 @@ def load_data(robot='panda'):
         constant = pickle.load(f, encoding='latin1')
 
     return constant
+
 
 def load_dhparams(robot='panda'):
     # th, d, a, al
@@ -44,6 +45,7 @@ def load_dhparams(robot='panda'):
 
     return dhparams
 
+
 def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
     # Transformation Matrix from su to rs in rs frame
     rs_T_su = TransMat(np.zeros(4))
@@ -51,11 +53,11 @@ def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
     dofd_T_dofi = TransMat(np.zeros(4))
 
     for j in range(d+1):
-        #print(j)
+        # print(j)
         rs_T_su = rs_T_su.dot(Tdofs[j]).dot(Tjoints[j])
 
     for j in range(d+1, i+1):
-        #print(j, d, i)
+        # print(j, d, i)
         rs_T_su = rs_T_su.dot(Tdofs[j]).dot(Tjoints[j])
         dofd_T_dofi = dofd_T_dofi.dot(Tdofs[j]).dot(Tjoints[j])
 
@@ -73,6 +75,7 @@ def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
 
     return a_su
 
+
 def get_su_transmat(i):
     params = np.array([
         [1.57,  -0.157,  -1.57, 0.07, 0,  1.57],
@@ -88,6 +91,7 @@ def get_su_transmat(i):
     Tvdof2su = TransMat(params[i, 2:])
 
     return Tdof2vdof.dot(Tvdof2su)
+
 
 if __name__ == '__main__':
     Data = load_data()
@@ -138,15 +142,15 @@ if __name__ == '__main__':
                 model_accels = np.array(model_accels)
 
                 if len(model_accels) == 0:
-                    print('Position%i'%(p), 'Joint%i'%(d), 'IMU%i'%(i), model_accels)
+                    print('Position%i' % (p), 'Joint%i' % (d), 'IMU%i' % (i), model_accels)
                     print(data)
                 else:
-                    print('Position%i'%(p), 'Joint%i'%(d), 'IMU%i'%(i))
+                    print('Position%i' % (p), 'Joint%i' % (d), 'IMU%i' % (i))
 
                     A_measured = np.linalg.norm(meas_accels, axis=1)
                     A_model = np.linalg.norm(model_accels, axis=1)
 
-                    fig = plt.figure(figsize=(12,8))
+                    fig = plt.figure(figsize=(12, 8))
                     ax = fig.add_subplot(311)
                     ax.plot(np.arange(meas_accels.shape[0]), A_measured, label='Measured')
                     ax.plot(np.arange(model_accels.shape[0]), A_model, label='Model')
@@ -157,18 +161,18 @@ if __name__ == '__main__':
                     ax = fig.add_subplot(312)
                     labels = ['x', 'y', 'z']
                     for j, label in enumerate(labels):
-                        ax.plot(np.arange(meas_accels.shape[0]), meas_accels[:,j], label='Measured ' + label)
+                        ax.plot(np.arange(meas_accels.shape[0]), meas_accels[:, j], label='Measured ' + label)
                     ax.set_ylim([-11, 11])
                     ax.legend()
 
                     ax = fig.add_subplot(313)
                     labels = ['x', 'y', 'z']
                     for j, label in enumerate(labels):
-                        ax.plot(np.arange(model_accels.shape[0]), model_accels[:,j], label='Model ' + label)
+                        ax.plot(np.arange(model_accels.shape[0]), model_accels[:, j], label='Model ' + label)
                     ax.set_ylim([-11, 11])
                     ax.legend()
 
-                    savepath = os.path.join(images_dir, 'max_accel_Pose%i_Joint%i_IMU%i.png'%(p,d,i))
+                    savepath = os.path.join(images_dir, 'max_accel_Pose%i_Joint%i_IMU%i.png' % (p, d, i))
                     print(savepath)
                     plt.savefig(savepath)
                     plt.close()
