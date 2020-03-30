@@ -23,18 +23,24 @@ from robotic_skin.calibration.utils import (
 )
 # Sawyer IMU Position
 # THESE ARE THE TRUE VALUES of THE IMU POSITIONS
-# IMU0: [1.57,  -0.157,  -1.57, 0.07, 0,  1.57] [0.070, -0.000, 0.16], [-0.000, 0.707, 0.000, 0.707] 
-# IMU1: [-1.57, -0.0925, 1.57,  0.07, 0,  1.57] [0.086, 0.100, 0.387], [0.024, 0.025, 0.707, 0.707]  
-# IMU2: [-1.57, -0.16,   1.57,  0.05, 0,  1.57] [0.324, 0.191, 0.350], [0.012, 0.035, -0.000, 0.999] 
-# IMU3: [-1.57, 0.0165,  1.57,  0.05, 0,  1.57] [0.485, 0.049, 0.335], [0.045, 0.029, 0.706, 0.706]  
-# IMU4: [-1.57, -0.17,   1.57,  0.05, 0,  1.57] [0.709, 0.023, 0.312], [0.008, 0.052, -0.000, 0.999] 
-# IMU5: [-1.57, 0.0053,  1.57,  0.04, 0,  1.57] [0.883, 0.154, 0.287], [0.045, 0.034, 0.706, 0.706]  
-# IMU6: [0.0,   0.12375, 0.0,   0.03, 0, -1.57] [1.087, 0.131, 0.228], [0.489, -0.428, 0.512, 0.562] 
+# IMUi: [DH parameters] [XYZ Position] [Quaternion]
+# IMU0: [1.57,  -0.157,  -1.57, 0.07, 0,  1.57] [0.070, -0.000, 0.16], [-0.000, 0.707, 0.000, 0.707]
+# IMU1: [-1.57, -0.0925, 1.57,  0.07, 0,  1.57] [0.086, 0.100, 0.387], [0.024, 0.025, 0.707, 0.707]
+# IMU2: [-1.57, -0.16,   1.57,  0.05, 0,  1.57] [0.324, 0.191, 0.350], [0.012, 0.035, -0.000, 0.999]
+# IMU3: [-1.57, 0.0165,  1.57,  0.05, 0,  1.57] [0.485, 0.049, 0.335], [0.045, 0.029, 0.706, 0.706]
+# IMU4: [-1.57, -0.17,   1.57,  0.05, 0,  1.57] [0.709, 0.023, 0.312], [0.008, 0.052, -0.000, 0.999]
+# IMU5: [-1.57, 0.0053,  1.57,  0.04, 0,  1.57] [0.883, 0.154, 0.287], [0.045, 0.034, 0.706, 0.706]
+# IMU6: [0.0,   0.12375, 0.0,   0.03, 0, -1.57] [1.087, 0.131, 0.228], [0.489, -0.428, 0.512, 0.562]
 
-# converts numpy array to string
-# this function is just for debugging.
-# might be better to fit move to utils file
-
+# Panda IMU Position
+# IMUi: [DH parameters] [XYZ Position] [Quaternion]
+# IMU0: [1.57, -0.15, -1.57, 0.05, 0, 1.57] [0.050, -0.000, 0.183] [0.000, 0.707, -0.000, 0.707]
+# IMU1: [1.57, 0.06, -1.57, 0.06, 0, 1.57] [0.060, 0.060, 0.333] [-0.500, 0.500, -0.500, 0.500]
+# IMU2: [0, -0.08, 0, 0.05, 0, 1.57] [0.000, -0.050, 0.569] [0.707, 0.000, -0.000, 0.707]
+# IMU3: [-1.57, 0.08, 1.57, 0.06, 0, 1.57]  [0.023, -0.080, 0.653] [0.482, -0.482, -0.517, 0.517]
+# IMU4: [1.57, -0.1, 1.57, 0.1, 0, 1.57] [0.020, 0.100, 0.938] [-0.706, 0.025, 0.025, 0.707]
+# IMU5: [-1.57, 0.03, 1.57, 0.05, 0, 1.57] [-0.023, -0.030, 1.041] [0.482, -0.482, -0.517, 0.517]
+# IMU6: [1.57, 0, -1.57, 0.05, 0, 1.57] [0.165, 0.000, 1.028] [[0.732, 0.000, 0.682, -0.000]
 
 def max_acceleration_joint_angle(curr_w, max_w, t):
     """
@@ -46,10 +52,8 @@ def max_acceleration_joint_angle(curr_w, max_w, t):
     # print('-'*20, th_pattern, curr_w, '-'*20)
     return TransMat(th_pattern)
 
-
 def constant_velocity_joint_angle(curr_w, max_w, t):
     return TransMat(curr_w*t)
-
 
 class KinematicEstimator():
     """
@@ -74,9 +78,9 @@ class KinematicEstimator():
         self.parameter_diffs = np.array([])
         self.diffs_accum = 0
 
-        self.pose_names = list(data.dynamic.keys())
-        self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
-        self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
+        self.pose_names = list(data.constant.keys())
+        self.joint_names = list(data.constant[self.pose_names[0]].keys())
+        self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
         self.n_pose = len(self.pose_names)
         self.n_joint = len(self.joint_names)
         self.n_sensor = self.n_joint
@@ -130,7 +134,7 @@ class KinematicEstimator():
             n_param = int(n_param/2)
             param_rot = params[self.rot_index]
             param_pos = params[self.pos_index]
-            
+
             self.previous_params = None
             opt = nlopt.opt(C.GLOBAL_OPTIMIZER, n_param)
             opt.set_min_objective(lambda x, grad: self.error_function(x, grad, i, Tdofs, param_pos, 'rot'))
@@ -206,7 +210,7 @@ class KinematicEstimator():
             params[self.rot_index] = const_params
             params[self.pos_index] = target_params
 
-        if params.shape[0] == 6: 
+        if params.shape[0] == 6:
             #     (2)     (4)
             # dof -> vdof -> su
             Tdof2vdof = TransMat(params[:2])
@@ -217,19 +221,9 @@ class KinematicEstimator():
             Tdof2vdof = TransMat(params[4:6])
             Tvdof2su = TransMat(params[6:])
 
-        # 0th IMU of panda
-        # Tdof2vdof = TransMat(np.array([np.pi/2, -0.147]))
-        # Tvdof2su = TransMat(np.array([-np.pi/2, 0.05, 0, np.pi/2]))
+        # Tdof2su = Tdof2vdof.dot(Tvdof2su)
+        Tdof2su = get_su_transmat(i, 'panda')
 
-        # 0th IMU fo sawyer
-        # Tdof2vdof = TransMat(np.array([np.pi/2, -0.157]))
-        # Tvdof2su = TransMat(np.array([-np.pi/2, 0.07, 0, np.pi/2]))
-
-        ### 1th IMU of sawyer
-        # Tdof2vdof = TransMat(np.array([-np.pi/2, -0.0925]))
-        # Tvdof2su = TransMat(np.array([np.pi/2, 0.07, 0, np.pi/2]))
-
-        Tdof2su = Tdof2vdof.dot(Tvdof2su)
         pos, quat = self.get_an_accelerometer_position(Tdofs, Tdof2su)
 
         if self.previous_params is None:
@@ -240,7 +234,7 @@ class KinematicEstimator():
             self.previous_params = np.array(target_params)
         if self.xdiff is not None:
             self.parameter_diffs = np.append(self.parameter_diffs, self.xdiff)
-        
+
         if target == 'rot':
             e1 = self.static_error_function(i, Tdofs, Tdof2su)
             print('IMU'+str(i), n2s(e1, 5), n2s(params), n2s(pos), n2s(quat))
@@ -385,7 +379,7 @@ class KinematicEstimator():
         z_su = np.dot(Rrs2su, z_rs)
         y_su = y_su / np.linalg.norm(y_su)
         z_su = z_su / np.linalg.norm(z_su)
-        
+
         q_from_y = quaternion_from_two_vectors(y_rs, y_su)
         q_from_z = quaternion_from_two_vectors(z_rs, z_su)
         """
@@ -436,9 +430,9 @@ class KinematicEstimator():
 
     def estimate_acceleration_analytically(self, Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
         # Transformation Matrix from su to rs in rs frame
-        rs_T_su = TransMat(np.zeros(4)) 
+        rs_T_su = TransMat(np.zeros(4))
         # Transformation Matrix from the last DoFi to the excited DoFd
-        dofd_T_dofi = TransMat(np.zeros(4)) 
+        dofd_T_dofi = TransMat(np.zeros(4))
 
         for j in range(d+1):
             #print(j)
@@ -454,7 +448,7 @@ class KinematicEstimator():
 
         dofd_r_su = dof_T_su.position
         # Every joint rotates along its own z axis
-        w_dofd = np.array([0, 0, curr_w]) 
+        w_dofd = np.array([0, 0, curr_w])
         a_dofd = np.dot(w_dofd, np.dot(w_dofd, dofd_r_su))
 
         g_rs = np.array([0, 0, 9.81])
@@ -462,7 +456,7 @@ class KinematicEstimator():
         a_su = np.dot(dof_T_su.R.T, a_dofd) + np.dot(rs_T_su.R.T, g_rs)
 
         return a_su
-       
+
 
     def estimate_acceleration_numerically(self, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_angle_func):
         """
@@ -620,6 +614,36 @@ class KinematicEstimator():
         plt.show()
 
 
+def get_su_transmat(i, robot):
+    if robot == 'saywer':
+        params = np.array([
+            [1.57,  -0.157,  -1.57, 0.07, 0,  1.57],
+            [-1.57, -0.0925, 1.57,  0.07, 0,  1.57],
+            [-1.57, -0.16,   1.57,  0.05, 0,  1.57],
+            [-1.57, 0.0165,  1.57,  0.05, 0,  1.57],
+            [-1.57, -0.17,   1.57,  0.05, 0,  1.57],
+            [-1.57, 0.0053,  1.57,  0.04, 0,  1.57],
+            [0.0,   0.12375, 0.0,   0.03, 0, -1.57]
+        ])
+    elif robot == 'panda':
+        params = np.array([
+            [1.57, -0.15, -1.57, 0.05, 0, 1.57],
+            [1.57, 0.06, -1.57, 0.06, 0, 1.57],
+            [0, -0.08, 0, 0.05, 0, 1.57],
+            [-1.57, 0.08, 1.57, 0.06, 0, 1.57],
+            [1.57, -0.1, 1.57, 0.1, 0, 1.57],
+            [-1.57, 0.03, 1.57, 0.05, 0, 1.57],
+            [1.57, 0, -1.57, 0.05, 0, 1.57]
+        ])
+    else:
+        raise NotImplementedError("Define a robot's DH Parameters")
+
+    Tdof2vdof = TransMat(params[i, :2])
+    Tvdof2su = TransMat(params[i, 2:])
+
+    return Tdof2vdof.dot(Tvdof2su)
+
+
 def load_data(robot):
     """
     Function for collecting acceleration data with poses
@@ -636,18 +660,20 @@ def load_data(robot):
     with open(filepath, 'rb') as f:
         static = pickle.load(f, encoding='latin1')
 
-    filename = '_'.join(['dynamic_data', robot])
-    filepath = os.path.join(directory, filename + '.pickle')
-    with open(filepath, 'rb') as f:
-        dynamic = pickle.load(f, encoding='latin1')
+    # filename = '_'.join(['dynamic_data', robot])
+    # filepath = os.path.join(directory, filename + '.pickle')
+    # with open(filepath, 'rb') as f:
+    #     dynamic = pickle.load(f, encoding='latin1')
 
     filename = '_'.join(['constant_data', robot])
     filepath = os.path.join(directory, filename + '.pickle')
     with open(filepath, 'rb') as f:
         constant = pickle.load(f, encoding='latin1')
 
-    Data = namedtuple('Data', 'static dynamic constant')
-    data = Data(static, dynamic, constant)
+    # Data = namedtuple('Data', 'static dynamic constant')
+    # data = Data(static, dynamic, constant)
+    Data = namedtuple('Data', 'static constant')
+    data = Data(static, constant)
 
     return data
 
