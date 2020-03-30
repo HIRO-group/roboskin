@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import nlopt
 import rospkg
+import pyquaternion as pyqt
 
 # import robotic_skin
 import robotic_skin.const as C
@@ -19,7 +20,7 @@ from robotic_skin.calibration.utils import (
     ParameterManager,
     pyquat_to_numpy,
     quaternion_from_two_vectors,
-    n2s
+    n2s,
 )
 # Sawyer IMU Position
 # THESE ARE THE TRUE VALUES of THE IMU POSITIONS
@@ -38,9 +39,9 @@ from robotic_skin.calibration.utils import (
 # IMU1: [1.57, 0.06, -1.57, 0.06, 0, 1.57] [0.060, 0.060, 0.333] [-0.500, 0.500, -0.500, 0.500]
 # IMU2: [0, -0.08, 0, 0.05, 0, 1.57] [0.000, -0.050, 0.569] [0.707, 0.000, -0.000, 0.707]
 # IMU3: [-1.57, 0.08, 1.57, 0.06, 0, 1.57]  [0.023, -0.080, 0.653] [0.482, -0.482, -0.517, 0.517]
-# IMU4: [1.57, -0.1, 1.57, 0.1, 0, 1.57] [0.020, 0.100, 0.938] [-0.706, 0.025, 0.025, 0.707]
+# IMU4: [3.14, -0.1, 3.14, 0.1, 0, 1.57] [0.020, 0.100, 0.938] [-0.706, 0.025, 0.025, 0.707]
 # IMU5: [-1.57, 0.03, 1.57, 0.05, 0, 1.57] [-0.023, -0.030, 1.041] [0.482, -0.482, -0.517, 0.517]
-# IMU6: [1.57, 0, -1.57, 0.05, 0, 1.57] [0.165, 0.000, 1.028] [[0.732, 0.000, 0.682, -0.000]
+# IMU6: [1.57, 0, -1.57, 0.05, 0, 1.57] [0.165, 0.000, 1.028] [0.732, 0.000, 0.682, -0.000]
 
 
 def max_acceleration_joint_angle(curr_w, max_w, t):
@@ -225,7 +226,7 @@ class KinematicEstimator():
             Tvdof2su = TransMat(params[6:])
 
         Tdof2su = Tdof2vdof.dot(Tvdof2su)
-        Tdof2su = get_su_transmat(i, 'panda')
+        # Tdof2su = get_su_transmat(i, 'panda')
 
         pos, quat = self.get_an_accelerometer_position(Tdofs, Tdof2su)
 
@@ -354,8 +355,8 @@ class KinematicEstimator():
                     model_accel = self.estimate_acceleration_analytically(Tdofs, Tjoints, Tdof2su, d, i, curr_w)
                     # error2 = np.sum(np.abs(model_accel - meas_accel))
                     error2 = np.sum(np.linalg.norm(model_accel - meas_accel))
-                    print(i, d, joint[d], curr_w, n2s(model_accel), n2s(meas_accel))
-                    print(n2s(joint))
+                    # print(i, d, joint[d], curr_w, n2s(model_accel), n2s(meas_accel))
+                    # print(n2s(joint))
 
                     # errors += error1 + error2
                     errors += error2
@@ -373,8 +374,8 @@ class KinematicEstimator():
         x_rs = np.array([1, 0, 0])
         x_su = np.dot(Rrs2su, x_rs)
         x_su = x_su / np.linalg.norm(x_su)
-        q_from_x = quaternion_from_two_vectors(from_vec=x_rs, to_vec=x_su)
-        # q_from_x = quaternion_from_two_vectors(from_vec=x_su, to_vec=x_rs)
+        q_from_x = quaternion_from_two_vectors(source=x_rs, target=x_su)
+        # q_from_x = quaternion_from_two_vectors(source=x_su, target=x_rs)
 
         """
         y_rs = np.array([0, 1, 0])
@@ -569,14 +570,10 @@ class KinematicEstimator():
         T = TransMat(np.zeros(4))
         for Tdof in Tdofs:
             T = T.dot(Tdof)
-
         T = T.dot(Tdof2su)
 
-        x_rs = np.array([1, 0, 0])
-        x_su = np.dot(T.R.T, x_rs)
-        # rotation matters
-        q_from_x = quaternion_from_two_vectors(from_vec=x_rs, to_vec=x_su)
-        q = pyquat_to_numpy(q_from_x)
+        q = pyqt.Quaternion(matrix=T.R)
+        q = pyquat_to_numpy(q)
 
         return T.position, q
 
@@ -586,13 +583,8 @@ class KinematicEstimator():
             T = T.dot(self.param_manager.Tdof2dof[j])
         T = T.dot(self.param_manager.Tdof2vdof[i_sensor].dot(self.param_manager.Tvdof2su[i_sensor]))
 
-        x_rs = np.array([1, 0, 0])
-
-        x_su = np.dot(T.R.T, x_rs)
-        x_su = x_su / np.linalg.norm(x_su)
-        # rotation matters
-        q_from_x = quaternion_from_two_vectors(from_vec=x_rs, to_vec=x_su)
-        q = pyquat_to_numpy(q_from_x)
+        q = pyqt.Quaternion(matrix=T.R)
+        q = pyquat_to_numpy(q)
 
         return T.position, q
 
@@ -636,7 +628,7 @@ def get_su_transmat(i, robot):
             [1.57, 0.06, -1.57, 0.06, 0, 1.57],
             [0, -0.08, 0, 0.05, 0, 1.57],
             [-1.57, 0.08, 1.57, 0.06, 0, 1.57],
-            [1.57, -0.1, 1.57, 0.1, 0, 1.57],
+            [3.14, -0.1, 3.14, 0.1, 0, 1.57],
             [-1.57, 0.03, 1.57, 0.05, 0, 1.57],
             [1.57, 0, -1.57, 0.05, 0, 1.57]
         ])
@@ -695,7 +687,7 @@ def load_dhparams(robot):
             [0,         0.1363,     0,      -np.pi/2],
             [np.pi,     0.13375,    0,      np.pi/2]
         ])
-    else:
+    elif robot == 'panda':
         dhparams = np.array([
             [0, 0.333,  0,          0],
             [0, 0,      0,          -np.pi/2],
@@ -705,6 +697,8 @@ def load_dhparams(robot):
             [0, 0,      0,          np.pi/2],
             [0, 0,      0.088,      np.pi/2]
         ])
+    else:
+        raise NotImplementedError("Define a robot's DH Paramters")
 
     return dhparams
 
