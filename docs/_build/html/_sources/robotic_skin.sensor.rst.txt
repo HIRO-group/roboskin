@@ -20,10 +20,34 @@ robotic\_skin.sensor.flexiforce module
    :undoc-members:
    :show-inheritance:
 
+robotic\_skin.sensor.lsm6ds3\_accel module
+------------------------------------------
+
+.. automodule:: robotic_skin.sensor.lsm6ds3_accel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+robotic\_skin.sensor.lsm6ds3\_gyro module
+-----------------------------------------
+
+.. automodule:: robotic_skin.sensor.lsm6ds3_gyro
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 robotic\_skin.sensor.sensor module
 ----------------------------------
 
 .. automodule:: robotic_skin.sensor.sensor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+robotic\_skin.sensor.vl53l1x module
+-----------------------------------
+
+.. automodule:: robotic_skin.sensor.vl53l1x
    :members:
    :undoc-members:
    :show-inheritance:

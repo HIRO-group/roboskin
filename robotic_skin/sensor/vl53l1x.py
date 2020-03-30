@@ -13,19 +13,15 @@ class VL53L1X_ProximitySensor(Sensor):
     Code for VL53L1X distance sensor class.
     """
 
-    def __init__(self, i2c_bus=1, i2c_address=0x29, range_value=0, timing_budget=33000, inter_measurement_period=33):
+    def __init__(self, config_file, range_value=0, timing_budget=33000, inter_measurement_period=33):
         """
-        Initialize the VL53L1X sensor, test if the python code can reach it or not, if not throw an exception
+        Initialize the VL53L1X sensor, test if the python code can reach it or not, if not throw an exception.
+        This class requires the below variables to be set in yaml configuration file:
+        RPi_bus_num: The Raspberry Pi I2C bus number
+        proximity_i2c_address: The I2C address of the sensor
+        Additionally this class extends Sensor, so all sensor's configuration should also be passed to this class
         Parameters
         ----------
-        i2c_bus : int
-            This is the bus number. Basically The I2C port number. For our circuit, I connected it I2C port 1,
-            So by default it's value I kept as 1. Feel free to pass your own value if you need it.
-        i2c_address : int
-            (It would be easy for you to pass hexadecimal int of the form 0xNN, directly according to the datasheet)
-            The I2C address of the accelerometer. According to the datasheet of VL53L1X the address is 0x29. For future
-            note this can be changed to anything if you wish so. This library doesn't handle changing I2C address as of
-            now
         range_value : int
             The proximity sensor has 3 ranges, according to the Python Library:
                 None = 0 (Set this if you want to set timing budgets yourself)
@@ -41,8 +37,8 @@ class VL53L1X_ProximitySensor(Sensor):
             Inter measurement period in milliseconds.
             The inter measurement period must be >= the timing budget, otherwise it will be double the expected value.
         """
-        super().__init__()
-        self.tof = VL53L1X.VL53L1X(i2c_bus, i2c_address)
+        super(VL53L1X_ProximitySensor, self).__init__(config_file)
+        self.tof = VL53L1X.VL53L1X(self.config_dict['RPi_bus_num'], self.config_dict['proximity_i2c_address'])
         self.tof.open()
         if range_value in (0, 1, 2, 3):
             # Either use inbuilt range values provided by the vl53l1x library
@@ -91,7 +87,7 @@ class VL53L1X_ProximitySensor(Sensor):
         """
         # To Get distance in metres according to ROS Range msg standards
         # http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Range.html
-        return input_value / 1000
+        return float(input_value / 1000)
 
     def read(self):
         """

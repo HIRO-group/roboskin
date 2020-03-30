@@ -21,3 +21,4 @@ PATTERN_A = 0.4                 # rad/s
 T = 0.5                         # s
 GLOBAL_OPTIMIZER = nlopt.G_MLSL_LDS
 LOCAL_OPTIMIZER = nlopt.LN_NELDERMEAD
+GRAVITATIONAL_CONSTANT = 9.819

@@ -45,7 +45,7 @@ from robotic_skin.calibration.utils import (
 
 def max_acceleration_joint_angle(curr_w, max_w, t):
     """
-    max acceleration along a joint angle.
+    max acceleration along a joint angle of robot.
     """
     # th_pattern = np.sign(t) * max_w / (curr_w) * (1 - np.cos(curr_w*t))
     # th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
@@ -61,7 +61,7 @@ def constant_velocity_joint_angle(curr_w, max_w, t):
 class KinematicEstimator():
     """
     Class for estimating the kinematics of the arm
-    and sensor unit positions.
+    and corresponding sensor unit positions.
     """
     def __init__(self, data, dhparams=None):
         """
@@ -587,6 +587,7 @@ class KinematicEstimator():
         T = T.dot(self.param_manager.Tdof2vdof[i_sensor].dot(self.param_manager.Tvdof2su[i_sensor]))
 
         x_rs = np.array([1, 0, 0])
+
         x_su = np.dot(T.R.T, x_rs)
         x_su = x_su / np.linalg.norm(x_su)
         # rotation matters
