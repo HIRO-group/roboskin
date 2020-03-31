@@ -64,7 +64,7 @@ class KinematicEstimator():
     Class for estimating the kinematics of the arm
     and corresponding sensor unit positions.
     """
-    def __init__(self, data, dhparams=None):
+    def __init__(self, data, dhparams=None, original_accel_positions=None):
         """
         Arguments
         ------------
@@ -114,6 +114,8 @@ class KinematicEstimator():
         self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, dhparams)
 
         self.previous_params = None
+        self.original_positions = original_accel_positions
+        self.all_euclidean_distances = []
 
     def optimize(self):
         """
@@ -173,10 +175,14 @@ class KinematicEstimator():
             pos, quat = self.get_i_accelerometer_position(i)
             print('Position:', pos)
             print('Quaternion:', quat)
+            euclidean_distance = np.linalg.norm(pos - self.original_positions[i])
+            self.all_euclidean_distances.append(euclidean_distance)
+            print('Euclidean distance between real and predicted points: ', euclidean_distance)
             print('='*100)
 
             time.sleep(3)
             # save the optimized parameter to the parameter manager
+        print("Average Euclidean distance = ", sum(self.all_euclidean_distances) / len(self.all_euclidean_distances))
 
     def error_function(self, target_params, grad, i, Tdofs, const_params, target):
         """
@@ -703,13 +709,41 @@ def load_dhparams(robot):
     return dhparams
 
 
+def get_original_accelerometer_positions(robot):
+    if robot == 'sawyer':
+        original_positions = np.array([
+            [0.070, -0.000, 0.16],
+            [0.086, 0.100, 0.387],
+            [0.324, 0.191, 0.350],
+            [0.485, 0.049, 0.335],
+            [0.709, 0.023, 0.312],
+            [0.883, 0.154, 0.287],
+            [1.087, 0.131, 0.228]
+        ])
+    elif robot == 'panda':
+        original_positions = np.array([
+            [0.050, -0.000, 0.183],
+            [0.060, 0.060, 0.333],
+            [0.000, -0.050, 0.569],
+            [0.023, -0.080, 0.653],
+            [0.020, 0.100, 0.938],
+            [-0.023, -0.030, 1.041],
+            [0.165, 0.000, 1.028]
+        ])
+    else:
+        raise NotImplementedError("Define a robot's DH Paramters")
+
+    return original_positions
+
+
 if __name__ == '__main__':
     # Need data
     robot = sys.argv[1]
     measured_data = load_data(robot)
     dhparams = load_dhparams(robot)
+    original_accel_positions = get_original_accelerometer_positions(robot)
 
-    estimator = KinematicEstimator(measured_data, dhparams)
+    estimator = KinematicEstimator(measured_data, dhparams, original_accel_positions)
     estimator.optimize()
 
     # plot the differences
