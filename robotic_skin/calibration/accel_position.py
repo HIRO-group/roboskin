@@ -455,7 +455,7 @@ class KinematicEstimator():
         dofd_r_su = dof_T_su.position
         # Every joint rotates along its own z axis
         w_dofd = np.array([0, 0, curr_w])
-        a_dofd = np.dot(w_dofd, np.dot(w_dofd, dofd_r_su))
+        a_dofd = np.cross(w_dofd, np.cross(w_dofd, dofd_r_su))
 
         g_rs = np.array([0, 0, 9.81])
 
