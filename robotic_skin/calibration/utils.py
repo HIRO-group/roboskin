@@ -186,6 +186,14 @@ class TransMat():
         return self.mat[:3, :3]
 
     @property
+    def q(self):
+        """
+        Quaternion as a result of the transformation
+        """
+        q = pyqt.Quaternion(matrix=self.R)
+        return pyquat_to_numpy(q)
+
+    @property
     def position(self):
         """
         Position as a result of the transformation
@@ -252,7 +260,7 @@ class ParameterManager():
         self.dhparams = dhparams
 
         if self.dhparams is not None:
-            self.Tdof2dof = [TransMat(dhparams[i, :]) for i in range(n_joint)]
+            self.Tdof2dof = [TransMat(dhparams['joint' + str(i+1)]) for i in range(n_joint)]
         else:
             self.Tdof2dof = [TransMat(bounds=bounds) for i in range(n_joint)]
 
@@ -394,3 +402,19 @@ def n2s(x, precision=2):
 
     """
     return np.array2string(x, precision=precision, separator=',', suppress_small=True)
+
+
+def get_IMU_pose(Tdofs, Tdof2su, joints=None):
+    T = TransMat(np.zeros(4))
+    # Transformation Matrix until the joint
+    # where SU is attached
+    if joints is not None:
+        for Tdof, j in zip(Tdofs, joints):
+            T = T.dot(Tdof).dot(TransMat(j))
+    else:
+        for Tdof in Tdofs:
+            T = T.dot(Tdof)
+    # Transformation Matrix until SU
+    T = T.dot(Tdof2su)
+
+    return T.position, T.q
