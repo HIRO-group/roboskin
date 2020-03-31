@@ -2,10 +2,9 @@ import os
 import rospkg
 import pickle
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
 
-from robotic_skin.calibration.utils import TransMat, ParameterManager, n2s
+from robotic_skin.calibration.utils import TransMat, ParameterManager
 
 PACKAGE_HOME_DIR = os.path.abspath(__file__ + "/../../../")
 
@@ -107,6 +106,7 @@ def get_su_transmat(i, robot='panda'):
     Tvdof2su = TransMat(params[i, 2:])
 
     return Tdof2vdof.dot(Tvdof2su)
+
 
 if __name__ == '__main__':
     Data = load_data()
