@@ -661,7 +661,11 @@ def load_data(robot):
     filename = '_'.join(['static_data', robot])
     filepath = os.path.join(directory, filename + '.pickle')
     with open(filepath, 'rb') as f:
-        static = pickle.load(f, encoding='latin1')
+        # Check if user is running Python2 or Python3 and switch according to that
+        if sys.version_info[0] == 2:
+            static = pickle.load(f)
+        else:
+            static = pickle.load(f, encoding='latin1')
 
     # filename = '_'.join(['dynamic_data', robot])
     # filepath = os.path.join(directory, filename + '.pickle')
@@ -671,7 +675,11 @@ def load_data(robot):
     filename = '_'.join(['constant_data', robot])
     filepath = os.path.join(directory, filename + '.pickle')
     with open(filepath, 'rb') as f:
-        constant = pickle.load(f, encoding='latin1')
+        # Check if user is running Python2 or Python3 and switch according to that
+        if sys.version_info[0] == 2:
+            constant = pickle.load(f)
+        else:
+            constant = pickle.load(f, encoding='latin1')
 
     # Data = namedtuple('Data', 'static dynamic constant')
     # data = Data(static, dynamic, constant)
