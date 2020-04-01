@@ -1,15 +1,11 @@
 """
 Testing utils module
 """
-import os
 import unittest
 import numpy as np
 from pyquaternion import Quaternion
 from robotic_skin.calibration import utils
 from robotic_skin.calibration.utils import TransMat, ParameterManager
-
-repodir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-configdir = os.path.join(repodir, 'config')
 
 N_JOINT = 7
 INIT_POSE = np.zeros(N_JOINT)
@@ -27,10 +23,21 @@ BOUNDS_SU = np.array([
     [0.0, 0.0001],      # a     # 0 gives error
     [0, np.pi]])        # alpha
 
-PANDA_DHPARAMS = utils.load_robot_configs(
-    configdir, 'panda')['dh_parameter']
-SAWYER_DHPARAMS = utils.load_robot_configs(
-    configdir, 'sawyer')['dh_parameter']
+PANDA_DHPARAMS = {'joint1': [0, 0.333, 0, 0],
+                  'joint2': [0, 0, 0, -1.57079633],
+                  'joint3': [0, 0.316, 0, 1.57079633],
+                  'joint4': [0, 0, 0.0825, 1.57079633],
+                  'joint5': [0, 0.384, -0.0825, -1.57079633],
+                  'joint6': [0, 0, 0, 1.57079633],
+                  'joint7': [0, 0, 0.088, 1.57079633]}
+
+SAWYER_DHPARAMS = {'joint1': [0, 0.317, 0, 0],
+                   'joint2': [1.57079633, 0.1925, 0.081, -1.57079633],
+                   'joint3': [0, 0.4, 0, 1.57079633],
+                   'joint4': [0, -0.1685, 0, -1.57079633],
+                   'joint5': [0, 0.4, 0, 1.57079633],
+                   'joint6': [0, 0.1363, 0, -1.57079633],
+                   'joint7': [3.14159265, 0.13375, 0, 1.57079633]}
 
 
 class TransMatTest(unittest.TestCase):
