@@ -3,9 +3,9 @@ import nlopt
 
 # import robotic_skin
 import robotic_skin.const as C
-from robotic_skin.calibration.utils import TransMat
+from robotic_skin.calibration.utils import TransMat, get_IMU_pose
 
-def convert_params_to_Tdof2su(params):
+def convert_dhparams_to_Tdof2su(params):
     """
     For the 1st IMU, we do not need to think of DoF-to-DoF transformation.
     Thus, 6 Params (2+4 for each IMU).
@@ -26,18 +26,23 @@ def convert_params_to_Tdof2su(params):
 
     return Tdof2vdof.dot(Tvdof2su)
 
+
 class Optimizer():
     """
     """
-    def __init__(self, error_function):
+    def __init__(self, error_function, su_dhparams=None):
         """
         """
         self.error_function = error_function
-        self.previous_params = None
+        self.su_dhparams = su_dhparams
+        self.stop_condition = PassThroughStopCondition()
 
-    def optimize(self, i, params, bounds, Tdofs):
+    def optimize(self, i_imu, Tdofs, params, bounds):
         """
         """
+        self.i_imu = i_imu
+        self.Tdofs = Tdofs
+
         n_param = params.shape[0]
         # Construct an global optimizer
         opt = nlopt.opt(C.GLOBAL_OPTIMIZER, n_param)
@@ -45,7 +50,7 @@ class Optimizer():
         # This is the only way to pass other arguments to opt
         # https://github.com/JuliaOpt/NLopt.jl/issues/27
         self.previous_params = None
-        opt.set_min_objective(lambda x, grad: self.error_function(x, grad, i, Tdofs, params_to_Tdof2su))
+        opt.set_min_objective(self.objective)
         # Set boundaries
         opt.set_lower_bounds(bounds[:, 0])
         opt.set_upper_bounds(bounds[:, 1])
@@ -60,82 +65,120 @@ class Optimizer():
 
         return params
 
-    def params_to_Tdof2su(self, params):
+    def objective(self, params, grad):
+        Tdof2su = self.choose_true_or_estimated_Tdof2su(params)
+
+        pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
+
+        e = self.error_function(self.i_imu, self.Tdofs, Tdof2su)
+
+        return self.stop_condition.update(target_params, None, e)
+
+    def choose_true_or_estimated_Tdof2su(self, params):
+        if self.su_dhparams is not None:
+            return convert_dhparams_to_Tdof2su(
+                self.su_dhparams['su%i' % (self.i_imu+1)])
+        else:
+            return self.convert_dhparams_to_Tdof2su(params)
+
+    def convert_dhparams_to_Tdof2su(self, params):
         """
         """
-        return convert_params_to_Tdof2su(params)
+        return convert_dhparams_to_Tdof2su(params)
+
 
 class SeperateOptimizer(Optimizer):
     """
     """
-    def __init__(self, error_function):
-        super().__init__(error_function)
+    def __init__(self, error_function, su_dhparams=None):
+        super().__init__(error_function, su_dhparams)
         """
         """
-        self.rot_index = [0, 2, 5]
-        self.pos_index = [1, 3, 4]
-        self.previous_params = None
-        self.parameter_diffs = np.array([])
+        self.rotation_index = [0, 2, 5]
+        self.position_index = [1, 3, 4]
+        self.target = None
+        self.error_functions = {
+            'Rotation': StaticErrorFunction(),
+            'Translation': ConstantRotationErrorFunction()
+        }
+        self.stop_conditions = {
+            'Rotation': DeltaXStopCondition(),
+            'Translation': PassThroughStopCondition()
+        }
 
-    def optimize(self, i, params, bounds, Tdofs):
+    def optimize(self, i_imu, Tdofs, params, bounds):
         """
+        This function will optimize the given parameters in two steps.
+        First it optimizes for rotational parameters and then
+        optimizes for translational parameters.
+
+        i_imu: int
+            ith IMU to be optimized
+
+        Tdofs: list of TransMat
+            List of Transformation Matrices from 0th to ith Joint (Not to SU)
+
+        params: list of float
+            DH parameters to be optimized.
+            This will be converted to Tdof2su which is a transformation
+            matrix from ith Joint to ith SU (6 parameters)
+            If the number of parameters were 10, it also includes
+            4 DH parameter for i-1th to the ith Joint.
+
+        bounds: np.ndarray
+            Boundaries (Min and Max) for each parameter
         """
+        self.i_imu = i_imu
+        self.Tdofs = Tdofs
+
         n_param = params.shape[0]
-        # ################### First Optimize Rotations ####################
+        # optimizing half of them at each time
         n_param = int(n_param/2)
-        param_rot = params[self.rot_index]
-        param_pos = params[self.pos_index]
+
+        # ################### First Optimize Rotations ####################
+        self.target = 'Rotation'
+        self.stop_conditions['Rotation'].initialize()
+        self.constant_params = params[self.position_index]
 
         opt = nlopt.opt(C.GLOBAL_OPTIMIZER, n_param)
-        opt.set_min_objective(lambda x, grad: self.error_function(x, grad, i, Tdofs, param_pos, 'rot', self.params_to_Tdof2su))
-        opt.set_lower_bounds(bounds[self.rot_index, 0])
-        opt.set_upper_bounds(bounds[self.rot_index, 1])
+        opt.set_min_objective(self.objective)
+        opt.set_lower_bounds(bounds[self.rotation_index, 0])
+        opt.set_upper_bounds(bounds[self.rotation_index, 1])
         opt.set_stopval(C.ROT_GLOBAL_STOP)
         local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
         opt.set_local_optimizer(local_opt)
         param_rot = opt.optimize(param_rot)
-        print(param_rot)
 
         # ################### Then Optimize for Translations ####################
-        self.parameter_diffs = np.array([])
+        self.target = 'Translation'
+        self.stop_conditions['Translation'].initialize()
+        self.constant_params = params[self.rotation_index]
+
         opt = nlopt.opt(C.GLOBAL_OPTIMIZER, n_param)
-        opt.set_min_objective(lambda x, grad: self.error_function(x, grad, i, Tdofs, param_rot, 'pos', self.params_to_Tdof2su))
-        opt.set_lower_bounds(bounds[self.pos_index, 0])
-        opt.set_upper_bounds(bounds[self.pos_index, 1])
+        opt.set_min_objective(self.objective)
+        opt.set_lower_bounds(bounds[self.position_index, 0])
+        opt.set_upper_bounds(bounds[self.position_index, 1])
         opt.set_stopval(C.POS_GLOBAL_STOP)
         local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
         opt.set_local_optimizer(local_opt)
         param_pos = opt.optimize(param_pos)
-        print(param_pos)
 
-        params[self.rot_index] = param_rot
-        params[self.pos_index] = param_pos
+        params[self.rotation_index] = param_rot
+        params[self.position_index] = param_pos
 
         return params
 
-    def params_to_Tdof2su(self, target_params, const_params):
-        """
-        """
-        params = np.zeros(6)
-
-        if target == 'rot':
-            params[self.rot_index] = target_params
-            params[self.pos_index] = const_params
-        elif target == 'pos':
-            params[self.rot_index] = const_params
-            params[self.pos_index] = target_params
-
-        return convert_params_to_Tdof2su(params)
-
-
-    def error_function(self, target_params, grad, i, Tdofs, const_params, target):
+    def objective(self, target_params, grad):
         """
         Computes an error e_T = e_1 + e_2 from current parameters
 
         Arguments
         ----------
-        params: np.ndarray
-            Current estimated parameters
+        target_params: list of floats
+            Target parameters to be estimated
+
+        constant_params: list of floats
+            Parameters that are not to be optimized but used
 
         i: int
             ith sensor
@@ -150,32 +193,72 @@ class SeperateOptimizer(Optimizer):
         error: float
             Error between measured values and estimated model outputs
         """
-        Tdof2su = self.optimizer.params_to_Tdof2su(target_params, const_params)
-        # Tdof2su = convert_params_to_Tdof2su(self.robot_configs['su_dh_parameter']['su%i' % (i+1)])
+        Tdof2su = self.choose_true_or_estimated_Tdof2su(
+            np.r_[target_params, self.constant_params])
 
-        pos, quat = get_IMU_pose(Tdofs, Tdof2su)
+        pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
 
-        if self.previous_params is None:
+        e = self.error_functions[self.target](self.i_imu, self.Tdofs, Tdof2su)
+
+        return self.stop_conditions[self.target].update(target_params, None, e)
+
+    def convert_dhparams_to_Tdof2su(self, merged_params):
+        """
+        """
+        params = np.zeros(6)
+
+        if self.target == 'Rotation':
+            params[self.rot_index] = merged_params[:3]
+            params[self.pos_index] = merged_params[3:]
+        elif target == 'Translation':
+            params[self.rot_index] = merged_params[3:]
+            params[self.pos_index] = merged_params[:3]
+
+        return convert_dhparams_to_Tdof2su(params)
+
+
+class StopCondition():
+    def __init__(self):
+        pass
+
+    def initialize(self):
+        pass
+
+    def update(self, x, y, e):
+        raise NotImplementedError()
+
+
+class PassThroughStopCondition(StopCondition):
+    def __init__(self):
+        super().__init__():
+
+    def update(self, x, y, e):
+        return e
+
+
+class DeltaXStopCondition(StopCondition):
+    def __init__(self, windowsize=10, threshold=0.001, retval=0.00001):
+        super().__init__():
+        self.initialize()
+        self.windowsize = windowsize
+        self.threshold = threshold
+        self.retval = retval
+
+    def initialize(self):
+        self.prev_x = None
+        self.xdiff = None
+        self.xdiffs = None
+
+    def update(self, x, y, e):
+        if self.prev_x is None:
             self.xdiff = None
-            self.previous_params = np.array(target_params)
+            self.prev_x = np.array(x)
         else:
-            self.xdiff = np.linalg.norm(np.array(target_params) - self.previous_params)
-            self.previous_params = np.array(target_params)
+            self.xdiff = np.linalg.norm(np.array(x) - self.prev_x)
+            self.prev_x = np.array(x)
 
-        if target == 'rot':
-            e1 = self.static_error_function(i, Tdofs, Tdof2su)
-            print('IMU'+str(i), n2s(e1, 5), n2s(params), n2s(pos), n2s(quat))
-            # e4 = np.sum(np.abs(params)[[0,2,5]])
-            return e1
-        else:
-            # e2 = self.dynamic_error_function(i, Tdofs, Tdof2su)
-            # print(n2s(e2, 5), n2s(params), n2s(pos), n2s(quat))
-            # return e2
-            e3 = self.rotation_error_function(i, Tdofs, Tdof2su)
-            print('IMU'+str(i), n2s(e3, 5), n2s(params), n2s(pos), n2s(quat), self.xdiff)
+        if len(self.xdiffs) >= self.windowsize:
+            if np.mean(self.xdiffs[-(self.windowsize+1):-1]) <= self.threshold:
+                return self.retval
 
-            if len(self.parameter_diffs) >= 10:
-                if np.mean(self.parameter_diffs[-11:-1]) <= 0.001:
-                    return 0.00001
-
-            return e3
+        return e
