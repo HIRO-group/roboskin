@@ -482,7 +482,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts a tf quaternion to a pyqt quaternion</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">q</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">angle</span><span class="o">=</span><span class="n">q</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span></div>
+    <span class="k">return</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="n">q</span><span class="o">.</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">q</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">q</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">q</span><span class="o">.</span><span class="n">z</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="pyquat_to_tfquat"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.utils.pyquat_to_tfquat">[docs]</a><span class="k">def</span> <span class="nf">pyquat_to_tfquat</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
@@ -512,17 +512,17 @@
     <span class="k">return</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">q1</span><span class="o">.</span><span class="n">elements</span><span class="p">,</span> <span class="n">q2</span><span class="o">.</span><span class="n">elements</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="quaternion_from_two_vectors"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.utils.quaternion_from_two_vectors">[docs]</a><span class="k">def</span> <span class="nf">quaternion_from_two_vectors</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Creates a quaternion from two vectors.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">v1</span> <span class="o">=</span> <span class="n">v1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span>
-    <span class="n">v2</span> <span class="o">=</span> <span class="n">v2</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span>
+<div class="viewcode-block" id="quaternion_from_two_vectors"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.utils.quaternion_from_two_vectors">[docs]</a><span class="k">def</span> <span class="nf">quaternion_from_two_vectors</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">source</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">target</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
 
-    <span class="n">axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
-    <span class="n">costh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+    <span class="n">costh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
 
     <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">costh</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">angle</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="n">angle</span><span class="p">)</span></div>
 

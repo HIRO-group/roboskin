@@ -88,8 +88,8 @@
 <li class="toctree-l3"><a class="reference internal" href="robotic_skin.calibration.html">robotic_skin.calibration package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">robotic_skin.sensor package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.sensor.adxl335">robotic_skin.sensor.adxl335 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.sensor.flexiforce">robotic_skin.sensor.flexiforce module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#robotic-skin-sensor-adxl335-module">robotic_skin.sensor.adxl335 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#robotic-skin-sensor-flexiforce-module">robotic_skin.sensor.flexiforce module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.sensor.lsm6ds3_accel">robotic_skin.sensor.lsm6ds3_accel module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.sensor.lsm6ds3_gyro">robotic_skin.sensor.lsm6ds3_gyro module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.sensor.sensor">robotic_skin.sensor.sensor module</a></li>
@@ -175,51 +175,11 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-robotic_skin.sensor.adxl335">
-<span id="robotic-skin-sensor-adxl335-module"></span><h2>robotic_skin.sensor.adxl335 module<a class="headerlink" href="#module-robotic_skin.sensor.adxl335" title="Permalink to this headline">¶</a></h2>
-<p>ADXL335 Sensor Module.</p>
-<dl class="class">
-<dt id="robotic_skin.sensor.adxl335.ADXL335">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.adxl335.</code><code class="sig-name descname">ADXL335</code><span class="sig-paren">(</span><em class="sig-param">xpin</em>, <em class="sig-param">ypin</em>, <em class="sig-param">zpin</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/adxl335.html#ADXL335"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.adxl335.ADXL335" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#robotic_skin.sensor.sensor.Sensor" title="robotic_skin.sensor.sensor.Sensor"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.sensor.sensor.Sensor</span></code></a></p>
-<p>ADXL335 Sensor class.</p>
-<dl class="method">
-<dt id="robotic_skin.sensor.adxl335.ADXL335.calibrate">
-<code class="sig-name descname">calibrate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/adxl335.html#ADXL335.calibrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.adxl335.ADXL335.calibrate" title="Permalink to this definition">¶</a></dt>
-<dd><p>How dumb can it be to write some shit like this that calibrate = True in calibrate function?
-Well we gotta calibrate it before. It isn’t automated, which I hate, but I gotta do what I gotta do
-This is basically implemented to satisfy the Sensor class, as I have to override the class for sure</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.sensor.adxl335.ADXL335.read">
-<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/adxl335.html#ADXL335.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.adxl335.ADXL335.read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read raw ADC values from the sensor
-How this equation came up, look for my blog:
-<a class="reference external" href="https://krishnachaitanya9.github.io/posts/RPi_Calibrating_ADXL335_Accelerometer/">https://krishnachaitanya9.github.io/posts/RPi_Calibrating_ADXL335_Accelerometer/</a>
-There is a more detailed explanation
-which can’t be fit into comments. So please go look, and lemme know if there is any problem with the logic</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="robotic-skin-sensor-adxl335-module">
+<h2>robotic_skin.sensor.adxl335 module<a class="headerlink" href="#robotic-skin-sensor-adxl335-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-robotic_skin.sensor.flexiforce">
-<span id="robotic-skin-sensor-flexiforce-module"></span><h2>robotic_skin.sensor.flexiforce module<a class="headerlink" href="#module-robotic_skin.sensor.flexiforce" title="Permalink to this headline">¶</a></h2>
-<p>FlexiForce module</p>
-<dl class="class">
-<dt id="robotic_skin.sensor.flexiforce.FlexiForce">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.flexiforce.</code><code class="sig-name descname">FlexiForce</code><span class="sig-paren">(</span><em class="sig-param">pin</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/flexiforce.html#FlexiForce"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.flexiforce.FlexiForce" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>FlexiForce class</p>
-<dl class="method">
-<dt id="robotic_skin.sensor.flexiforce.FlexiForce.read">
-<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/flexiforce.html#FlexiForce.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.flexiforce.FlexiForce.read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read a force value</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="robotic-skin-sensor-flexiforce-module">
+<h2>robotic_skin.sensor.flexiforce module<a class="headerlink" href="#robotic-skin-sensor-flexiforce-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-robotic_skin.sensor.lsm6ds3_accel">
 <span id="robotic-skin-sensor-lsm6ds3-accel-module"></span><h2>robotic_skin.sensor.lsm6ds3_accel module<a class="headerlink" href="#module-robotic_skin.sensor.lsm6ds3_accel" title="Permalink to this headline">¶</a></h2>
