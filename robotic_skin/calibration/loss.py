@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Loss():
     def __init__(self, hyper_params):
         self.hyper_params = hyper_params
@@ -11,7 +14,7 @@ class L1Loss(Loss):
         super().__init__(hyper_params)
 
     def __call__(self, x):
-        raise NotImplementedError()
+        return np.mean(np.linalg.norm(x, axis=1))
 
 
 class L2Loss(Loss):

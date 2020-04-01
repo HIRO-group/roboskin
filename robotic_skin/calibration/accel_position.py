@@ -15,7 +15,16 @@ from robotic_skin.calibration.utils import (
     get_IMU_pose,
     load_robot_configs
 )
-from robotic_skin.calibration.optimizer import SeparateOptimizer
+from robotic_skin.calibration.optimizer import (
+    SeparateOptimizer,
+    PassThroughStopCondition,
+    DeltaXStopCondition
+)
+from robotic_skin.calibration.error_functions import (
+    StaticErrorFunction,
+    ConstantRotationErrorFunction
+)
+from robotic_skin.calibration.loss import L1Loss
 
 # Sawyer IMU Position
 # THESE ARE THE TRUE VALUES of THE IMU POSITIONS
@@ -57,7 +66,6 @@ class KinematicEstimator():
             for all accelerometers [pose, accelerometer, joint].
         """
         # Assume n_sensor is equal to n_joint for now
-        self.data = data
         self.robot_configs = robot_configs
 
         self.pose_names = list(data.constant.keys())
@@ -88,7 +96,17 @@ class KinematicEstimator():
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
         self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_configs['dh_parameter'])
-        self.optimizer = SeparateOptimizer()
+
+        hyperparams = None
+        error_functions = {
+            'Rotation': StaticErrorFunction(data, L1Loss(hyperparams)),
+            'Translation': ConstantRotationErrorFunction(data, L1Loss(hyperparams))
+        }
+        stop_conditions = {
+            'Rotation': PassThroughStopCondition(),
+            'Translation': DeltaXStopCondition()
+        }
+        self.optimizer = SeparateOptimizer(error_functions, stop_conditions)
 
         self.previous_params = None
         self.all_euclidean_distances = []
@@ -104,17 +122,17 @@ class KinematicEstimator():
         """
         # Optimize each joint (& sensor) at a time from the root
         # currently starting from 6th skin unit
-        for i in range(1, self.n_sensor):
-            print("Optimizing %ith SU ..." % (i))
-            params, bounds = self.param_manager.get_params_at(i=i)
-            Tdofs = self.param_manager.get_tmat_until(i)
+        for i_imu in range(1, self.n_sensor):
+            print("Optimizing %ith SU ..." % (i_imu))
+            params, bounds = self.param_manager.get_params_at(i=i_imu)
+            Tdofs = self.param_manager.get_tmat_until(i_imu)
 
-            assert len(Tdofs) == i + 1, 'Size of Tdofs supposed to be %i, but %i' % (i+1, len(Tdofs))
+            assert len(Tdofs) == i_imu + 1, 'Size of Tdofs supposed to be %i, but %i' % (i_imu+1, len(Tdofs))
 
             # optimize parameters wrt data
-            params = self.optimizer.optimize(i, params, bounds, Tdofs)
-            self.param_manager.set_params_at(i, params)
-            pos, quat = self.get_i_accelerometer_position(i)
+            params = self.optimizer.optimize(i_imu, Tdofs, params, bounds)
+            self.param_manager.set_params_at(i_imu, params)
+            pos, quat = self.get_i_accelerometer_position(i_imu)
 
             print('='*100)
             print('Position:', pos)

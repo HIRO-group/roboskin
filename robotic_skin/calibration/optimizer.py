@@ -1,13 +1,10 @@
+import sys
 import numpy as np
 import nlopt
 
 # import robotic_skin
 import robotic_skin.const as C
-from robotic_skin.calibration.utils import TransMat, get_IMU_pose
-from robotic_skin.calibration.error_functions import (
-    StaticErrorFunction,
-    ConstantRotationErrorFunction
-)
+from robotic_skin.calibration.utils import TransMat, get_IMU_pose, n2s
 
 
 def convert_dhparams_to_Tdof2su(params):
@@ -35,12 +32,15 @@ def convert_dhparams_to_Tdof2su(params):
 class Optimizer():
     """
     """
-    def __init__(self, error_function, su_dhparams=None):
+    def __init__(self, error_functions, stop_condition=None, su_dhparams=None):
         """
         """
-        self.error_function = error_function
+        self.error_functions = error_functions
         self.su_dhparams = su_dhparams
-        self.stop_condition = PassThroughStopCondition()
+        self.error_types = list(error_functions.keys())
+        self.stop_condition = stop_condition
+        if stop_condition is None:
+            self.stop_condition = PassThroughStopCondition()
 
     def optimize(self, i_imu, Tdofs, params, bounds):
         """
@@ -75,7 +75,13 @@ class Optimizer():
 
         pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
 
-        e = self.error_function(self.i_imu, self.Tdofs, Tdof2su)
+        e = 0.0
+        if sys.version_info[0] == 2:
+            for error_type, error_function in self.error_functions.iteritems():
+                e += error_function(self.i_imu, self.Tdofs, Tdof2su)
+        else:
+            for error_type, error_function in self.error_functions.items():
+                e += error_function(self.i_imu, self.Tdofs, Tdof2su)
 
         return self.stop_condition.update(params, None, e)
 
@@ -95,21 +101,15 @@ class Optimizer():
 class SeparateOptimizer(Optimizer):
     """
     """
-    def __init__(self, error_functions=None, su_dhparams=None):
-        super().__init__(error_functions, su_dhparams)
+    def __init__(self, error_functions, stop_conditions, su_dhparams=None):
+        super().__init__(error_functions, su_dhparams=su_dhparams)
         """
         """
         self.rotation_index = [0, 2, 5]
         self.position_index = [1, 3, 4]
         self.target = None
-        self.error_functions = {
-            'Rotation': StaticErrorFunction(),
-            'Translation': ConstantRotationErrorFunction()
-        }
-        self.stop_conditions = {
-            'Rotation': DeltaXStopCondition(),
-            'Translation': PassThroughStopCondition()
-        }
+        self.error_functions = error_functions
+        self.stop_conditions = stop_conditions
 
     def optimize(self, i_imu, Tdofs, params, bounds):
         """
@@ -157,7 +157,7 @@ class SeparateOptimizer(Optimizer):
         # ################### Then Optimize for Translations ####################
         self.target = 'Translation'
         self.stop_conditions['Translation'].initialize()
-        self.constant_params = params[self.rotation_index]
+        self.constant_params = param_rot
 
         opt = nlopt.opt(C.GLOBAL_OPTIMIZER, n_param)
         opt.set_min_objective(self.objective)
@@ -202,6 +202,7 @@ class SeparateOptimizer(Optimizer):
             np.r_[target_params, self.constant_params])
 
         pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
+        print(self.target, n2s(pos, 4), n2s(quat, 4))
 
         e = self.error_functions[self.target](self.i_imu, self.Tdofs, Tdof2su)
 
@@ -213,11 +214,11 @@ class SeparateOptimizer(Optimizer):
         params = np.zeros(6)
 
         if self.target == 'Rotation':
-            params[self.rot_index] = merged_params[:3]
-            params[self.pos_index] = merged_params[3:]
+            params[self.rotation_index] = merged_params[:3]
+            params[self.position_index] = merged_params[3:]
         elif self.target == 'Translation':
-            params[self.rot_index] = merged_params[3:]
-            params[self.pos_index] = merged_params[:3]
+            params[self.rotation_index] = merged_params[3:]
+            params[self.position_index] = merged_params[:3]
 
         return convert_dhparams_to_Tdof2su(params)
 
@@ -253,7 +254,7 @@ class DeltaXStopCondition(StopCondition):
     def initialize(self):
         self.prev_x = None
         self.xdiff = None
-        self.xdiffs = None
+        self.xdiffs = np.array([])
 
     def update(self, x, y, e):
         if self.prev_x is None:
@@ -263,8 +264,13 @@ class DeltaXStopCondition(StopCondition):
             self.xdiff = np.linalg.norm(np.array(x) - self.prev_x)
             self.prev_x = np.array(x)
 
+        if self.xdiff is not None:
+            self.xdiffs = np.append(self.xdiffs, self.xdiff)
+
         if len(self.xdiffs) >= self.windowsize:
             if np.mean(self.xdiffs[-(self.windowsize+1):-1]) <= self.threshold:
                 return self.retval
+
+        print(self.xdiff)
 
         return e
