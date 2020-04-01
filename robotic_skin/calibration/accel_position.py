@@ -7,26 +7,15 @@ import sys
 import argparse
 from collections import namedtuple
 import pickle
-import matplotlib.pyplot as plt
 import numpy as np
-import nlopt
 import rospkg
 import yaml
-import pyquaternion as pyqt
 
-import robotic_skin.const as C
 from robotic_skin.calibration.utils import (
-    TransMat,
     ParameterManager,
-    pyquat_to_numpy,
-    quaternion_from_two_vectors,
-    n2s,
     get_IMU_pose
 )
-from robotic_skin.calibration.optimizer import (
-    convert_params_to_Tdof2su,
-    SeperateOptimizer
-)
+from robotic_skin.calibration.optimizer import SeperateOptimizer
 
 # Sawyer IMU Position
 # THESE ARE THE TRUE VALUES of THE IMU POSITIONS
@@ -99,7 +88,7 @@ class KinematicEstimator():
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
         self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_configs['dh_parameter'])
-        self.optimizer = SeperateOptimizer(separate_error_function)
+        self.optimizer = SeperateOptimizer()
 
         self.previous_params = None
         self.all_euclidean_distances = []
@@ -180,12 +169,12 @@ def load_data(robot):
 
     try:
         directory = os.path.join(rospkg.RosPack().get_path('ros_robotic_skin'), 'data')
-    except Exception as e:
+    except Exception:
         print('ros_robotic_skin not installed in the catkin workspace')
 
     static = read_pickle('static_data', robot)
     constant = read_pickle('constant_data', robot)
-    #dynamic = read_pickle('dynamic_data', robot)
+    # dynamic = read_pickle('dynamic_data', robot)
 
     # Data = namedtuple('Data', 'static dynamic constant')
     # data = Data(static, dynamic, constant)
@@ -209,7 +198,7 @@ def load_robot_configs(configdir, robot):
         print(filepath)
         with open(filepath) as file:
             return yaml.load(file, Loader=yaml.FullLoader)
-    except Exception as e:
+    except Exception:
         print('Please provide a valid config directory with robot yaml files')
 
 
@@ -240,5 +229,5 @@ if __name__ == '__main__':
     data = estimator.get_all_accelerometer_positions()
 
     ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
-    save_path = os.path.join(ros_robotic_skin_path, 'data', save_path)
+    save_path = os.path.join(ros_robotic_skin_path, 'data', args.savefile)
     np.savetxt(save_path, data)

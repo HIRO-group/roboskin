@@ -4,6 +4,11 @@ import nlopt
 # import robotic_skin
 import robotic_skin.const as C
 from robotic_skin.calibration.utils import TransMat, get_IMU_pose
+from robotic_skin.calibration.error_functions import (
+    StaticErrorFunction,
+    ConstantRotationErrorFunction
+)
+
 
 def convert_dhparams_to_Tdof2su(params):
     """
@@ -72,7 +77,7 @@ class Optimizer():
 
         e = self.error_function(self.i_imu, self.Tdofs, Tdof2su)
 
-        return self.stop_condition.update(target_params, None, e)
+        return self.stop_condition.update(params, None, e)
 
     def choose_true_or_estimated_Tdof2su(self, params):
         if self.su_dhparams is not None:
@@ -90,8 +95,8 @@ class Optimizer():
 class SeperateOptimizer(Optimizer):
     """
     """
-    def __init__(self, error_function, su_dhparams=None):
-        super().__init__(error_function, su_dhparams)
+    def __init__(self, error_functions=None, su_dhparams=None):
+        super().__init__(error_functions, su_dhparams)
         """
         """
         self.rotation_index = [0, 2, 5]
@@ -147,7 +152,7 @@ class SeperateOptimizer(Optimizer):
         opt.set_stopval(C.ROT_GLOBAL_STOP)
         local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
         opt.set_local_optimizer(local_opt)
-        param_rot = opt.optimize(param_rot)
+        param_rot = opt.optimize(params[self.rotation_index])
 
         # ################### Then Optimize for Translations ####################
         self.target = 'Translation'
@@ -161,7 +166,7 @@ class SeperateOptimizer(Optimizer):
         opt.set_stopval(C.POS_GLOBAL_STOP)
         local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
         opt.set_local_optimizer(local_opt)
-        param_pos = opt.optimize(param_pos)
+        param_pos = opt.optimize(params[self.position_index])
 
         params[self.rotation_index] = param_rot
         params[self.position_index] = param_pos
@@ -210,7 +215,7 @@ class SeperateOptimizer(Optimizer):
         if self.target == 'Rotation':
             params[self.rot_index] = merged_params[:3]
             params[self.pos_index] = merged_params[3:]
-        elif target == 'Translation':
+        elif self.target == 'Translation':
             params[self.rot_index] = merged_params[3:]
             params[self.pos_index] = merged_params[:3]
 
@@ -230,7 +235,7 @@ class StopCondition():
 
 class PassThroughStopCondition(StopCondition):
     def __init__(self):
-        super().__init__():
+        super().__init__()
 
     def update(self, x, y, e):
         return e
@@ -238,7 +243,8 @@ class PassThroughStopCondition(StopCondition):
 
 class DeltaXStopCondition(StopCondition):
     def __init__(self, windowsize=10, threshold=0.001, retval=0.00001):
-        super().__init__():
+        super().__init__()
+
         self.initialize()
         self.windowsize = windowsize
         self.threshold = threshold

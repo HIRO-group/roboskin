@@ -1,6 +1,6 @@
 import numpy as np
 import robotic_skin.const as C
-from robotic_skin.calibration.utils import TransMat, get_IMU_pose
+from robotic_skin.calibration.utils import TransMat  # , get_IMU_pose
 
 
 def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
@@ -231,8 +231,8 @@ class ConstantRotationErrorFunction(ErrorFunction):
         errors = 0.0
         n_data = 0
         for p in range(self.n_pose):
-            for d in range(max(0, i-2), i+1):
             # for d in range(i+1):
+            for d in range(max(0, i-2), i+1):
                 data = self.data.constant[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0]
                 meas_qs = data[:, :4]
                 meas_accels = data[:, 4:7]
