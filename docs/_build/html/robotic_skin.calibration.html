@@ -89,6 +89,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">robotic_skin.calibration package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.accel_position">robotic_skin.calibration.accel_position module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.plot_data">robotic_skin.calibration.plot_data module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.utils">robotic_skin.calibration.utils module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration">Module contents</a></li>
 </ul>
@@ -177,7 +178,7 @@
 <p>Module for Kinematics Estimation.</p>
 <dl class="class">
 <dt id="robotic_skin.calibration.accel_position.KinematicEstimator">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">KinematicEstimator</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">dhparams=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">KinematicEstimator</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">dhparams=None</em>, <em class="sig-param">original_accel_positions=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class for estimating the kinematics of the arm
 and corresponding sensor unit positions.</p>
@@ -237,7 +238,7 @@ Tjoint = [T(th_1), T(th_2), …, T(th_n)] for n joints</p></li>
 
 <dl class="method">
 <dt id="robotic_skin.calibration.accel_position.KinematicEstimator.error_function">
-<code class="sig-name descname">error_function</code><span class="sig-paren">(</span><em class="sig-param">params</em>, <em class="sig-param">grad</em>, <em class="sig-param">i</em>, <em class="sig-param">Tdofs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.error_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.error_function" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">error_function</code><span class="sig-paren">(</span><em class="sig-param">target_params</em>, <em class="sig-param">grad</em>, <em class="sig-param">i</em>, <em class="sig-param">Tdofs</em>, <em class="sig-param">const_params</em>, <em class="sig-param">target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.error_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.error_function" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes an error e_T = e_1 + e_2 from current parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -259,8 +260,13 @@ Tjoint = [T(th_1), T(th_2), …, T(th_n)] for n joints</p></li>
 </dd></dl>
 
 <dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.estimate_acceleration">
-<code class="sig-name descname">estimate_acceleration</code><span class="sig-paren">(</span><em class="sig-param">Tdofs</em>, <em class="sig-param">Tjoints</em>, <em class="sig-param">Tdof2su</em>, <em class="sig-param">d</em>, <em class="sig-param">curr_w</em>, <em class="sig-param">max_w</em>, <em class="sig-param">joint_angle_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.estimate_acceleration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.estimate_acceleration" title="Permalink to this definition">¶</a></dt>
+<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.estimate_acceleration_analytically">
+<code class="sig-name descname">estimate_acceleration_analytically</code><span class="sig-paren">(</span><em class="sig-param">Tdofs</em>, <em class="sig-param">Tjoints</em>, <em class="sig-param">Tdofi2su</em>, <em class="sig-param">d</em>, <em class="sig-param">i</em>, <em class="sig-param">curr_w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.estimate_acceleration_analytically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.estimate_acceleration_analytically" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.estimate_acceleration_numerically">
+<code class="sig-name descname">estimate_acceleration_numerically</code><span class="sig-paren">(</span><em class="sig-param">Tdofs</em>, <em class="sig-param">Tjoints</em>, <em class="sig-param">Tdof2su</em>, <em class="sig-param">d</em>, <em class="sig-param">curr_w</em>, <em class="sig-param">max_w</em>, <em class="sig-param">joint_angle_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.estimate_acceleration_numerically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.estimate_acceleration_numerically" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Compute an acceleration value from positions.
 .. math:: <a href="#id3"><span class="problematic" id="id4">`</span></a>a =</p>
@@ -410,6 +416,16 @@ where
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="robotic_skin.calibration.accel_position.get_original_accelerometer_positions">
+<code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">get_original_accelerometer_positions</code><span class="sig-paren">(</span><em class="sig-param">robot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#get_original_accelerometer_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.get_original_accelerometer_positions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="robotic_skin.calibration.accel_position.get_su_transmat">
+<code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">get_su_transmat</code><span class="sig-paren">(</span><em class="sig-param">i</em>, <em class="sig-param">robot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#get_su_transmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.get_su_transmat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="robotic_skin.calibration.accel_position.load_data">
 <code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param">robot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.load_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function for collecting acceleration data with poses</p>
@@ -433,6 +449,29 @@ where
 <code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">max_acceleration_joint_angle</code><span class="sig-paren">(</span><em class="sig-param">curr_w</em>, <em class="sig-param">max_w</em>, <em class="sig-param">t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#max_acceleration_joint_angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.max_acceleration_joint_angle" title="Permalink to this definition">¶</a></dt>
 <dd><p>max acceleration along a joint angle of robot.</p>
 </dd></dl>
+
+</div>
+<div class="section" id="module-robotic_skin.calibration.plot_data">
+<span id="robotic-skin-calibration-plot-data-module"></span><h2>robotic_skin.calibration.plot_data module<a class="headerlink" href="#module-robotic_skin.calibration.plot_data" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="robotic_skin.calibration.plot_data.estimate_acceleration_analytically">
+<code class="sig-prename descclassname">robotic_skin.calibration.plot_data.</code><code class="sig-name descname">estimate_acceleration_analytically</code><span class="sig-paren">(</span><em class="sig-param">Tdofs</em>, <em class="sig-param">Tjoints</em>, <em class="sig-param">Tdofi2su</em>, <em class="sig-param">d</em>, <em class="sig-param">i</em>, <em class="sig-param">curr_w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/plot_data.html#estimate_acceleration_analytically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.plot_data.estimate_acceleration_analytically" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="robotic_skin.calibration.plot_data.get_su_transmat">
+<code class="sig-prename descclassname">robotic_skin.calibration.plot_data.</code><code class="sig-name descname">get_su_transmat</code><span class="sig-paren">(</span><em class="sig-param">i</em>, <em class="sig-param">robot='panda'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/plot_data.html#get_su_transmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.plot_data.get_su_transmat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="robotic_skin.calibration.plot_data.load_data">
+<code class="sig-prename descclassname">robotic_skin.calibration.plot_data.</code><code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param">robot='panda'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/plot_data.html#load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.plot_data.load_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="robotic_skin.calibration.plot_data.load_dhparams">
+<code class="sig-prename descclassname">robotic_skin.calibration.plot_data.</code><code class="sig-name descname">load_dhparams</code><span class="sig-paren">(</span><em class="sig-param">robot='panda'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/plot_data.html#load_dhparams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.plot_data.load_dhparams" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-robotic_skin.calibration.utils">
@@ -676,9 +715,8 @@ returns 4x4 matrix of the form</p>
 
 <dl class="function">
 <dt id="robotic_skin.calibration.utils.quaternion_from_two_vectors">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">quaternion_from_two_vectors</code><span class="sig-paren">(</span><em class="sig-param">v1</em>, <em class="sig-param">v2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#quaternion_from_two_vectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion_from_two_vectors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a quaternion from two vectors.</p>
-</dd></dl>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">quaternion_from_two_vectors</code><span class="sig-paren">(</span><em class="sig-param">source</em>, <em class="sig-param">target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#quaternion_from_two_vectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion_from_two_vectors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="robotic_skin.calibration.utils.quaternion_l2_distance">

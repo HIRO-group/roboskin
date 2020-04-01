@@ -12,6 +12,14 @@ robotic\_skin.calibration.accel\_position module
    :undoc-members:
    :show-inheritance:
 
+robotic\_skin.calibration.plot\_data module
+-------------------------------------------
+
+.. automodule:: robotic_skin.calibration.plot_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 robotic\_skin.calibration.utils module
 --------------------------------------
 
