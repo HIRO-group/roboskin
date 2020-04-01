@@ -9,13 +9,13 @@ from collections import namedtuple
 import pickle
 import numpy as np
 import rospkg
-import yaml
 
 from robotic_skin.calibration.utils import (
     ParameterManager,
-    get_IMU_pose
+    get_IMU_pose,
+    load_robot_configs
 )
-from robotic_skin.calibration.optimizer import SeperateOptimizer
+from robotic_skin.calibration.optimizer import SeparateOptimizer
 
 # Sawyer IMU Position
 # THESE ARE THE TRUE VALUES of THE IMU POSITIONS
@@ -88,7 +88,7 @@ class KinematicEstimator():
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
         self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_configs['dh_parameter'])
-        self.optimizer = SeperateOptimizer()
+        self.optimizer = SeparateOptimizer()
 
         self.previous_params = None
         self.all_euclidean_distances = []
@@ -182,24 +182,6 @@ def load_data(robot):
     data = Data(static, constant)
 
     return data
-
-
-def load_robot_configs(configdir, robot):
-    """
-    Loads robot's DH parameters, SUs' DH parameters and their poses
-
-    configdir: str
-        Path to the config directory where robot yaml files exist
-    robot: str
-        Name of the robot
-    """
-    try:
-        filepath = os.path.join(configdir, robot + '.yaml')
-        print(filepath)
-        with open(filepath) as file:
-            return yaml.load(file, Loader=yaml.FullLoader)
-    except Exception:
-        print('Please provide a valid config directory with robot yaml files')
 
 
 def parse_arguments():

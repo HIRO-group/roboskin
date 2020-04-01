@@ -1,6 +1,8 @@
 """
 Utilities module for Robotic Skin.
 """
+import os
+import yaml
 import numpy as np
 import pyquaternion as pyqt
 from geometry_msgs.msg import Quaternion
@@ -418,3 +420,20 @@ def get_IMU_pose(Tdofs, Tdof2su, joints=None):
     T = T.dot(Tdof2su)
 
     return T.position, T.q
+
+
+def load_robot_configs(configdir, robot):
+    """
+    Loads robot's DH parameters, SUs' DH parameters and their poses
+
+    configdir: str
+        Path to the config directory where robot yaml files exist
+    robot: str
+        Name of the robot
+    """
+    filepath = os.path.join(configdir, robot + '.yaml')
+    try:
+        with open(filepath) as file:
+            return yaml.load(file, Loader=yaml.FullLoader)
+    except Exception:
+        raise ValueError('Please provide a valid config directory with robot yaml files')

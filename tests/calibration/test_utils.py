@@ -1,12 +1,15 @@
 """
 Testing utils module
 """
+import os
 import unittest
 import numpy as np
+from pyquaternion import Quaternion
 from robotic_skin.calibration import utils
 from robotic_skin.calibration.utils import TransMat, ParameterManager
 
-from pyquaternion import Quaternion
+repodir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+configdir = os.path.join(repodir, 'config')
 
 N_JOINT = 7
 INIT_POSE = np.zeros(N_JOINT)
@@ -24,25 +27,10 @@ BOUNDS_SU = np.array([
     [0.0, 0.0001],      # a     # 0 gives error
     [0, np.pi]])        # alpha
 
-PANDA_DHPARAMS = np.array([
-    [0, 0.333,  0,          0],
-    [0, 0,      0,          -np.pi/2],
-    [0, 0.316,  0,          np.pi/2],
-    [0, 0,      0.0825,     np.pi/2],
-    [0, 0.384,  -0.0825,    -np.pi/2],
-    [0, 0,      0,          np.pi/2],
-    [0, 0,      0.088,      np.pi/2]
-])
-
-SAWYER_DHPARAMS = np.array([
-    [0,         0.317,      0,      0],
-    [np.pi/2,   0.1925,     0.081,  -np.pi/2],
-    [0,         0.4,        0,      np.pi/2],
-    [0,         -0.1685,    0,      -np.pi/2],
-    [0,         0.4,        0,      np.pi/2],
-    [0,         0.1363,     0,      -np.pi/2],
-    [np.pi,     0.13375,    0,      np.pi/2]
-])
+PANDA_DHPARAMS = utils.load_robot_configs(
+    configdir, 'panda')['dh_parameter']
+SAWYER_DHPARAMS = utils.load_robot_configs(
+    configdir, 'sawyer')['dh_parameter']
 
 
 class TransMatTest(unittest.TestCase):
@@ -257,7 +245,7 @@ class TransMatTest(unittest.TestCase):
         """
         # DEG == 0
         joint_angles = [0, 0, 0, 0, 0, 0, 0]
-        Tdofs = [TransMat(dh) for dh in PANDA_DHPARAMS]
+        Tdofs = [TransMat(PANDA_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
         Tjoints = [TransMat(rad) for rad in joint_angles]
         Tdof2vdof = TransMat(np.array([np.pi/4, 0.14]))
         Tvdof2su = TransMat(np.array([0, 0.03, 0, np.pi/2]))
@@ -274,7 +262,7 @@ class TransMatTest(unittest.TestCase):
 
         # DEG == 90
         joint_angles = [0, np.pi/2, 0, 0, 0, 0, 0]
-        Tdofs = [TransMat(dh) for dh in PANDA_DHPARAMS]
+        Tdofs = [TransMat(PANDA_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
         Tjoints = [TransMat(rad) for rad in joint_angles]
         Tdof2vdof = TransMat(np.array([np.pi/4, 0.14]))
         Tvdof2su = TransMat(np.array([0, 0.03, 0, np.pi/2]))
@@ -296,7 +284,7 @@ class TransMatTest(unittest.TestCase):
         """
         # DEG == 0
         joint_angles = [0, 0, 0, 0, 0, 0, 0]
-        Tdofs = [TransMat(dh) for dh in SAWYER_DHPARAMS]
+        Tdofs = [TransMat(SAWYER_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
         Tjoints = [TransMat(rad) for rad in joint_angles]
         Tdof2vdof = TransMat(np.array([0, 0.1]))
         Tvdof2su = TransMat(np.array([0, 0.03, 0, -np.pi/2]))
@@ -313,7 +301,7 @@ class TransMatTest(unittest.TestCase):
 
         # DEG == 90
         joint_angles = [0, -np.pi/2, 0, 0, 0, 0, 0]
-        Tdofs = [TransMat(dh) for dh in SAWYER_DHPARAMS]
+        Tdofs = [TransMat(SAWYER_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
         Tjoints = [TransMat(rad) for rad in joint_angles]
         Tdof2vdof = TransMat(np.array([0, 0.1]))
         Tvdof2su = TransMat(np.array([0, 0.03, 0, -np.pi/2]))

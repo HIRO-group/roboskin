@@ -92,7 +92,7 @@ class Optimizer():
         return convert_dhparams_to_Tdof2su(params)
 
 
-class SeperateOptimizer(Optimizer):
+class SeparateOptimizer(Optimizer):
     """
     """
     def __init__(self, error_functions=None, su_dhparams=None):
