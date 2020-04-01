@@ -56,6 +56,7 @@ This project is using GitHub flow ([See here for details](https://guides.github.
 8. Write Documentations under `./docs/`. See [docs/README.md](docs/README.md).
 
 ## Test [MUST]
+### Python Test
 When adding new feature such as `function`/`class`, you always and must write test(s) unless it will be rejected. <br>
 Then run the test
 
@@ -67,6 +68,11 @@ You can also use `pycodestyle`:
 
 ```
 pycodestyle <script-name>.py
+```
+
+### Flake8 Test
+```
+flake8 . --count --max-complexity=10 --max-line-length=140 --statistics --exclude setup.py
 ```
 
 ### Where should I write my features tests?

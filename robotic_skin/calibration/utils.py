@@ -335,7 +335,7 @@ def tfquat_to_pyquat(q):
     """
     Converts a tf quaternion to a pyqt quaternion
     """
-    return pyqt.Quaternion(axis=q[:3], angle=q[3])
+    return pyqt.Quaternion(w=q.w, x=q.x, y=q.y, z=q.z)
 
 
 def pyquat_to_tfquat(q):
@@ -365,17 +365,17 @@ def quaternion_l2_distance(q1, q2):
     return 2*(1 - np.dot(q1.elements, q2.elements))
 
 
-def quaternion_from_two_vectors(v1, v2):
-    """
-    Creates a quaternion from two vectors.
-    """
-    v1 = v1 / np.linalg.norm(v1)
-    v2 = v2 / np.linalg.norm(v2)
+def quaternion_from_two_vectors(source, target):
+    source = source / np.linalg.norm(source)
+    target = target / np.linalg.norm(target)
 
-    axis = np.cross(v1, v2)
-    costh = np.dot(v1, v2)
+    axis = np.cross(source, target)
+    costh = np.dot(source, target)
 
     angle = np.arccos(costh)
+
+    if angle == 0.0:
+        return pyqt.Quaternion()
 
     return pyqt.Quaternion(axis=axis, angle=angle)
 

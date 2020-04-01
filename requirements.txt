@@ -2,7 +2,11 @@ Cython
 future
 matplotlib
 numpy
-mcp3208
+sphinx
+sphinx-autobuild
+sphinx_rtd_theme
+RPI.GPIO
+pycodestyle
 nlopt
 smbus2
 VL53L1X

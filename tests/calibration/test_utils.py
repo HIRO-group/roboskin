@@ -420,7 +420,7 @@ class QuaternionTest(unittest.TestCase):
         """
         v1 = np.array([1, 0, 0])
         v2 = np.array([0, 1, 0])
-        q = utils.quaternion_from_two_vectors(v1, v2)
+        q = utils.quaternion_from_two_vectors(source=v1, target=v2)
 
         assert q == Quaternion(axis=[0, 0, 1], angle=np.pi/2)
 
