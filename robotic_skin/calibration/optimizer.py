@@ -4,7 +4,7 @@ import nlopt
 
 # import robotic_skin
 import robotic_skin.const as C
-from robotic_skin.calibration.utils import TransMat, get_IMU_pose, n2s
+from robotic_skin.calibration.utils import TransMat, get_IMU_pose
 
 
 def convert_dhparams_to_Tdof2su(params):
@@ -202,7 +202,6 @@ class SeparateOptimizer(Optimizer):
             np.r_[target_params, self.constant_params])
 
         pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
-        print(self.target, n2s(pos, 4), n2s(quat, 4))
 
         e = self.error_functions[self.target](self.i_imu, self.Tdofs, Tdof2su)
 
@@ -270,7 +269,5 @@ class DeltaXStopCondition(StopCondition):
         if len(self.xdiffs) >= self.windowsize:
             if np.mean(self.xdiffs[-(self.windowsize+1):-1]) <= self.threshold:
                 return self.retval
-
-        print(self.xdiff)
 
         return e

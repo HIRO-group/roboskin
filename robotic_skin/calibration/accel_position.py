@@ -108,7 +108,7 @@ class KinematicEstimator():
         }
         self.optimizer = SeparateOptimizer(error_functions, stop_conditions)
 
-        self.previous_params = None
+        self.imu_true_positions = robot_configs['su_pose']
         self.all_euclidean_distances = []
 
     def optimize(self):
@@ -134,9 +134,13 @@ class KinematicEstimator():
             self.param_manager.set_params_at(i_imu, params)
             pos, quat = self.get_i_accelerometer_position(i_imu)
 
+            euclidean_distance = np.linalg.norm(pos - self.imu_true_positions['su%i' % (i_imu+1)]['position'])
+            self.all_euclidean_distances.append(euclidean_distance)
+
             print('='*100)
             print('Position:', pos)
             print('Quaternion:', quat)
+            print('Euclidean distance between real and predicted points: ', euclidean_distance)
             print('='*100)
 
         print("Average Euclidean distance = ", sum(self.all_euclidean_distances) / len(self.all_euclidean_distances))
