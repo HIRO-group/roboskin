@@ -2,6 +2,9 @@ import numpy as np
 
 
 class Loss():
+    """
+    Loss function base class
+    """
     def __init__(self, hyper_params):
         self.hyper_params = hyper_params
 
@@ -10,6 +13,9 @@ class Loss():
 
 
 class L1Loss(Loss):
+    """
+    L1 Loss
+    """
     def __init__(self, hyper_params):
         super().__init__(hyper_params)
 
@@ -18,6 +24,9 @@ class L1Loss(Loss):
 
 
 class L2Loss(Loss):
+    """
+    L2Loss.
+    """
     def __init__(self, hyper_params):
         super().__init__(hyper_params)
 

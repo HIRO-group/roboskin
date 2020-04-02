@@ -4,6 +4,29 @@ from robotic_skin.calibration.utils import TransMat  # , get_IMU_pose
 
 
 def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
+    """
+    Estimates the acceleration analytically.
+
+    Arguments
+    ---------
+    `Tdofs`: List of `TransMat`
+        transformation matrices from dof to dof
+
+    `Tjoints`: List of `TransMat`
+        transformation matrices from joint to joint
+
+    `Tdofi2su`: `TransMat`
+        transformation matrix from the last dofi to skin unit
+
+    `d`: `int`
+        dof `d`
+
+    `i`: `int`
+        imu `i`
+
+    `curr_w`: `int`
+        Angular velocity
+    """
     # Transformation Matrix from su to rs in rs frame
     rs_T_su = TransMat(np.zeros(4))
     # Transformation Matrix from the last DoFi to the excited DoFd
@@ -133,11 +156,22 @@ def max_acceleration_joint_angle(curr_w, max_w, t):
 
 
 def constant_velocity_joint_angle(curr_w, max_w, t):
+    """
+    Returns transformation matrix given `t` and current
+    angular velocity `curr_w`
+    """
     return TransMat(curr_w*t)
 
 
 class ErrorFunction():
+    """
+    Error Function class used to evaluate kinematics
+    estimation models.
+    """
     def __init__(self, data, loss_func):
+        """
+        Parses the data and gets the loss function.
+        """
         self.data = data
         self.loss_func = loss_func
 
@@ -149,10 +183,17 @@ class ErrorFunction():
         self.n_sensor = self.n_joint
 
     def __call__(self, i, Tdofs, Tdof2su):
+        """
+        __call__ is to be used on returning an error value.
+        """
         raise NotImplementedError()
 
 
 class StaticErrorFunction(ErrorFunction):
+    """
+    Static error is an deviation of the gravity vector for p positions.
+
+    """
     def __init__(self, data, loss_func):
         super().__init__(data, loss_func)
 
@@ -209,6 +250,10 @@ class StaticErrorFunction(ErrorFunction):
 
 
 class ConstantRotationErrorFunction(ErrorFunction):
+    """
+    An error function used when a robotic arm's joints
+    are moving at a constant velocity.
+    """
     def __init__(self, data, loss_func):
         super().__init__(data, loss_func)
 
@@ -265,6 +310,10 @@ class ConstantRotationErrorFunction(ErrorFunction):
 
 
 class MaxAccelerationErrorFunction(ErrorFunction):
+    """
+    Compute errors between estimated and measured max acceleration for sensor i
+
+    """
     def __init__(self, data, loss_func):
         super().__init__(data, loss_func)
 

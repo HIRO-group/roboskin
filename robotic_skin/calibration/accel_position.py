@@ -146,6 +146,23 @@ class KinematicEstimator():
         print("Average Euclidean distance = ", sum(self.all_euclidean_distances) / len(self.all_euclidean_distances))
 
     def get_i_accelerometer_position(self, i_sensor):
+        """
+        gets the ith accelerometer position on the robot.
+
+        Arguments
+        ---------
+        `i_sensor`: `int`
+            IMU number `i_sensor`
+
+        Returns
+        -------
+        `T.position`: `np.array`
+            position of the imu
+
+        `T.q`: `np.array`
+            orientation of the imu
+
+        """
         return get_IMU_pose(
             self.param_manager.Tdof2dof[:i_sensor+1],
             self.param_manager.Tdof2vdof[i_sensor].dot(
