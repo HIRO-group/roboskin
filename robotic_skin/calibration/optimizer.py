@@ -31,9 +31,22 @@ def convert_dhparams_to_Tdof2su(params):
 
 class Optimizer():
     """
+    Optimizer class to evaluate the data.
     """
     def __init__(self, error_functions, stop_condition=None, su_dhparams=None):
         """
+        Initializes the optimize with the following arguments:
+
+        Arguments
+        ---------
+        `error_functions`:
+            List of error functions to use during runtime
+
+        `stop_condition`:
+            When to stop optimizing the model
+
+        `su_dhparams`:
+            The DH parameters of the skin units on the robotic arm
         """
         self.error_functions = error_functions
         self.su_dhparams = su_dhparams
@@ -44,6 +57,23 @@ class Optimizer():
 
     def optimize(self, i_imu, Tdofs, params, bounds):
         """
+        Sets up the optimizer and runs the model.
+
+        Arguments
+        ---------
+        `i_imu`
+            Imu `i`
+
+        `Tdofs`
+            Transformation matrices from dof to dof
+
+        `params`
+            DH Parameters
+
+        Returns
+        -------
+        `params`
+            Predicted parameters from the model.
         """
         self.i_imu = i_imu
         self.Tdofs = Tdofs
@@ -71,21 +101,45 @@ class Optimizer():
         return params
 
     def objective(self, params, grad):
+        """
+        Objective function used in the optimizer.
+
+        Arguments
+        ---------
+        `params`
+            Predicted DH Parameters
+
+        `grad`
+            Gradient
+        """
         Tdof2su = self.choose_true_or_estimated_Tdof2su(params)
 
         pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
 
         e = 0.0
+
         if sys.version_info[0] == 2:
+            # iteritems() in python2
             for error_type, error_function in self.error_functions.iteritems():
                 e += error_function(self.i_imu, self.Tdofs, Tdof2su)
         else:
+            # items() in python3
             for error_type, error_function in self.error_functions.items():
                 e += error_function(self.i_imu, self.Tdofs, Tdof2su)
-
+        # determines when we should stop optimization.
         return self.stop_condition.update(params, None, e)
 
     def choose_true_or_estimated_Tdof2su(self, params):
+        """
+        Based on `self.dhparams`, determines
+        if we want to use `convert_dhparams_to_Tdof2su`
+        on `self.su_dhparams` or `params`.
+
+        Arguments
+        ---------
+        `params`
+            Currently estimated dh parameters.
+        """
         if self.su_dhparams is not None:
             return convert_dhparams_to_Tdof2su(
                 self.su_dhparams['su%i' % (self.i_imu+1)])
@@ -100,10 +154,13 @@ class Optimizer():
 
 class SeparateOptimizer(Optimizer):
     """
+    Separate Optimizer class
     """
     def __init__(self, error_functions, stop_conditions, su_dhparams=None):
         super().__init__(error_functions, su_dhparams=su_dhparams)
         """
+        Initializes optimizer with selected error functions,
+        certain stop conditions, and skin unit dh parameters.
         """
         self.rotation_index = [0, 2, 5]
         self.position_index = [1, 3, 4]
@@ -115,7 +172,8 @@ class SeparateOptimizer(Optimizer):
         """
         This function will optimize the given parameters in two steps.
         First it optimizes for rotational parameters and then
-        optimizes for translational parameters.
+        optimizes for translational parameters. Hence, the name
+        "Separate"Optimizer.
 
         i_imu: int
             ith IMU to be optimized
@@ -209,6 +267,8 @@ class SeparateOptimizer(Optimizer):
 
     def convert_dhparams_to_Tdof2su(self, merged_params):
         """
+        converts current dh parameters to a 
+        transformation matrix from dof to skin unit.
         """
         params = np.zeros(6)
 
@@ -223,6 +283,9 @@ class SeparateOptimizer(Optimizer):
 
 
 class StopCondition():
+    """
+    Stop condition base class
+    """
     def __init__(self):
         pass
 
@@ -234,6 +297,9 @@ class StopCondition():
 
 
 class PassThroughStopCondition(StopCondition):
+    """
+    PassThroughStopCondition class.
+    """
     def __init__(self):
         super().__init__()
 
@@ -242,6 +308,11 @@ class PassThroughStopCondition(StopCondition):
 
 
 class DeltaXStopCondition(StopCondition):
+    """
+    DeltaXStopCondition class. Keeps track on the 
+    differences in x from iteration to iteration,
+    until the updates are very small.
+    """
     def __init__(self, windowsize=10, threshold=0.001, retval=0.00001):
         super().__init__()
 
