@@ -267,7 +267,7 @@ class SeparateOptimizer(Optimizer):
 
     def convert_dhparams_to_Tdof2su(self, merged_params):
         """
-        converts current dh parameters to a 
+        converts current dh parameters to a
         transformation matrix from dof to skin unit.
         """
         params = np.zeros(6)
@@ -309,7 +309,7 @@ class PassThroughStopCondition(StopCondition):
 
 class DeltaXStopCondition(StopCondition):
     """
-    DeltaXStopCondition class. Keeps track on the 
+    DeltaXStopCondition class. Keeps track on the
     differences in x from iteration to iteration,
     until the updates are very small.
     """
