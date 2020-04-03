@@ -157,6 +157,18 @@
 
 
 <div class="viewcode-block" id="load_data"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.plot_data.load_data">[docs]</a><span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="n">robot</span><span class="o">=</span><span class="s1">&#39;panda&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loads the data generated from the ros_robotic_skin data collection scripts.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    `robot`: `string`</span>
+<span class="sd">        Robot name.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    `constant`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rospkg</span><span class="o">.</span><span class="n">RosPack</span><span class="p">()</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s1">&#39;ros_robotic_skin&#39;</span><span class="p">),</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
 
     <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;constant_data&#39;</span><span class="p">,</span> <span class="n">robot</span><span class="p">])</span>
@@ -168,6 +180,14 @@
 
 
 <div class="viewcode-block" id="load_dhparams"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.plot_data.load_dhparams">[docs]</a><span class="k">def</span> <span class="nf">load_dhparams</span><span class="p">(</span><span class="n">robot</span><span class="o">=</span><span class="s1">&#39;panda&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loads DH parameters of the robot</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    --------</span>
+<span class="sd">    `robot`: `string`</span>
+<span class="sd">        Name of the robot.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># th, d, a, al</span>
     <span class="k">if</span> <span class="n">robot</span> <span class="o">==</span> <span class="s1">&#39;sawyer&#39;</span><span class="p">:</span>
         <span class="n">dhparams</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
@@ -194,6 +214,29 @@
 
 
 <div class="viewcode-block" id="estimate_acceleration_analytically"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.plot_data.estimate_acceleration_analytically">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration_analytically</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdofi2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimates the acceleration analytically.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    `Tdofs`: List of `TransMat`</span>
+<span class="sd">        transformation matrices from dof to dof</span>
+
+<span class="sd">    `Tjoints`: List of `TransMat`</span>
+<span class="sd">        transformation matrices from joint to joint</span>
+
+<span class="sd">    `Tdofi2su`: `TransMat`</span>
+<span class="sd">        transformation matrix from the last dofi to skin unit</span>
+
+<span class="sd">    `d`: `int`</span>
+<span class="sd">        dof `d`</span>
+
+<span class="sd">    `i`: `int`</span>
+<span class="sd">        imu `i`</span>
+
+<span class="sd">    `curr_w`: `int`</span>
+<span class="sd">        Angular velocity</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Transformation Matrix from su to rs in rs frame</span>
     <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
     <span class="c1"># Transformation Matrix from the last DoFi to the excited DoFd</span>
@@ -226,6 +269,9 @@
 
 
 <div class="viewcode-block" id="get_su_transmat"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.plot_data.get_su_transmat">[docs]</a><span class="k">def</span> <span class="nf">get_su_transmat</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">robot</span><span class="o">=</span><span class="s1">&#39;panda&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    gets the skin unit parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">robot</span> <span class="o">==</span> <span class="s1">&#39;saywer&#39;</span><span class="p">:</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
             <span class="p">[</span><span class="mf">1.57</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.157</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1.57</span><span class="p">,</span> <span class="mf">0.07</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mf">1.57</span><span class="p">],</span>

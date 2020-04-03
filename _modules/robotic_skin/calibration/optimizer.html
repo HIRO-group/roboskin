@@ -1,0 +1,533 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>robotic_skin.calibration.optimizer &mdash; robotic_skin  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> robotic_skin
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../robotic_skin.html">robotic_skin package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">robotic_skin</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>robotic_skin.calibration.optimizer</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for robotic_skin.calibration.optimizer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">nlopt</span>
+
+<span class="c1"># import robotic_skin</span>
+<span class="kn">import</span> <span class="nn">robotic_skin.const</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils</span> <span class="kn">import</span> <span class="n">TransMat</span><span class="p">,</span> <span class="n">get_IMU_pose</span>
+
+
+<div class="viewcode-block" id="convert_dhparams_to_Tdof2su"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.convert_dhparams_to_Tdof2su">[docs]</a><span class="k">def</span> <span class="nf">convert_dhparams_to_Tdof2su</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For the 1st IMU, we do not need to think of DoF-to-DoF transformation.</span>
+<span class="sd">    Thus, 6 Params (2+4 for each IMU).</span>
+<span class="sd">    Otherwise 10 = 4 (DoF to DoF) + 6 (IMU)</span>
+<span class="sd">    This condition also checks whether DH params are passed or not</span>
+<span class="sd">    If given, only the parameters for IMU should be estimated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="c1">#     (2)     (4)</span>
+        <span class="c1"># dof -&gt; vdof -&gt; su</span>
+        <span class="n">Tdof2vdof</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">params</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">Tvdof2su</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1">#     (4)    (2)     (4)</span>
+        <span class="c1"># dof -&gt; dof -&gt; vdof -&gt; su</span>
+        <span class="n">Tdof2vdof</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">])</span>
+        <span class="n">Tvdof2su</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">6</span><span class="p">:])</span>
+
+    <span class="k">return</span> <span class="n">Tdof2vdof</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tvdof2su</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Optimizer"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.Optimizer">[docs]</a><span class="k">class</span> <span class="nc">Optimizer</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimizer class to evaluate the data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_functions</span><span class="p">,</span> <span class="n">stop_condition</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">su_dhparams</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the optimize with the following arguments:</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        `error_functions`:</span>
+<span class="sd">            List of error functions to use during runtime</span>
+
+<span class="sd">        `stop_condition`:</span>
+<span class="sd">            When to stop optimizing the model</span>
+
+<span class="sd">        `su_dhparams`:</span>
+<span class="sd">            The DH parameters of the skin units on the robotic arm</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span> <span class="o">=</span> <span class="n">error_functions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">su_dhparams</span> <span class="o">=</span> <span class="n">su_dhparams</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">error_functions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_condition</span> <span class="o">=</span> <span class="n">stop_condition</span>
+        <span class="k">if</span> <span class="n">stop_condition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_condition</span> <span class="o">=</span> <span class="n">PassThroughStopCondition</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Optimizer.optimize"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.Optimizer.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_imu</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets up the optimizer and runs the model.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        `i_imu`</span>
+<span class="sd">            Imu `i`</span>
+
+<span class="sd">        `Tdofs`</span>
+<span class="sd">            Transformation matrices from dof to dof</span>
+
+<span class="sd">        `params`</span>
+<span class="sd">            DH Parameters</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        `params`</span>
+<span class="sd">            Predicted parameters from the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i_imu</span> <span class="o">=</span> <span class="n">i_imu</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Tdofs</span> <span class="o">=</span> <span class="n">Tdofs</span>
+
+        <span class="n">n_param</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># Construct an global optimizer</span>
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">GLOBAL_OPTIMIZER</span><span class="p">,</span> <span class="n">n_param</span><span class="p">)</span>
+        <span class="c1"># The objective function only accepts x and grad arguments.</span>
+        <span class="c1"># This is the only way to pass other arguments to opt</span>
+        <span class="c1"># https://github.com/JuliaOpt/NLopt.jl/issues/27</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">previous_params</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_min_objective</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>
+        <span class="c1"># Set boundaries</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_lower_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_upper_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="c1"># set stopping threshold</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_stopval</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">GLOBAL_STOP</span><span class="p">)</span>
+        <span class="c1"># Need to set a local optimizer for the global optimizer</span>
+        <span class="n">local_opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">LOCAL_OPTIMIZER</span><span class="p">,</span> <span class="n">n_param</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_local_optimizer</span><span class="p">(</span><span class="n">local_opt</span><span class="p">)</span>
+
+        <span class="c1"># this is where most of the time is spent - in optimization</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">params</span></div>
+
+<div class="viewcode-block" id="Optimizer.objective"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.Optimizer.objective">[docs]</a>    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">grad</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Objective function used in the optimizer.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        `params`</span>
+<span class="sd">            Predicted DH Parameters</span>
+
+<span class="sd">        `grad`</span>
+<span class="sd">            Gradient</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Tdof2su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">choose_true_or_estimated_Tdof2su</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="n">pos</span><span class="p">,</span> <span class="n">quat</span> <span class="o">=</span> <span class="n">get_IMU_pose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">)</span>
+
+        <span class="n">e</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># iteritems() in python2</span>
+            <span class="k">for</span> <span class="n">error_type</span><span class="p">,</span> <span class="n">error_function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="n">e</span> <span class="o">+=</span> <span class="n">error_function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_imu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># items() in python3</span>
+            <span class="k">for</span> <span class="n">error_type</span><span class="p">,</span> <span class="n">error_function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">e</span> <span class="o">+=</span> <span class="n">error_function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_imu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">)</span>
+        <span class="c1"># determines when we should stop optimization.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_condition</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Optimizer.choose_true_or_estimated_Tdof2su"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.Optimizer.choose_true_or_estimated_Tdof2su">[docs]</a>    <span class="k">def</span> <span class="nf">choose_true_or_estimated_Tdof2su</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Based on `self.dhparams`, determines</span>
+<span class="sd">        if we want to use `convert_dhparams_to_Tdof2su`</span>
+<span class="sd">        on `self.su_dhparams` or `params`.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        `params`</span>
+<span class="sd">            Currently estimated dh parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">su_dhparams</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">convert_dhparams_to_Tdof2su</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">su_dhparams</span><span class="p">[</span><span class="s1">&#39;su</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_imu</span><span class="o">+</span><span class="mi">1</span><span class="p">)])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_dhparams_to_Tdof2su</span><span class="p">(</span><span class="n">params</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Optimizer.convert_dhparams_to_Tdof2su"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.Optimizer.convert_dhparams_to_Tdof2su">[docs]</a>    <span class="k">def</span> <span class="nf">convert_dhparams_to_Tdof2su</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">convert_dhparams_to_Tdof2su</span><span class="p">(</span><span class="n">params</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SeparateOptimizer"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.SeparateOptimizer">[docs]</a><span class="k">class</span> <span class="nc">SeparateOptimizer</span><span class="p">(</span><span class="n">Optimizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Separate Optimizer class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_functions</span><span class="p">,</span> <span class="n">stop_conditions</span><span class="p">,</span> <span class="n">su_dhparams</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">error_functions</span><span class="p">,</span> <span class="n">su_dhparams</span><span class="o">=</span><span class="n">su_dhparams</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes optimizer with selected error functions,</span>
+<span class="sd">        certain stop conditions, and skin unit dh parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotation_index</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position_index</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span> <span class="o">=</span> <span class="n">error_functions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span> <span class="o">=</span> <span class="n">stop_conditions</span>
+
+<div class="viewcode-block" id="SeparateOptimizer.optimize"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.SeparateOptimizer.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_imu</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function will optimize the given parameters in two steps.</span>
+<span class="sd">        First it optimizes for rotational parameters and then</span>
+<span class="sd">        optimizes for translational parameters. Hence, the name</span>
+<span class="sd">        &quot;Separate&quot;Optimizer.</span>
+
+<span class="sd">        i_imu: int</span>
+<span class="sd">            ith IMU to be optimized</span>
+
+<span class="sd">        Tdofs: list of TransMat</span>
+<span class="sd">            List of Transformation Matrices from 0th to ith Joint (Not to SU)</span>
+
+<span class="sd">        params: list of float</span>
+<span class="sd">            DH parameters to be optimized.</span>
+<span class="sd">            This will be converted to Tdof2su which is a transformation</span>
+<span class="sd">            matrix from ith Joint to ith SU (6 parameters)</span>
+<span class="sd">            If the number of parameters were 10, it also includes</span>
+<span class="sd">            4 DH parameter for i-1th to the ith Joint.</span>
+
+<span class="sd">        bounds: np.ndarray</span>
+<span class="sd">            Boundaries (Min and Max) for each parameter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i_imu</span> <span class="o">=</span> <span class="n">i_imu</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Tdofs</span> <span class="o">=</span> <span class="n">Tdofs</span>
+
+        <span class="n">n_param</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># optimizing half of them at each time</span>
+        <span class="n">n_param</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_param</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># ################### First Optimize Rotations ####################</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;Rotation&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span><span class="p">[</span><span class="s1">&#39;Rotation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant_params</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">position_index</span><span class="p">]</span>
+
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">GLOBAL_OPTIMIZER</span><span class="p">,</span> <span class="n">n_param</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_min_objective</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_lower_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rotation_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_upper_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rotation_index</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_stopval</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">ROT_GLOBAL_STOP</span><span class="p">)</span>
+        <span class="n">local_opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">LOCAL_OPTIMIZER</span><span class="p">,</span> <span class="n">n_param</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_local_optimizer</span><span class="p">(</span><span class="n">local_opt</span><span class="p">)</span>
+        <span class="n">param_rot</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rotation_index</span><span class="p">])</span>
+
+        <span class="c1"># ################### Then Optimize for Translations ####################</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;Translation&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span><span class="p">[</span><span class="s1">&#39;Translation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant_params</span> <span class="o">=</span> <span class="n">param_rot</span>
+
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">GLOBAL_OPTIMIZER</span><span class="p">,</span> <span class="n">n_param</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_min_objective</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_lower_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">position_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_upper_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">position_index</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_stopval</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">POS_GLOBAL_STOP</span><span class="p">)</span>
+        <span class="n">local_opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">LOCAL_OPTIMIZER</span><span class="p">,</span> <span class="n">n_param</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_local_optimizer</span><span class="p">(</span><span class="n">local_opt</span><span class="p">)</span>
+        <span class="n">param_pos</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">position_index</span><span class="p">])</span>
+
+        <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rotation_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_rot</span>
+        <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">position_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_pos</span>
+
+        <span class="k">return</span> <span class="n">params</span></div>
+
+<div class="viewcode-block" id="SeparateOptimizer.objective"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.SeparateOptimizer.objective">[docs]</a>    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_params</span><span class="p">,</span> <span class="n">grad</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes an error e_T = e_1 + e_2 from current parameters</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+<span class="sd">        target_params: list of floats</span>
+<span class="sd">            Target parameters to be estimated</span>
+
+<span class="sd">        constant_params: list of floats</span>
+<span class="sd">            Parameters that are not to be optimized but used</span>
+
+<span class="sd">        i: int</span>
+<span class="sd">            ith sensor</span>
+<span class="sd">        Tdofs: list of TransMat</span>
+<span class="sd">            Transformation Matrices between Dofs</span>
+
+<span class="sd">        grad: np.ndarray</span>
+<span class="sd">            Gradient, but we do not use any gradient information</span>
+<span class="sd">            (We could in the future)</span>
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        error: float</span>
+<span class="sd">            Error between measured values and estimated model outputs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Tdof2su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">choose_true_or_estimated_Tdof2su</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">target_params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_params</span><span class="p">])</span>
+
+        <span class="n">pos</span><span class="p">,</span> <span class="n">quat</span> <span class="o">=</span> <span class="n">get_IMU_pose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">)</span>
+
+        <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">i_imu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">target_params</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SeparateOptimizer.convert_dhparams_to_Tdof2su"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.SeparateOptimizer.convert_dhparams_to_Tdof2su">[docs]</a>    <span class="k">def</span> <span class="nf">convert_dhparams_to_Tdof2su</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merged_params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        converts current dh parameters to a</span>
+<span class="sd">        transformation matrix from dof to skin unit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="s1">&#39;Rotation&#39;</span><span class="p">:</span>
+            <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rotation_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">merged_params</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">position_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">merged_params</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="s1">&#39;Translation&#39;</span><span class="p">:</span>
+            <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rotation_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">merged_params</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+            <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">position_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">merged_params</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">convert_dhparams_to_Tdof2su</span><span class="p">(</span><span class="n">params</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="StopCondition"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.StopCondition">[docs]</a><span class="k">class</span> <span class="nc">StopCondition</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stop condition base class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="StopCondition.initialize"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.StopCondition.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="StopCondition.update"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.StopCondition.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="PassThroughStopCondition"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.PassThroughStopCondition">[docs]</a><span class="k">class</span> <span class="nc">PassThroughStopCondition</span><span class="p">(</span><span class="n">StopCondition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    PassThroughStopCondition class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="PassThroughStopCondition.update"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.PassThroughStopCondition.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">e</span></div></div>
+
+
+<div class="viewcode-block" id="DeltaXStopCondition"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.DeltaXStopCondition">[docs]</a><span class="k">class</span> <span class="nc">DeltaXStopCondition</span><span class="p">(</span><span class="n">StopCondition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DeltaXStopCondition class. Keeps track on the</span>
+<span class="sd">    differences in x from iteration to iteration,</span>
+<span class="sd">    until the updates are very small.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">windowsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">retval</span><span class="o">=</span><span class="mf">0.00001</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">windowsize</span> <span class="o">=</span> <span class="n">windowsize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">retval</span> <span class="o">=</span> <span class="n">retval</span>
+
+<div class="viewcode-block" id="DeltaXStopCondition.initialize"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.DeltaXStopCondition.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prev_x</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xdiff</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xdiffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span></div>
+
+<div class="viewcode-block" id="DeltaXStopCondition.update"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.optimizer.DeltaXStopCondition.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xdiff</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prev_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xdiff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_x</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prev_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdiff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xdiffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xdiffs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdiff</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xdiffs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">windowsize</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xdiffs</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">windowsize</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">retval</span>
+
+        <span class="k">return</span> <span class="n">e</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Kandai Watanabe
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
