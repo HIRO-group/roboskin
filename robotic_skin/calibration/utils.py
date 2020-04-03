@@ -1,6 +1,8 @@
 """
 Utilities module for Robotic Skin.
 """
+import os
+import yaml
 import numpy as np
 import pyquaternion as pyqt
 from geometry_msgs.msg import Quaternion
@@ -186,6 +188,14 @@ class TransMat():
         return self.mat[:3, :3]
 
     @property
+    def q(self):
+        """
+        Quaternion as a result of the transformation
+        """
+        q = pyqt.Quaternion(matrix=self.R)
+        return pyquat_to_numpy(q)
+
+    @property
     def position(self):
         """
         Position as a result of the transformation
@@ -252,7 +262,7 @@ class ParameterManager():
         self.dhparams = dhparams
 
         if self.dhparams is not None:
-            self.Tdof2dof = [TransMat(dhparams[i, :]) for i in range(n_joint)]
+            self.Tdof2dof = [TransMat(dhparams['joint' + str(i+1)]) for i in range(n_joint)]
         else:
             self.Tdof2dof = [TransMat(bounds=bounds) for i in range(n_joint)]
 
@@ -366,6 +376,11 @@ def quaternion_l2_distance(q1, q2):
 
 
 def quaternion_from_two_vectors(source, target):
+    """
+    Computes the quaternion from vector `source`
+    to vector `target`.
+
+    """
     source = source / np.linalg.norm(source)
     target = target / np.linalg.norm(target)
 
@@ -394,3 +409,40 @@ def n2s(x, precision=2):
 
     """
     return np.array2string(x, precision=precision, separator=',', suppress_small=True)
+
+
+def get_IMU_pose(Tdofs, Tdof2su, joints=None):
+    """
+    gets the imu pose.
+
+    """
+    T = TransMat(np.zeros(4))
+    # Transformation Matrix until the joint
+    # where SU is attached
+    if joints is not None:
+        for Tdof, j in zip(Tdofs, joints):
+            T = T.dot(Tdof).dot(TransMat(j))
+    else:
+        for Tdof in Tdofs:
+            T = T.dot(Tdof)
+    # Transformation Matrix until SU
+    T = T.dot(Tdof2su)
+
+    return T.position, T.q
+
+
+def load_robot_configs(configdir, robot):
+    """
+    Loads robot's DH parameters, SUs' DH parameters and their poses
+
+    configdir: str
+        Path to the config directory where robot yaml files exist
+    robot: str
+        Name of the robot
+    """
+    filepath = os.path.join(configdir, robot + '.yaml')
+    try:
+        with open(filepath) as file:
+            return yaml.load(file, Loader=yaml.FullLoader)
+    except Exception:
+        raise ValueError('Please provide a valid config directory with robot yaml files')

@@ -10,6 +10,18 @@ PACKAGE_HOME_DIR = os.path.abspath(__file__ + "/../../../")
 
 
 def load_data(robot='panda'):
+    """
+    Loads the data generated from the ros_robotic_skin data collection scripts.
+
+    Arguments
+    ---------
+    `robot`: `string`
+        Robot name.
+
+    Returns
+    -------
+    `constant`
+    """
     directory = os.path.join(rospkg.RosPack().get_path('ros_robotic_skin'), 'data')
 
     filename = '_'.join(['constant_data', robot])
@@ -21,6 +33,14 @@ def load_data(robot='panda'):
 
 
 def load_dhparams(robot='panda'):
+    """
+    Loads DH parameters of the robot
+
+    Arguments
+    --------
+    `robot`: `string`
+        Name of the robot.
+    """
     # th, d, a, al
     if robot == 'sawyer':
         dhparams = np.array([
@@ -47,6 +67,29 @@ def load_dhparams(robot='panda'):
 
 
 def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
+    """
+    Estimates the acceleration analytically.
+
+    Arguments
+    ---------
+    `Tdofs`: List of `TransMat`
+        transformation matrices from dof to dof
+
+    `Tjoints`: List of `TransMat`
+        transformation matrices from joint to joint
+
+    `Tdofi2su`: `TransMat`
+        transformation matrix from the last dofi to skin unit
+
+    `d`: `int`
+        dof `d`
+
+    `i`: `int`
+        imu `i`
+
+    `curr_w`: `int`
+        Angular velocity
+    """
     # Transformation Matrix from su to rs in rs frame
     rs_T_su = TransMat(np.zeros(4))
     # Transformation Matrix from the last DoFi to the excited DoFd
@@ -79,6 +122,9 @@ def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
 
 
 def get_su_transmat(i, robot='panda'):
+    """
+    gets the skin unit parameters.
+    """
     if robot == 'saywer':
         params = np.array([
             [1.57,  -0.157,  -1.57, 0.07, 0,  1.57],
