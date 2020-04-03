@@ -12,6 +12,30 @@ robotic\_skin.calibration.accel\_position module
    :undoc-members:
    :show-inheritance:
 
+robotic\_skin.calibration.error\_functions module
+-------------------------------------------------
+
+.. automodule:: robotic_skin.calibration.error_functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+robotic\_skin.calibration.loss module
+-------------------------------------
+
+.. automodule:: robotic_skin.calibration.loss
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+robotic\_skin.calibration.optimizer module
+------------------------------------------
+
+.. automodule:: robotic_skin.calibration.optimizer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 robotic\_skin.calibration.plot\_data module
 -------------------------------------------
 
