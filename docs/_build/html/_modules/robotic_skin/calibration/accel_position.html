@@ -151,24 +151,28 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">nlopt</span>
 <span class="kn">import</span> <span class="nn">rospkg</span>
-<span class="kn">import</span> <span class="nn">pyquaternion</span> <span class="k">as</span> <span class="nn">pyqt</span>
 
-<span class="c1"># import robotic_skin</span>
-<span class="kn">import</span> <span class="nn">robotic_skin.const</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">TransMat</span><span class="p">,</span>
     <span class="n">ParameterManager</span><span class="p">,</span>
-    <span class="n">pyquat_to_numpy</span><span class="p">,</span>
-    <span class="n">quaternion_from_two_vectors</span><span class="p">,</span>
-    <span class="n">n2s</span><span class="p">,</span>
+    <span class="n">get_IMU_pose</span><span class="p">,</span>
+    <span class="n">load_robot_configs</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration.optimizer</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SeparateOptimizer</span><span class="p">,</span>
+    <span class="n">PassThroughStopCondition</span><span class="p">,</span>
+    <span class="n">DeltaXStopCondition</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration.error_functions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">StaticErrorFunction</span><span class="p">,</span>
+    <span class="n">ConstantRotationErrorFunction</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration.loss</span> <span class="kn">import</span> <span class="n">L1Loss</span>
+
 <span class="c1"># Sawyer IMU Position</span>
 <span class="c1"># THESE ARE THE TRUE VALUES of THE IMU POSITIONS</span>
 <span class="c1"># IMUi: [DH parameters] [XYZ Position] [Quaternion]</span>
@@ -191,27 +195,12 @@
 <span class="c1"># IMU6: [1.57, 0, -1.57, 0.05, 0, 1.57] [0.165, 0.000, 1.028] [0.732, 0.000, 0.682, -0.000]</span>
 
 
-<div class="viewcode-block" id="max_acceleration_joint_angle"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.max_acceleration_joint_angle">[docs]</a><span class="k">def</span> <span class="nf">max_acceleration_joint_angle</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    max acceleration along a joint angle of robot.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># th_pattern = np.sign(t) * max_w / (curr_w) * (1 - np.cos(curr_w*t))</span>
-    <span class="c1"># th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))</span>
-    <span class="n">th_pattern</span> <span class="o">=</span> <span class="n">max_w</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">C</span><span class="o">.</span><span class="n">PATTERN_FREQ</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">C</span><span class="o">.</span><span class="n">PATTERN_FREQ</span><span class="o">*</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">t</span>
-    <span class="c1"># print(&#39;-&#39;*20, th_pattern, curr_w, &#39;-&#39;*20)</span>
-    <span class="k">return</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">th_pattern</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="constant_velocity_joint_angle"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.constant_velocity_joint_angle">[docs]</a><span class="k">def</span> <span class="nf">constant_velocity_joint_angle</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">curr_w</span><span class="o">*</span><span class="n">t</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="KinematicEstimator"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator">[docs]</a><span class="k">class</span> <span class="nc">KinematicEstimator</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class for estimating the kinematics of the arm</span>
 <span class="sd">    and corresponding sensor unit positions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">dhparams</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">original_accel_positions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">robot_configs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments</span>
 <span class="sd">        ------------</span>
@@ -224,10 +213,7 @@
 <span class="sd">            for all accelerometers [pose, accelerometer, joint].</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Assume n_sensor is equal to n_joint for now</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dhparams</span> <span class="o">=</span> <span class="n">dhparams</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_diffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">diffs_accum</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">robot_configs</span> <span class="o">=</span> <span class="n">robot_configs</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -256,12 +242,20 @@
             <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">],</span>         <span class="c1"># d</span>
             <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">],</span>      <span class="c1"># a     # 0 gives error</span>
             <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]])</span>        <span class="c1"># alpha</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rot_index</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pos_index</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span> <span class="o">=</span> <span class="n">ParameterManager</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">bounds_su</span><span class="p">,</span> <span class="n">dhparams</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span> <span class="o">=</span> <span class="n">ParameterManager</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">bounds_su</span><span class="p">,</span> <span class="n">robot_configs</span><span class="p">[</span><span class="s1">&#39;dh_parameter&#39;</span><span class="p">])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">previous_params</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">original_positions</span> <span class="o">=</span> <span class="n">original_accel_positions</span>
+        <span class="n">hyperparams</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">error_functions</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Rotation&#39;</span><span class="p">:</span> <span class="n">StaticErrorFunction</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">L1Loss</span><span class="p">(</span><span class="n">hyperparams</span><span class="p">)),</span>
+            <span class="s1">&#39;Translation&#39;</span><span class="p">:</span> <span class="n">ConstantRotationErrorFunction</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">L1Loss</span><span class="p">(</span><span class="n">hyperparams</span><span class="p">))</span>
+        <span class="p">}</span>
+        <span class="n">stop_conditions</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Rotation&#39;</span><span class="p">:</span> <span class="n">PassThroughStopCondition</span><span class="p">(),</span>
+            <span class="s1">&#39;Translation&#39;</span><span class="p">:</span> <span class="n">DeltaXStopCondition</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">SeparateOptimizer</span><span class="p">(</span><span class="n">error_functions</span><span class="p">,</span> <span class="n">stop_conditions</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">imu_true_positions</span> <span class="o">=</span> <span class="n">robot_configs</span><span class="p">[</span><span class="s1">&#39;su_pose&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_euclidean_distances</span> <span class="o">=</span> <span class="p">[]</span>
 
 <div class="viewcode-block" id="KinematicEstimator.optimize"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -275,471 +269,53 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Optimize each joint (&amp; sensor) at a time from the root</span>
         <span class="c1"># currently starting from 6th skin unit</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_sensor</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimizing </span><span class="si">%i</span><span class="s2">th SU ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">))</span>
-            <span class="n">params</span><span class="p">,</span> <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">get_params_at</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
-            <span class="n">n_param</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">Tdofs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">get_tmat_until</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i_imu</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_sensor</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimizing </span><span class="si">%i</span><span class="s2">th SU ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i_imu</span><span class="p">))</span>
+            <span class="n">params</span><span class="p">,</span> <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">get_params_at</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i_imu</span><span class="p">)</span>
+            <span class="n">Tdofs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">get_tmat_until</span><span class="p">(</span><span class="n">i_imu</span><span class="p">)</span>
 
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">)</span> <span class="o">==</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Size of Tdofs supposed to be </span><span class="si">%i</span><span class="s1">, but </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">)</span> <span class="o">==</span> <span class="n">i_imu</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Size of Tdofs supposed to be </span><span class="si">%i</span><span class="s1">, but </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i_imu</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">))</span>
 
-            <span class="c1"># ################### First Optimize Rotations ####################</span>
-            <span class="n">n_param</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_param</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">param_rot</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_index</span><span class="p">]</span>
-            <span class="n">param_pos</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_index</span><span class="p">]</span>
+            <span class="c1"># optimize parameters wrt data</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">i_imu</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">bounds</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="n">i_imu</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+            <span class="n">pos</span><span class="p">,</span> <span class="n">quat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_i_accelerometer_position</span><span class="p">(</span><span class="n">i_imu</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">previous_params</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">GLOBAL_OPTIMIZER</span><span class="p">,</span> <span class="n">n_param</span><span class="p">)</span>
-            <span class="n">opt</span><span class="o">.</span><span class="n">set_min_objective</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">grad</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_function</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">param_pos</span><span class="p">,</span> <span class="s1">&#39;rot&#39;</span><span class="p">))</span>
-            <span class="n">opt</span><span class="o">.</span><span class="n">set_lower_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-            <span class="n">opt</span><span class="o">.</span><span class="n">set_upper_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_index</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
-            <span class="n">opt</span><span class="o">.</span><span class="n">set_stopval</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">ROT_GLOBAL_STOP</span><span class="p">)</span>
-            <span class="n">local_opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">LOCAL_OPTIMIZER</span><span class="p">,</span> <span class="n">n_param</span><span class="p">)</span>
-            <span class="n">opt</span><span class="o">.</span><span class="n">set_local_optimizer</span><span class="p">(</span><span class="n">local_opt</span><span class="p">)</span>
-            <span class="n">param_rot</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">param_rot</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">param_rot</span><span class="p">)</span>
+            <span class="n">euclidean_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pos</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">imu_true_positions</span><span class="p">[</span><span class="s1">&#39;su</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i_imu</span><span class="o">+</span><span class="mi">1</span><span class="p">)][</span><span class="s1">&#39;position&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_euclidean_distances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">euclidean_distance</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">previous_params</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">parameter_diffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
-            <span class="n">opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">GLOBAL_OPTIMIZER</span><span class="p">,</span> <span class="n">n_param</span><span class="p">)</span>
-            <span class="n">opt</span><span class="o">.</span><span class="n">set_min_objective</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">grad</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_function</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">param_rot</span><span class="p">,</span> <span class="s1">&#39;pos&#39;</span><span class="p">))</span>
-            <span class="n">opt</span><span class="o">.</span><span class="n">set_lower_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-            <span class="n">opt</span><span class="o">.</span><span class="n">set_upper_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_index</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
-            <span class="n">opt</span><span class="o">.</span><span class="n">set_stopval</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">POS_GLOBAL_STOP</span><span class="p">)</span>
-            <span class="n">local_opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">LOCAL_OPTIMIZER</span><span class="p">,</span> <span class="n">n_param</span><span class="p">)</span>
-            <span class="n">opt</span><span class="o">.</span><span class="n">set_local_optimizer</span><span class="p">(</span><span class="n">local_opt</span><span class="p">)</span>
-            <span class="n">param_pos</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">param_pos</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">param_pos</span><span class="p">)</span>
-
-            <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_rot</span>
-            <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_pos</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span>
-            <span class="c1"># display the parameters</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Parameters&#39;</span><span class="p">,</span> <span class="n">n2s</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-
-            <span class="c1"># ################### Then Optimize for Translations ####################</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-            <span class="n">pos</span><span class="p">,</span> <span class="n">quat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_i_accelerometer_position</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Position:&#39;</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Quaternion:&#39;</span><span class="p">,</span> <span class="n">quat</span><span class="p">)</span>
-            <span class="n">euclidean_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pos</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_positions</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">all_euclidean_distances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">euclidean_distance</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Euclidean distance between real and predicted points: &#39;</span><span class="p">,</span> <span class="n">euclidean_distance</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span>
 
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-            <span class="c1"># save the optimized parameter to the parameter manager</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Average Euclidean distance = &quot;</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_euclidean_distances</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_euclidean_distances</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="KinematicEstimator.error_function"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.error_function">[docs]</a>    <span class="k">def</span> <span class="nf">error_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_params</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">const_params</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Computes an error e_T = e_1 + e_2 from current parameters</span>
-
-<span class="sd">        Arguments</span>
-<span class="sd">        ----------</span>
-<span class="sd">        params: np.ndarray</span>
-<span class="sd">            Current estimated parameters</span>
-
-<span class="sd">        i: int</span>
-<span class="sd">            ith sensor</span>
-<span class="sd">        Tdofs: list of TransMat</span>
-<span class="sd">            Transformation Matrices between Dofs</span>
-
-<span class="sd">        grad: np.ndarray</span>
-<span class="sd">            Gradient, but we do not use any gradient information</span>
-<span class="sd">            (We could in the future)</span>
-<span class="sd">        Returns</span>
-<span class="sd">        ----------</span>
-<span class="sd">        error: float</span>
-<span class="sd">            Error between measured values and estimated model outputs</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># For the 1st IMU, we do not need to think of DoF-to-DoF transformation.</span>
-        <span class="c1"># Thus, 6 Params (2+4 for each IMU).</span>
-        <span class="c1"># Otherwise 10 = 4 (DoF to DoF) + 6 (IMU)</span>
-        <span class="c1"># This condition also checks whether DH params are passed or not</span>
-        <span class="c1"># If given, only the parameters for IMU should be estimated.</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">target</span> <span class="o">==</span> <span class="s1">&#39;rot&#39;</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">target_params</span>
-            <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">const_params</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">const_params</span>
-            <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">target_params</span>
-
-        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
-            <span class="c1">#     (2)     (4)</span>
-            <span class="c1"># dof -&gt; vdof -&gt; su</span>
-            <span class="n">Tdof2vdof</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">params</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
-            <span class="n">Tvdof2su</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1">#     (4)    (2)     (4)</span>
-            <span class="c1"># dof -&gt; dof -&gt; vdof -&gt; su</span>
-            <span class="n">Tdof2vdof</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">])</span>
-            <span class="n">Tvdof2su</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">6</span><span class="p">:])</span>
-
-        <span class="n">Tdof2su</span> <span class="o">=</span> <span class="n">Tdof2vdof</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tvdof2su</span><span class="p">)</span>
-        <span class="c1"># Tdof2su = get_su_transmat(i, &#39;panda&#39;)</span>
-
-        <span class="n">pos</span><span class="p">,</span> <span class="n">quat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_an_accelerometer_position</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">previous_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">xdiff</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">previous_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">target_params</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">xdiff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">target_params</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">previous_params</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">previous_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">target_params</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdiff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">parameter_diffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_diffs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdiff</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">target</span> <span class="o">==</span> <span class="s1">&#39;rot&#39;</span><span class="p">:</span>
-            <span class="n">e1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">static_error_function</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;IMU&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">n2s</span><span class="p">(</span><span class="n">e1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">n2s</span><span class="p">(</span><span class="n">params</span><span class="p">),</span> <span class="n">n2s</span><span class="p">(</span><span class="n">pos</span><span class="p">),</span> <span class="n">n2s</span><span class="p">(</span><span class="n">quat</span><span class="p">))</span>
-            <span class="c1"># e4 = np.sum(np.abs(params)[[0,2,5]])</span>
-            <span class="k">return</span> <span class="n">e1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># e2 = self.dynamic_error_function(i, Tdofs, Tdof2su)</span>
-            <span class="c1"># print(n2s(e2, 5), n2s(params), n2s(pos), n2s(quat))</span>
-            <span class="c1"># return e2</span>
-            <span class="n">e3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation_error_function</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;IMU&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">n2s</span><span class="p">(</span><span class="n">e3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">n2s</span><span class="p">(</span><span class="n">params</span><span class="p">),</span> <span class="n">n2s</span><span class="p">(</span><span class="n">pos</span><span class="p">),</span> <span class="n">n2s</span><span class="p">(</span><span class="n">quat</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdiff</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_diffs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_diffs</span><span class="p">[</span><span class="o">-</span><span class="mi">11</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mf">0.001</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="mf">0.00001</span>
-
-            <span class="k">return</span> <span class="n">e3</span></div>
-
-<div class="viewcode-block" id="KinematicEstimator.static_error_function"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.static_error_function">[docs]</a>    <span class="k">def</span> <span class="nf">static_error_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Computes static error for ith accelerometer.</span>
-<span class="sd">        Static error is an deviation of the gravity vector for p positions.</span>
-
-<span class="sd">        This function implements Equation 15 in the paper.</span>
-<span class="sd">        .. math:: `e_1 = \Sigma_{p=1}^P |{}^{RS}g_{N,p} - \Sigma_{p=1}^P {}^{RS}g_{N,p}|^2`</span>
-<span class="sd">        where</span>
-<span class="sd">        .. math:: `{}^{RS}g_{N,p} = {}^{RS}R_{SU_N}^{mod,p} {}^{SU_N}g_{N,p}`</span>
-
-
-<span class="sd">        Arguments</span>
-<span class="sd">        ------------</span>
-<span class="sd">        i: int</span>
-<span class="sd">            ith sensor</span>
-<span class="sd">        Tdof2su: TransMat</span>
-<span class="sd">            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">        Tdofs: list of TransMat</span>
-<span class="sd">            Transformation Matrices between Dofs</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        --------</span>
-<span class="sd">        e1: float</span>
-<span class="sd">            Static Error</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
-        <span class="n">gravities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pose</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-        <span class="n">gravity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.81</span><span class="p">])</span>
-
-        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pose</span><span class="p">):</span>
-            <span class="n">joints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">3</span><span class="p">:</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">Tjoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">TransMat</span><span class="p">(</span><span class="n">joint</span><span class="p">)</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joints</span><span class="p">]</span>
-
-            <span class="c1"># 1 Pose are consists for n_joint DoF</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>   <span class="c1"># equals to I Matrix</span>
-            <span class="k">for</span> <span class="n">Tdof</span><span class="p">,</span> <span class="n">Tjoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">):</span>
-                <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoint</span><span class="p">)</span>
-            <span class="c1"># DoF to SU</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof2su</span><span class="p">)</span>
-
-            <span class="n">Rsu2rs</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">R</span>
-
-            <span class="n">accel_su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][:</span><span class="mi">3</span><span class="p">]</span>
-            <span class="n">accel_rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Rsu2rs</span><span class="p">,</span> <span class="n">accel_su</span><span class="p">)</span>
-            <span class="n">gravities</span><span class="p">[</span><span class="n">p</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">accel_rs</span>
-
-        <span class="c1"># print(&#39;[Static Accel] &#39;, n2s(np.mean(gravities, axis=0), 2), n2s(np.std(gravities, axis=0), 2))</span>
-
-        <span class="c1"># return np.sum(np.linalg.norm(gravities - np.mean(gravities, 0), axis=1))</span>
-        <span class="c1"># return np.sum(np.linalg.norm(gravities - gravity, axis=1))</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">gravities</span> <span class="o">-</span> <span class="n">gravity</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span></div>
-
-<div class="viewcode-block" id="KinematicEstimator.rotation_error_function"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.rotation_error_function">[docs]</a>    <span class="k">def</span> <span class="nf">rotation_error_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Arguments</span>
-<span class="sd">        ------------</span>
-<span class="sd">        i: int</span>
-<span class="sd">            ith sensor</span>
-<span class="sd">        Tdof2su: TransMat</span>
-<span class="sd">            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">        Tdofs: list of TransMat</span>
-<span class="sd">            Transformation Matrices between Dofs</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        --------</span>
-<span class="sd">        e1: float</span>
-<span class="sd">            Static Error</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># to-do: use these variables?</span>
-        <span class="c1"># gravities = np.zeros((self.n_pose, 3))</span>
-        <span class="c1"># gravity = np.array([0, 0, 9.81])</span>
-
-        <span class="n">errors</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="n">n_data</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pose</span><span class="p">):</span>
-            <span class="c1"># for d in range(max(0, i-2), i+1):</span>
-            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">meas_qs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">4</span><span class="p">]</span>
-                <span class="n">meas_accels</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span>
-                <span class="n">joints</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">7</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span>
-                <span class="n">angular_velocities</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">14</span><span class="p">]</span>
-
-                <span class="k">for</span> <span class="n">meas_q</span><span class="p">,</span> <span class="n">meas_accel</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span> <span class="n">curr_w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">meas_qs</span><span class="p">,</span> <span class="n">meas_accels</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">angular_velocities</span><span class="p">):</span>
-                    <span class="c1"># Orientation Error</span>
-                    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">                    model_q = self.estimate_imu_q(Tdofs, Tdof2su, joint[:i+1])</span>
-<span class="sd">                    meas_q = tfquat_to_pyquat(meas_q)</span>
-<span class="sd">                    error1 = pyqt.Quaternion.absolute_distance(model_q, meas_q)</span>
-<span class="sd">                    &quot;&quot;&quot;</span>
-
-                    <span class="c1"># Acceleration Error</span>
-                    <span class="n">Tjoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">TransMat</span><span class="p">(</span><span class="n">joint</span><span class="p">)</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joint</span><span class="p">[:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
-                    <span class="c1"># model_accel = self.estimate_acceleration_numerically(</span>
-                    <span class="c1"># Tdofs, Tjoints, Tdof2su, d, curr_w, None, constant_velocity_joint_angle)</span>
-                    <span class="n">model_accel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_acceleration_analytically</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">)</span>
-                    <span class="c1"># error2 = np.sum(np.abs(model_accel - meas_accel))</span>
-                    <span class="n">error2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">model_accel</span> <span class="o">-</span> <span class="n">meas_accel</span><span class="p">))</span>
-                    <span class="c1"># print(i, d, joint[d], curr_w, n2s(model_accel), n2s(meas_accel))</span>
-                    <span class="c1"># print(n2s(joint))</span>
-
-                    <span class="c1"># errors += error1 + error2</span>
-                    <span class="n">errors</span> <span class="o">+=</span> <span class="n">error2</span>
-                    <span class="n">n_data</span> <span class="o">+=</span> <span class="mi">1</span>
-
-        <span class="k">return</span> <span class="n">errors</span><span class="o">/</span><span class="n">n_data</span></div>
-
-<div class="viewcode-block" id="KinematicEstimator.estimate_imu_q"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.estimate_imu_q">[docs]</a>    <span class="k">def</span> <span class="nf">estimate_imu_q</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">,</span> <span class="n">joints</span><span class="p">):</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">Tdof</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">joints</span><span class="p">):</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">TransMat</span><span class="p">(</span><span class="n">j</span><span class="p">))</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof2su</span><span class="p">)</span>
-
-        <span class="n">Rrs2su</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">x_rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-        <span class="n">x_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Rrs2su</span><span class="p">,</span> <span class="n">x_rs</span><span class="p">)</span>
-        <span class="n">x_su</span> <span class="o">=</span> <span class="n">x_su</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x_su</span><span class="p">)</span>
-        <span class="n">q_from_x</span> <span class="o">=</span> <span class="n">quaternion_from_two_vectors</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">x_rs</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">x_su</span><span class="p">)</span>
-        <span class="c1"># q_from_x = quaternion_from_two_vectors(source=x_su, target=x_rs)</span>
-
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        y_rs = np.array([0, 1, 0])</span>
-<span class="sd">        z_rs = np.array([0, 0, 1])</span>
-<span class="sd">        y_su = np.dot(Rrs2su, y_rs)</span>
-<span class="sd">        z_su = np.dot(Rrs2su, z_rs)</span>
-<span class="sd">        y_su = y_su / np.linalg.norm(y_su)</span>
-<span class="sd">        z_su = z_su / np.linalg.norm(z_su)</span>
-
-<span class="sd">        q_from_y = quaternion_from_two_vectors(y_rs, y_su)</span>
-<span class="sd">        q_from_z = quaternion_from_two_vectors(z_rs, z_su)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c1"># TODO: Find a way to average all the estimated quaternions</span>
-        <span class="c1"># q = pyqt.Quaternion.average([q_from_x, q_from_y, q_from_z])</span>
-
-        <span class="k">return</span> <span class="n">q_from_x</span></div>
-
-<div class="viewcode-block" id="KinematicEstimator.dynamic_error_function"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.dynamic_error_function">[docs]</a>    <span class="k">def</span> <span class="nf">dynamic_error_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute errors between estimated and measured max acceleration for sensor i</span>
-
-<span class="sd">        .. math:: `\Sigma_{p=1}^P\Sigma_{d=i-3, i&gt;0}^i {}^{SU_i}|a_{max}^{model} - a_{max}^{measured}|_{i,d,p}^2`</span>
-
-<span class="sd">        Arguments</span>
-<span class="sd">        ------------</span>
-<span class="sd">        i: int</span>
-<span class="sd">            ith sensor</span>
-<span class="sd">        Tdof2su: TransMat</span>
-<span class="sd">            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">        Tdofs: list of TransMat</span>
-<span class="sd">            Transformation Matrices between Dofs</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        --------</span>
-<span class="sd">        e2: float</span>
-<span class="sd">            Dynamic Error</span>
-<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
-        <span class="n">e2</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="n">n_data</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pose</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-                <span class="n">max_accel_train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][:</span><span class="mi">3</span><span class="p">]</span>
-                <span class="n">curr_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">3</span><span class="p">]</span>
-                <span class="c1"># max_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][4]</span>
-                <span class="n">joints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">5</span><span class="p">:</span><span class="mi">5</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
-                <span class="n">Tjoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">TransMat</span><span class="p">(</span><span class="n">joint</span><span class="p">)</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joints</span><span class="p">]</span>
-                <span class="c1"># max_accel_model = self.estimate_acceleration_numerically(</span>
-                <span class="c1"># Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)</span>
-                <span class="n">max_accel_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_acceleration_analytically</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">)</span>
-                <span class="c1"># if p == 0:</span>
-                <span class="c1">#     print(&#39;[Dynamic Max Accel, %ith Joint]&#39;%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)</span>
-                <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">max_accel_train</span> <span class="o">-</span> <span class="n">max_accel_model</span><span class="p">))</span>
-                <span class="n">e2</span> <span class="o">+=</span> <span class="n">error</span>
-                <span class="n">n_data</span> <span class="o">+=</span> <span class="mi">1</span>
-
-        <span class="k">return</span> <span class="n">e2</span><span class="o">/</span><span class="n">n_data</span></div>
-
-<div class="viewcode-block" id="KinematicEstimator.estimate_acceleration_analytically"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.estimate_acceleration_analytically">[docs]</a>    <span class="k">def</span> <span class="nf">estimate_acceleration_analytically</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdofi2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">):</span>
-        <span class="c1"># Transformation Matrix from su to rs in rs frame</span>
-        <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-        <span class="c1"># Transformation Matrix from the last DoFi to the excited DoFd</span>
-        <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="c1"># print(j)</span>
-            <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">rs_T_su</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
-
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="c1"># print(j, d, i)</span>
-            <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">rs_T_su</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
-            <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
-
-        <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">rs_T_su</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdofi2su</span><span class="p">)</span>
-        <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdofi2su</span><span class="p">)</span>
-
-        <span class="n">dofd_r_su</span> <span class="o">=</span> <span class="n">dof_T_su</span><span class="o">.</span><span class="n">position</span>
-        <span class="c1"># Every joint rotates along its own z axis</span>
-        <span class="n">w_dofd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">])</span>
-        <span class="n">a_dofd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">dofd_r_su</span><span class="p">))</span>
-
-        <span class="n">g_rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.81</span><span class="p">])</span>
-
-        <span class="n">a_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dof_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">a_dofd</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rs_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">g_rs</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">a_su</span></div>
-
-<div class="viewcode-block" id="KinematicEstimator.estimate_acceleration_numerically"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.estimate_acceleration_numerically">[docs]</a>    <span class="k">def</span> <span class="nf">estimate_acceleration_numerically</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">joint_angle_func</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute an acceleration value from positions.</span>
-<span class="sd">        .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`</span>
-
-<span class="sd">        This equation came from Taylor Expansion.</span>
-<span class="sd">        .. math:: f(t+{\Delta t}) = f(t) + hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)</span>
-<span class="sd">        .. math:: f(t-{\Delta t}) = f(t) - hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)</span>
-
-<span class="sd">        Add both equations and plug t=0 to get the above equation</span>
-
-<span class="sd">        Arguments</span>
-<span class="sd">        ------------</span>
-<span class="sd">        d: int</span>
-<span class="sd">            dth excited joint</span>
-<span class="sd">        Tdof2su: TransMat</span>
-<span class="sd">            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">        Tdofs: list of TransMat</span>
-<span class="sd">            Transformation Matrices between Dofs</span>
-<span class="sd">        Tjoints: list of TransMat</span>
-<span class="sd">            Transformation Matrices (Rotation Matrix)</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        ---------</span>
-<span class="sd">        acceleration: np.array</span>
-<span class="sd">            Acceleration computed from positions</span>
-<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
-        <span class="c1"># Compute Transformation Matrix from RS to SU</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">Tdof</span><span class="p">,</span> <span class="n">Tjoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">):</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoint</span><span class="p">)</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof2su</span><span class="p">)</span>
-        <span class="n">Rrs2su</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span>
-
-        <span class="c1"># Compute Acceleration at RS frame</span>
-        <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="mf">30.0</span>
-        <span class="n">pos</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">dt</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">accelerometer_position</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">joint_angle_func</span><span class="p">)</span>  <span class="c1"># noqa: E731</span>
-        <span class="n">gravity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.81</span><span class="p">])</span>
-
-        <span class="n">accel_rs</span> <span class="o">=</span> <span class="p">(</span><span class="n">pos</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span> <span class="o">+</span> <span class="n">pos</span><span class="p">(</span><span class="o">-</span><span class="n">dt</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">pos</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">dt</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">gravity</span>
-        <span class="n">accel_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Rrs2su</span><span class="p">,</span> <span class="n">accel_rs</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">accel_su</span></div>
-
-<div class="viewcode-block" id="KinematicEstimator.accelerometer_position"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.accelerometer_position">[docs]</a>    <span class="k">def</span> <span class="nf">accelerometer_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">joint_angle_func</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute ith accelerometer position excited by joint d in pose p at time t</span>
-
-<span class="sd">        At pose p, let o be a joint and x be a sensor unit, then it looks like</span>
-<span class="sd">                d       i                     dth joint and ith accelerometer</span>
-
-<span class="sd">        |o-x-o      -x-o      -x-o      -x-</span>
-<span class="sd">            \-x-o/    \-x-o/    \-x-o/</span>
-
-<span class="sd">        1   2    3    4    5    6    7         th joint</span>
-<span class="sd">        1    2    3    4    5    6    7      th sensor</span>
-
-<span class="sd">        Arguments</span>
-<span class="sd">        ------------</span>
-<span class="sd">        d: int</span>
-<span class="sd">            dth excited joint</span>
-<span class="sd">        Tdof2su: TransMat</span>
-<span class="sd">            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">        Tdofs: list of TransMat</span>
-<span class="sd">            Transformation Matrices between Dofs</span>
-<span class="sd">        Tjoints: list of TransformationMatrix</span>
-<span class="sd">            Tranformation Matrices of all joints in Pose p</span>
-<span class="sd">            Tjoint = [T(th_1), T(th_2), ..., T(th_n)] for n joints</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        ---------</span>
-<span class="sd">        position: np.array</span>
-<span class="sd">            Position of the resulting transformation</span>
-<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">i_joint</span><span class="p">,</span> <span class="p">(</span><span class="n">Tdof</span><span class="p">,</span> <span class="n">Tjoint</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">)):</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoint</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">i_joint</span> <span class="o">==</span> <span class="n">d</span><span class="p">:</span>
-                <span class="n">Tpattern</span> <span class="o">=</span> <span class="n">joint_angle_func</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
-                <span class="c1"># print(Tpattern.parameters, curr_w, max_w, t, d)</span>
-                <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tpattern</span><span class="p">)</span>
-
-        <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof2su</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">T</span><span class="o">.</span><span class="n">position</span></div>
-
-<div class="viewcode-block" id="KinematicEstimator.get_tmat"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.get_tmat">[docs]</a>    <span class="k">def</span> <span class="nf">get_tmat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns lists of transformation matrices</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -----------</span>
-<span class="sd">        list of TransMat</span>
-<span class="sd">            Transformation Matrices between a DoF and its next DoF</span>
-<span class="sd">        list of TransMat</span>
-<span class="sd">            Transformation Matrices between a DoF and its virtual DoF</span>
-<span class="sd">        list of TransMat</span>
-<span class="sd">            Transformation Matrices between a virtual DoF and its SU</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">Tdof2dof</span><span class="p">,</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">Tdof2vdof</span><span class="p">,</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">Tvdof2su</span></div>
-
-<div class="viewcode-block" id="KinematicEstimator.get_an_accelerometer_position"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.get_an_accelerometer_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_an_accelerometer_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">):</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">Tdof</span> <span class="ow">in</span> <span class="n">Tdofs</span><span class="p">:</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof</span><span class="p">)</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof2su</span><span class="p">)</span>
-
-        <span class="n">q</span> <span class="o">=</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">matrix</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="n">pyquat_to_numpy</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="n">q</span></div>
-
 <div class="viewcode-block" id="KinematicEstimator.get_i_accelerometer_position"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.get_i_accelerometer_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_i_accelerometer_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_sensor</span><span class="p">):</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i_sensor</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">Tdof2dof</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">Tdof2vdof</span><span class="p">[</span><span class="n">i_sensor</span><span class="p">]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">Tvdof2su</span><span class="p">[</span><span class="n">i_sensor</span><span class="p">]))</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        gets the ith accelerometer position on the robot.</span>
 
-        <span class="n">q</span> <span class="o">=</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">matrix</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="n">pyquat_to_numpy</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        `i_sensor`: `int`</span>
+<span class="sd">            IMU number `i_sensor`</span>
 
-        <span class="k">return</span> <span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="n">q</span></div>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        `T.position`: `np.array`</span>
+<span class="sd">            position of the imu</span>
+
+<span class="sd">        `T.q`: `np.array`</span>
+<span class="sd">            orientation of the imu</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">get_IMU_pose</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">Tdof2dof</span><span class="p">[:</span><span class="n">i_sensor</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">Tdof2vdof</span><span class="p">[</span><span class="n">i_sensor</span><span class="p">]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">param_manager</span><span class="o">.</span><span class="n">Tvdof2su</span><span class="p">[</span><span class="n">i_sensor</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="KinematicEstimator.get_all_accelerometer_positions"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.get_all_accelerometer_positions">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_accelerometer_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -753,45 +329,9 @@
         <span class="n">accelerometer_poses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_sensor</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_sensor</span><span class="p">):</span>
             <span class="n">position</span><span class="p">,</span> <span class="n">quaternion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_i_accelerometer_position</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">position</span><span class="p">,</span> <span class="n">quaternion</span><span class="p">])</span>
             <span class="n">accelerometer_poses</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">position</span><span class="p">,</span> <span class="n">quaternion</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="n">accelerometer_poses</span></div>
-
-<div class="viewcode-block" id="KinematicEstimator.plot_param_diffs"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.KinematicEstimator.plot_param_diffs">[docs]</a>    <span class="k">def</span> <span class="nf">plot_param_diffs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_diffs</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Parameter Differences&quot;</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div></div>
-
-
-<div class="viewcode-block" id="get_su_transmat"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.get_su_transmat">[docs]</a><span class="k">def</span> <span class="nf">get_su_transmat</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">robot</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">robot</span> <span class="o">==</span> <span class="s1">&#39;saywer&#39;</span><span class="p">:</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="p">[</span><span class="mf">1.57</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.157</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1.57</span><span class="p">,</span> <span class="mf">0.07</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mf">1.57</span><span class="p">],</span>
-            <span class="p">[</span><span class="o">-</span><span class="mf">1.57</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.0925</span><span class="p">,</span> <span class="mf">1.57</span><span class="p">,</span>  <span class="mf">0.07</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mf">1.57</span><span class="p">],</span>
-            <span class="p">[</span><span class="o">-</span><span class="mf">1.57</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.16</span><span class="p">,</span>   <span class="mf">1.57</span><span class="p">,</span>  <span class="mf">0.05</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mf">1.57</span><span class="p">],</span>
-            <span class="p">[</span><span class="o">-</span><span class="mf">1.57</span><span class="p">,</span> <span class="mf">0.0165</span><span class="p">,</span>  <span class="mf">1.57</span><span class="p">,</span>  <span class="mf">0.05</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mf">1.57</span><span class="p">],</span>
-            <span class="p">[</span><span class="o">-</span><span class="mf">1.57</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.17</span><span class="p">,</span>   <span class="mf">1.57</span><span class="p">,</span>  <span class="mf">0.05</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mf">1.57</span><span class="p">],</span>
-            <span class="p">[</span><span class="o">-</span><span class="mf">1.57</span><span class="p">,</span> <span class="mf">0.0053</span><span class="p">,</span>  <span class="mf">1.57</span><span class="p">,</span>  <span class="mf">0.04</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mf">1.57</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span>   <span class="mf">0.12375</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>   <span class="mf">0.03</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.57</span><span class="p">]</span>
-        <span class="p">])</span>
-    <span class="k">elif</span> <span class="n">robot</span> <span class="o">==</span> <span class="s1">&#39;panda&#39;</span><span class="p">:</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="p">[</span><span class="mf">1.57</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.15</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.57</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.57</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">1.57</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.57</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.57</span><span class="p">],</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.08</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.57</span><span class="p">],</span>
-            <span class="p">[</span><span class="o">-</span><span class="mf">1.57</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">,</span> <span class="mf">1.57</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.57</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">3.14</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.57</span><span class="p">],</span>
-            <span class="p">[</span><span class="o">-</span><span class="mf">1.57</span><span class="p">,</span> <span class="mf">0.03</span><span class="p">,</span> <span class="mf">1.57</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.57</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">1.57</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.57</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.57</span><span class="p">]</span>
-        <span class="p">])</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Define a robot&#39;s DH Parameters&quot;</span><span class="p">)</span>
-
-    <span class="n">Tdof2vdof</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">])</span>
-    <span class="n">Tvdof2su</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">:])</span>
-
-    <span class="k">return</span> <span class="n">Tdof2vdof</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tvdof2su</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">accelerometer_poses</span></div></div>
 
 
 <div class="viewcode-block" id="load_data"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.load_data">[docs]</a><span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="n">robot</span><span class="p">):</span>
@@ -803,30 +343,24 @@
 <span class="sd">    data: Data</span>
 <span class="sd">        Data includes static and dynamic accelerations data</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rospkg</span><span class="o">.</span><span class="n">RosPack</span><span class="p">()</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s1">&#39;ros_robotic_skin&#39;</span><span class="p">),</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">read_pickle</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">robot</span><span class="p">):</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">filename</span><span class="p">,</span> <span class="n">robot</span><span class="p">])</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.pickle&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="c1"># Check if user is running Python2 or Python3 and switch according to that</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin1&#39;</span><span class="p">)</span>
 
-    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;static_data&#39;</span><span class="p">,</span> <span class="n">robot</span><span class="p">])</span>
-    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.pickle&#39;</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="c1"># Check if user is running Python2 or Python3 and switch according to that</span>
-        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">static</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">static</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin1&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rospkg</span><span class="o">.</span><span class="n">RosPack</span><span class="p">()</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s1">&#39;ros_robotic_skin&#39;</span><span class="p">),</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ros_robotic_skin not installed in the catkin workspace&#39;</span><span class="p">)</span>
 
-    <span class="c1"># filename = &#39;_&#39;.join([&#39;dynamic_data&#39;, robot])</span>
-    <span class="c1"># filepath = os.path.join(directory, filename + &#39;.pickle&#39;)</span>
-    <span class="c1"># with open(filepath, &#39;rb&#39;) as f:</span>
-    <span class="c1">#     dynamic = pickle.load(f, encoding=&#39;latin1&#39;)</span>
-
-    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;constant_data&#39;</span><span class="p">,</span> <span class="n">robot</span><span class="p">])</span>
-    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.pickle&#39;</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="c1"># Check if user is running Python2 or Python3 and switch according to that</span>
-        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">constant</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">constant</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin1&#39;</span><span class="p">)</span>
+    <span class="n">static</span> <span class="o">=</span> <span class="n">read_pickle</span><span class="p">(</span><span class="s1">&#39;static_data&#39;</span><span class="p">,</span> <span class="n">robot</span><span class="p">)</span>
+    <span class="n">constant</span> <span class="o">=</span> <span class="n">read_pickle</span><span class="p">(</span><span class="s1">&#39;constant_data&#39;</span><span class="p">,</span> <span class="n">robot</span><span class="p">)</span>
+    <span class="c1"># dynamic = read_pickle(&#39;dynamic_data&#39;, robot)</span>
 
     <span class="c1"># Data = namedtuple(&#39;Data&#39;, &#39;static dynamic constant&#39;)</span>
     <span class="c1"># data = Data(static, dynamic, constant)</span>
@@ -836,79 +370,34 @@
     <span class="k">return</span> <span class="n">data</span></div>
 
 
-<div class="viewcode-block" id="load_dhparams"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.load_dhparams">[docs]</a><span class="k">def</span> <span class="nf">load_dhparams</span><span class="p">(</span><span class="n">robot</span><span class="p">):</span>
-    <span class="c1"># th, d, a, al</span>
-    <span class="k">if</span> <span class="n">robot</span> <span class="o">==</span> <span class="s1">&#39;sawyer&#39;</span><span class="p">:</span>
-        <span class="n">dhparams</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span>         <span class="mf">0.317</span><span class="p">,</span>      <span class="mi">0</span><span class="p">,</span>      <span class="mi">0</span><span class="p">],</span>
-            <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>   <span class="mf">0.1925</span><span class="p">,</span>     <span class="mf">0.081</span><span class="p">,</span>  <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span>         <span class="mf">0.4</span><span class="p">,</span>        <span class="mi">0</span><span class="p">,</span>      <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span>         <span class="o">-</span><span class="mf">0.1685</span><span class="p">,</span>    <span class="mi">0</span><span class="p">,</span>      <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span>         <span class="mf">0.4</span><span class="p">,</span>        <span class="mi">0</span><span class="p">,</span>      <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span>         <span class="mf">0.1363</span><span class="p">,</span>     <span class="mi">0</span><span class="p">,</span>      <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span>
-            <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>     <span class="mf">0.13375</span><span class="p">,</span>    <span class="mi">0</span><span class="p">,</span>      <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">]</span>
-        <span class="p">])</span>
-    <span class="k">elif</span> <span class="n">robot</span> <span class="o">==</span> <span class="s1">&#39;panda&#39;</span><span class="p">:</span>
-        <span class="n">dhparams</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.333</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>          <span class="mi">0</span><span class="p">],</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>      <span class="mi">0</span><span class="p">,</span>          <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.316</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>          <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>      <span class="mf">0.0825</span><span class="p">,</span>     <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.384</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.0825</span><span class="p">,</span>    <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>      <span class="mi">0</span><span class="p">,</span>          <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>      <span class="mf">0.088</span><span class="p">,</span>      <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">]</span>
-        <span class="p">])</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Define a robot&#39;s DH Paramters&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="parse_arguments"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.parse_arguments">[docs]</a><span class="k">def</span> <span class="nf">parse_arguments</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse Arguments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">repodir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))))</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Estimating IMU poses&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="s1">&#39;--robot&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;panda&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Currently only &#39;panda&#39; and &#39;sawyer&#39; are supported&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-sf&#39;</span><span class="p">,</span> <span class="s1">&#39;--savefile&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;estimate_imu_positions.txt&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Please Provide a filename for saving estimated IMU poses&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-cd&#39;</span><span class="p">,</span> <span class="s1">&#39;--configdir&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">repodir</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">))</span>
 
-    <span class="k">return</span> <span class="n">dhparams</span></div>
-
-
-<div class="viewcode-block" id="get_original_accelerometer_positions"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.accel_position.get_original_accelerometer_positions">[docs]</a><span class="k">def</span> <span class="nf">get_original_accelerometer_positions</span><span class="p">(</span><span class="n">robot</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">robot</span> <span class="o">==</span> <span class="s1">&#39;sawyer&#39;</span><span class="p">:</span>
-        <span class="n">original_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="p">[</span><span class="mf">0.070</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.000</span><span class="p">,</span> <span class="mf">0.16</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">0.086</span><span class="p">,</span> <span class="mf">0.100</span><span class="p">,</span> <span class="mf">0.387</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">0.324</span><span class="p">,</span> <span class="mf">0.191</span><span class="p">,</span> <span class="mf">0.350</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.049</span><span class="p">,</span> <span class="mf">0.335</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">0.709</span><span class="p">,</span> <span class="mf">0.023</span><span class="p">,</span> <span class="mf">0.312</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">0.883</span><span class="p">,</span> <span class="mf">0.154</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">1.087</span><span class="p">,</span> <span class="mf">0.131</span><span class="p">,</span> <span class="mf">0.228</span><span class="p">]</span>
-        <span class="p">])</span>
-    <span class="k">elif</span> <span class="n">robot</span> <span class="o">==</span> <span class="s1">&#39;panda&#39;</span><span class="p">:</span>
-        <span class="n">original_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="p">[</span><span class="mf">0.050</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.000</span><span class="p">,</span> <span class="mf">0.183</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">0.060</span><span class="p">,</span> <span class="mf">0.060</span><span class="p">,</span> <span class="mf">0.333</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">0.000</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.050</span><span class="p">,</span> <span class="mf">0.569</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">0.023</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.080</span><span class="p">,</span> <span class="mf">0.653</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">0.020</span><span class="p">,</span> <span class="mf">0.100</span><span class="p">,</span> <span class="mf">0.938</span><span class="p">],</span>
-            <span class="p">[</span><span class="o">-</span><span class="mf">0.023</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.030</span><span class="p">,</span> <span class="mf">1.041</span><span class="p">],</span>
-            <span class="p">[</span><span class="mf">0.165</span><span class="p">,</span> <span class="mf">0.000</span><span class="p">,</span> <span class="mf">1.028</span><span class="p">]</span>
-        <span class="p">])</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Define a robot&#39;s DH Paramters&quot;</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">original_positions</span></div>
+    <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="c1"># Need data</span>
-    <span class="n">robot</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">measured_data</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">(</span><span class="n">robot</span><span class="p">)</span>
-    <span class="n">dhparams</span> <span class="o">=</span> <span class="n">load_dhparams</span><span class="p">(</span><span class="n">robot</span><span class="p">)</span>
-    <span class="n">original_accel_positions</span> <span class="o">=</span> <span class="n">get_original_accelerometer_positions</span><span class="p">(</span><span class="n">robot</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_arguments</span><span class="p">()</span>
 
-    <span class="n">estimator</span> <span class="o">=</span> <span class="n">KinematicEstimator</span><span class="p">(</span><span class="n">measured_data</span><span class="p">,</span> <span class="n">dhparams</span><span class="p">,</span> <span class="n">original_accel_positions</span><span class="p">)</span>
+    <span class="n">measured_data</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">robot</span><span class="p">)</span>
+    <span class="n">robot_configs</span> <span class="o">=</span> <span class="n">load_robot_configs</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">configdir</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">robot</span><span class="p">)</span>
+
+    <span class="n">estimator</span> <span class="o">=</span> <span class="n">KinematicEstimator</span><span class="p">(</span><span class="n">measured_data</span><span class="p">,</span> <span class="n">robot_configs</span><span class="p">)</span>
     <span class="n">estimator</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
-
-    <span class="c1"># plot the differences</span>
-    <span class="n">estimator</span><span class="o">.</span><span class="n">plot_param_diffs</span><span class="p">()</span>
 
     <span class="n">data</span> <span class="o">=</span> <span class="n">estimator</span><span class="o">.</span><span class="n">get_all_accelerometer_positions</span><span class="p">()</span>
 
-    <span class="n">save_path</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">ros_robotic_skin_path</span> <span class="o">=</span> <span class="n">rospkg</span><span class="o">.</span><span class="n">RosPack</span><span class="p">()</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s1">&#39;ros_robotic_skin&#39;</span><span class="p">)</span>
-    <span class="n">save_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ros_robotic_skin_path</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">save_path</span><span class="p">)</span>
+    <span class="n">save_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ros_robotic_skin_path</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">savefile</span><span class="p">)</span>
     <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 </pre></div>
 

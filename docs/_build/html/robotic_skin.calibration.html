@@ -89,6 +89,9 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">robotic_skin.calibration package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.accel_position">robotic_skin.calibration.accel_position module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.error_functions">robotic_skin.calibration.error_functions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.loss">robotic_skin.calibration.loss module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.optimizer">robotic_skin.calibration.optimizer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.plot_data">robotic_skin.calibration.plot_data module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.utils">robotic_skin.calibration.utils module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration">Module contents</a></li>
@@ -178,13 +181,117 @@
 <p>Module for Kinematics Estimation.</p>
 <dl class="class">
 <dt id="robotic_skin.calibration.accel_position.KinematicEstimator">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">KinematicEstimator</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">dhparams=None</em>, <em class="sig-param">original_accel_positions=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">KinematicEstimator</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">robot_configs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class for estimating the kinematics of the arm
 and corresponding sensor unit positions.</p>
 <dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.accelerometer_position">
-<code class="sig-name descname">accelerometer_position</code><span class="sig-paren">(</span><em class="sig-param">t</em>, <em class="sig-param">Tdofs</em>, <em class="sig-param">Tjoints</em>, <em class="sig-param">Tdof2su</em>, <em class="sig-param">d</em>, <em class="sig-param">curr_w</em>, <em class="sig-param">max_w</em>, <em class="sig-param">joint_angle_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.accelerometer_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.accelerometer_position" title="Permalink to this definition">¶</a></dt>
+<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.get_all_accelerometer_positions">
+<code class="sig-name descname">get_all_accelerometer_positions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.get_all_accelerometer_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.get_all_accelerometer_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all accelerometer positions in the initial position</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>positions</strong> – All accelerometer positions</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.get_i_accelerometer_position">
+<code class="sig-name descname">get_i_accelerometer_position</code><span class="sig-paren">(</span><em class="sig-param">i_sensor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.get_i_accelerometer_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.get_i_accelerometer_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>gets the ith accelerometer position on the robot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>i_sensor</strong> (<cite>int</cite>) – IMU number <cite>i_sensor</cite></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>`T.position`</strong> (<cite>np.array</cite>) – position of the imu</p></li>
+<li><p><strong>`T.q`</strong> (<cite>np.array</cite>) – orientation of the imu</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.optimize">
+<code class="sig-name descname">optimize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.optimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.optimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimizes DH parameters using the training data.
+The error function is defined by the error between the measured accelerations
+and estimated accelerations.
+Nonlinear Optimizer will optimize the parameters by decreasing the error.
+There are two different types of error: static and dynamic motion.
+For further explanation, read each function.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="robotic_skin.calibration.accel_position.load_data">
+<code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param">robot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for collecting acceleration data with poses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>data</strong> – Data includes static and dynamic accelerations data</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="robotic_skin.calibration.accel_position.parse_arguments">
+<code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">parse_arguments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#parse_arguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.parse_arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse Arguments</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-robotic_skin.calibration.error_functions">
+<span id="robotic-skin-calibration-error-functions-module"></span><h2>robotic_skin.calibration.error_functions module<a class="headerlink" href="#module-robotic_skin.calibration.error_functions" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="robotic_skin.calibration.error_functions.ConstantRotationErrorFunction">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">ConstantRotationErrorFunction</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">loss_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#ConstantRotationErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.ConstantRotationErrorFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="robotic_skin.calibration.error_functions.ErrorFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.error_functions.ErrorFunction</span></code></a></p>
+<p>An error function used when a robotic arm’s joints
+are moving at a constant velocity.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="robotic_skin.calibration.error_functions.ErrorFunction">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">ErrorFunction</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">loss_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#ErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Error Function class used to evaluate kinematics
+estimation models.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="robotic_skin.calibration.error_functions.ErrorFunctions">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">ErrorFunctions</code><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#ErrorFunctions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.ErrorFunctions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">MaxAccelerationErrorFunction</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">loss_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#MaxAccelerationErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="robotic_skin.calibration.error_functions.ErrorFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.error_functions.ErrorFunction</span></code></a></p>
+<p>Compute errors between estimated and measured max acceleration for sensor i</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="robotic_skin.calibration.error_functions.StaticErrorFunction">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">StaticErrorFunction</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">loss_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#StaticErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.StaticErrorFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="robotic_skin.calibration.error_functions.ErrorFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.error_functions.ErrorFunction</span></code></a></p>
+<p>Static error is an deviation of the gravity vector for p positions.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="robotic_skin.calibration.error_functions.accelerometer_position">
+<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">accelerometer_position</code><span class="sig-paren">(</span><em class="sig-param">t</em>, <em class="sig-param">Tdofs</em>, <em class="sig-param">Tjoints</em>, <em class="sig-param">Tdof2su</em>, <em class="sig-param">d</em>, <em class="sig-param">curr_w</em>, <em class="sig-param">max_w</em>, <em class="sig-param">joint_angle_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#accelerometer_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.accelerometer_position" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute ith accelerometer position excited by joint d in pose p at time t</p>
 <dl class="simple">
 <dt>At pose p, let o be a joint and x be a sensor unit, then it looks like</dt><dd><p>d       i                     dth joint and ith accelerometer</p>
@@ -213,60 +320,34 @@ Tjoint = [T(th_1), T(th_2), …, T(th_n)] for n joints</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.dynamic_error_function">
-<code class="sig-name descname">dynamic_error_function</code><span class="sig-paren">(</span><em class="sig-param">i</em>, <em class="sig-param">Tdofs</em>, <em class="sig-param">Tdof2su</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.dynamic_error_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.dynamic_error_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute errors between estimated and measured max acceleration for sensor i</p>
-<div class="math notranslate nohighlight">
-\[`\Sigma_{p=1}^P\Sigma_{d=i-3, i&gt;0}^i {}^{SU_i}|a_{max}^{model} - a_{max}^{measured}|_{i,d,p}^2`\]</div>
+<dl class="function">
+<dt id="robotic_skin.calibration.error_functions.constant_velocity_joint_angle">
+<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">constant_velocity_joint_angle</code><span class="sig-paren">(</span><em class="sig-param">curr_w</em>, <em class="sig-param">max_w</em>, <em class="sig-param">t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#constant_velocity_joint_angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.constant_velocity_joint_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns transformation matrix given <cite>t</cite> and current
+angular velocity <cite>curr_w</cite></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="robotic_skin.calibration.error_functions.estimate_acceleration_analytically">
+<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">estimate_acceleration_analytically</code><span class="sig-paren">(</span><em class="sig-param">Tdofs</em>, <em class="sig-param">Tjoints</em>, <em class="sig-param">Tdofi2su</em>, <em class="sig-param">d</em>, <em class="sig-param">i</em>, <em class="sig-param">curr_w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#estimate_acceleration_analytically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.estimate_acceleration_analytically" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimates the acceleration analytically.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>i</strong> (<em>int</em>) – ith sensor</p></li>
-<li><p><strong>Tdof2su</strong> (<a class="reference internal" href="#robotic_skin.calibration.utils.TransMat" title="robotic_skin.calibration.utils.TransMat"><em>TransMat</em></a>) – Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</p></li>
-<li><p><strong>Tdofs</strong> (<em>list of TransMat</em>) – Transformation Matrices between Dofs</p></li>
+<li><p><strong>Tdofs</strong> (List of <cite>TransMat</cite>) – transformation matrices from dof to dof</p></li>
+<li><p><strong>Tjoints</strong> (List of <cite>TransMat</cite>) – transformation matrices from joint to joint</p></li>
+<li><p><strong>Tdofi2su</strong> (<cite>TransMat</cite>) – transformation matrix from the last dofi to skin unit</p></li>
+<li><p><strong>d</strong> (<cite>int</cite>) – dof <cite>d</cite></p></li>
+<li><p><strong>i</strong> (<cite>int</cite>) – imu <cite>i</cite></p></li>
+<li><p><strong>curr_w</strong> (<cite>int</cite>) – Angular velocity</p></li>
 </ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>e2</strong> – Dynamic Error</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.error_function">
-<code class="sig-name descname">error_function</code><span class="sig-paren">(</span><em class="sig-param">target_params</em>, <em class="sig-param">grad</em>, <em class="sig-param">i</em>, <em class="sig-param">Tdofs</em>, <em class="sig-param">const_params</em>, <em class="sig-param">target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.error_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.error_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes an error e_T = e_1 + e_2 from current parameters</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>params</strong> (<em>np.ndarray</em>) – Current estimated parameters</p></li>
-<li><p><strong>i</strong> (<em>int</em>) – ith sensor</p></li>
-<li><p><strong>Tdofs</strong> (<em>list of TransMat</em>) – Transformation Matrices between Dofs</p></li>
-<li><p><strong>grad</strong> (<em>np.ndarray</em>) – Gradient, but we do not use any gradient information
-(We could in the future)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>error</strong> – Error between measured values and estimated model outputs</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.estimate_acceleration_analytically">
-<code class="sig-name descname">estimate_acceleration_analytically</code><span class="sig-paren">(</span><em class="sig-param">Tdofs</em>, <em class="sig-param">Tjoints</em>, <em class="sig-param">Tdofi2su</em>, <em class="sig-param">d</em>, <em class="sig-param">i</em>, <em class="sig-param">curr_w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.estimate_acceleration_analytically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.estimate_acceleration_analytically" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.estimate_acceleration_numerically">
-<code class="sig-name descname">estimate_acceleration_numerically</code><span class="sig-paren">(</span><em class="sig-param">Tdofs</em>, <em class="sig-param">Tjoints</em>, <em class="sig-param">Tdof2su</em>, <em class="sig-param">d</em>, <em class="sig-param">curr_w</em>, <em class="sig-param">max_w</em>, <em class="sig-param">joint_angle_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.estimate_acceleration_numerically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.estimate_acceleration_numerically" title="Permalink to this definition">¶</a></dt>
+<dl class="function">
+<dt id="robotic_skin.calibration.error_functions.estimate_acceleration_numerically">
+<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">estimate_acceleration_numerically</code><span class="sig-paren">(</span><em class="sig-param">Tdofs</em>, <em class="sig-param">Tjoints</em>, <em class="sig-param">Tdof2su</em>, <em class="sig-param">d</em>, <em class="sig-param">curr_w</em>, <em class="sig-param">max_w</em>, <em class="sig-param">joint_angle_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#estimate_acceleration_numerically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.estimate_acceleration_numerically" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Compute an acceleration value from positions.
 .. math:: <a href="#id3"><span class="problematic" id="id4">`</span></a>a =</p>
@@ -301,153 +382,216 @@ Tjoint = [T(th_1), T(th_2), …, T(th_n)] for n joints</p></li>
 </div></blockquote>
 </dd></dl>
 
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.estimate_imu_q">
-<code class="sig-name descname">estimate_imu_q</code><span class="sig-paren">(</span><em class="sig-param">Tdofs</em>, <em class="sig-param">Tdof2su</em>, <em class="sig-param">joints</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.estimate_imu_q"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.estimate_imu_q" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.get_all_accelerometer_positions">
-<code class="sig-name descname">get_all_accelerometer_positions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.get_all_accelerometer_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.get_all_accelerometer_positions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns all accelerometer positions in the initial position</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><strong>positions</strong> – All accelerometer positions</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.get_an_accelerometer_position">
-<code class="sig-name descname">get_an_accelerometer_position</code><span class="sig-paren">(</span><em class="sig-param">Tdofs</em>, <em class="sig-param">Tdof2su</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.get_an_accelerometer_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.get_an_accelerometer_position" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.get_i_accelerometer_position">
-<code class="sig-name descname">get_i_accelerometer_position</code><span class="sig-paren">(</span><em class="sig-param">i_sensor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.get_i_accelerometer_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.get_i_accelerometer_position" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.get_tmat">
-<code class="sig-name descname">get_tmat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.get_tmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.get_tmat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns lists of transformation matrices</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><ul class="simple">
-<li><p><em>list of TransMat</em> – Transformation Matrices between a DoF and its next DoF</p></li>
-<li><p><em>list of TransMat</em> – Transformation Matrices between a DoF and its virtual DoF</p></li>
-<li><p><em>list of TransMat</em> – Transformation Matrices between a virtual DoF and its SU</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.optimize">
-<code class="sig-name descname">optimize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.optimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.optimize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Optimizes DH parameters using the training data.
-The error function is defined by the error between the measured accelerations
-and estimated accelerations.
-Nonlinear Optimizer will optimize the parameters by decreasing the error.
-There are two different types of error: static and dynamic motion.
-For further explanation, read each function.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.plot_param_diffs">
-<code class="sig-name descname">plot_param_diffs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.plot_param_diffs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.plot_param_diffs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.rotation_error_function">
-<code class="sig-name descname">rotation_error_function</code><span class="sig-paren">(</span><em class="sig-param">i</em>, <em class="sig-param">Tdofs</em>, <em class="sig-param">Tdof2su</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.rotation_error_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.rotation_error_function" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>i</strong> (<em>int</em>) – ith sensor</p></li>
-<li><p><strong>Tdof2su</strong> (<a class="reference internal" href="#robotic_skin.calibration.utils.TransMat" title="robotic_skin.calibration.utils.TransMat"><em>TransMat</em></a>) – Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</p></li>
-<li><p><strong>Tdofs</strong> (<em>list of TransMat</em>) – Transformation Matrices between Dofs</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>e1</strong> – Static Error</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.static_error_function">
-<code class="sig-name descname">static_error_function</code><span class="sig-paren">(</span><em class="sig-param">i</em>, <em class="sig-param">Tdofs</em>, <em class="sig-param">Tdof2su</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.static_error_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.static_error_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes static error for ith accelerometer.
-Static error is an deviation of the gravity vector for p positions.</p>
-<p>This function implements Equation 15 in the paper.
-.. math:: <cite>e_1 = Sigma_{p=1}^P |{}^{RS}g_{N,p} - Sigma_{p=1}^P {}^{RS}g_{N,p}|^2</cite>
-where
-.. math:: <cite>{}^{RS}g_{N,p} = {}^{RS}R_{SU_N}^{mod,p} {}^{SU_N}g_{N,p}</cite></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>i</strong> (<em>int</em>) – ith sensor</p></li>
-<li><p><strong>Tdof2su</strong> (<a class="reference internal" href="#robotic_skin.calibration.utils.TransMat" title="robotic_skin.calibration.utils.TransMat"><em>TransMat</em></a>) – Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</p></li>
-<li><p><strong>Tdofs</strong> (<em>list of TransMat</em>) – Transformation Matrices between Dofs</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>e1</strong> – Static Error</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="function">
-<dt id="robotic_skin.calibration.accel_position.constant_velocity_joint_angle">
-<code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">constant_velocity_joint_angle</code><span class="sig-paren">(</span><em class="sig-param">curr_w</em>, <em class="sig-param">max_w</em>, <em class="sig-param">t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#constant_velocity_joint_angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.constant_velocity_joint_angle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="robotic_skin.calibration.accel_position.get_original_accelerometer_positions">
-<code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">get_original_accelerometer_positions</code><span class="sig-paren">(</span><em class="sig-param">robot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#get_original_accelerometer_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.get_original_accelerometer_positions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="robotic_skin.calibration.accel_position.get_su_transmat">
-<code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">get_su_transmat</code><span class="sig-paren">(</span><em class="sig-param">i</em>, <em class="sig-param">robot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#get_su_transmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.get_su_transmat" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="robotic_skin.calibration.accel_position.load_data">
-<code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param">robot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.load_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function for collecting acceleration data with poses</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><strong>data</strong> – Data includes static and dynamic accelerations data</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>Data</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="robotic_skin.calibration.accel_position.load_dhparams">
-<code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">load_dhparams</code><span class="sig-paren">(</span><em class="sig-param">robot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#load_dhparams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.load_dhparams" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="robotic_skin.calibration.accel_position.max_acceleration_joint_angle">
-<code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">max_acceleration_joint_angle</code><span class="sig-paren">(</span><em class="sig-param">curr_w</em>, <em class="sig-param">max_w</em>, <em class="sig-param">t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#max_acceleration_joint_angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.max_acceleration_joint_angle" title="Permalink to this definition">¶</a></dt>
+<dt id="robotic_skin.calibration.error_functions.max_acceleration_joint_angle">
+<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">max_acceleration_joint_angle</code><span class="sig-paren">(</span><em class="sig-param">curr_w</em>, <em class="sig-param">max_w</em>, <em class="sig-param">t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#max_acceleration_joint_angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.max_acceleration_joint_angle" title="Permalink to this definition">¶</a></dt>
 <dd><p>max acceleration along a joint angle of robot.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-robotic_skin.calibration.loss">
+<span id="robotic-skin-calibration-loss-module"></span><h2>robotic_skin.calibration.loss module<a class="headerlink" href="#module-robotic_skin.calibration.loss" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="robotic_skin.calibration.loss.L1Loss">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.loss.</code><code class="sig-name descname">L1Loss</code><span class="sig-paren">(</span><em class="sig-param">hyper_params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/loss.html#L1Loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.loss.L1Loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.loss.Loss" title="robotic_skin.calibration.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.loss.Loss</span></code></a></p>
+<p>L1 Loss</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="robotic_skin.calibration.loss.L2Loss">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.loss.</code><code class="sig-name descname">L2Loss</code><span class="sig-paren">(</span><em class="sig-param">hyper_params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/loss.html#L2Loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.loss.L2Loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.loss.Loss" title="robotic_skin.calibration.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.loss.Loss</span></code></a></p>
+<p>L2Loss.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="robotic_skin.calibration.loss.Loss">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.loss.</code><code class="sig-name descname">Loss</code><span class="sig-paren">(</span><em class="sig-param">hyper_params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/loss.html#Loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.loss.Loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Loss function base class</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-robotic_skin.calibration.optimizer">
+<span id="robotic-skin-calibration-optimizer-module"></span><h2>robotic_skin.calibration.optimizer module<a class="headerlink" href="#module-robotic_skin.calibration.optimizer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="robotic_skin.calibration.optimizer.DeltaXStopCondition">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.optimizer.</code><code class="sig-name descname">DeltaXStopCondition</code><span class="sig-paren">(</span><em class="sig-param">windowsize=10</em>, <em class="sig-param">threshold=0.001</em>, <em class="sig-param">retval=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#DeltaXStopCondition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.DeltaXStopCondition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.optimizer.StopCondition" title="robotic_skin.calibration.optimizer.StopCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.optimizer.StopCondition</span></code></a></p>
+<p>DeltaXStopCondition class. Keeps track on the
+differences in x from iteration to iteration,
+until the updates are very small.</p>
+<dl class="method">
+<dt id="robotic_skin.calibration.optimizer.DeltaXStopCondition.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#DeltaXStopCondition.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.DeltaXStopCondition.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="robotic_skin.calibration.optimizer.DeltaXStopCondition.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">e</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#DeltaXStopCondition.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.DeltaXStopCondition.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="robotic_skin.calibration.optimizer.Optimizer">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.optimizer.</code><code class="sig-name descname">Optimizer</code><span class="sig-paren">(</span><em class="sig-param">error_functions</em>, <em class="sig-param">stop_condition=None</em>, <em class="sig-param">su_dhparams=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#Optimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.Optimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Optimizer class to evaluate the data.</p>
+<dl class="method">
+<dt id="robotic_skin.calibration.optimizer.Optimizer.choose_true_or_estimated_Tdof2su">
+<code class="sig-name descname">choose_true_or_estimated_Tdof2su</code><span class="sig-paren">(</span><em class="sig-param">params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#Optimizer.choose_true_or_estimated_Tdof2su"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.Optimizer.choose_true_or_estimated_Tdof2su" title="Permalink to this definition">¶</a></dt>
+<dd><p>Based on <cite>self.dhparams</cite>, determines
+if we want to use <cite>convert_dhparams_to_Tdof2su</cite>
+on <cite>self.su_dhparams</cite> or <cite>params</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>params</strong> – Currently estimated dh parameters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="robotic_skin.calibration.optimizer.Optimizer.convert_dhparams_to_Tdof2su">
+<code class="sig-name descname">convert_dhparams_to_Tdof2su</code><span class="sig-paren">(</span><em class="sig-param">params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#Optimizer.convert_dhparams_to_Tdof2su"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.Optimizer.convert_dhparams_to_Tdof2su" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="robotic_skin.calibration.optimizer.Optimizer.objective">
+<code class="sig-name descname">objective</code><span class="sig-paren">(</span><em class="sig-param">params</em>, <em class="sig-param">grad</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#Optimizer.objective"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.Optimizer.objective" title="Permalink to this definition">¶</a></dt>
+<dd><p>Objective function used in the optimizer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> – Predicted DH Parameters</p></li>
+<li><p><strong>grad</strong> – Gradient</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="robotic_skin.calibration.optimizer.Optimizer.optimize">
+<code class="sig-name descname">optimize</code><span class="sig-paren">(</span><em class="sig-param">i_imu</em>, <em class="sig-param">Tdofs</em>, <em class="sig-param">params</em>, <em class="sig-param">bounds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#Optimizer.optimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.Optimizer.optimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up the optimizer and runs the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i_imu</strong> – Imu <cite>i</cite></p></li>
+<li><p><strong>Tdofs</strong> – Transformation matrices from dof to dof</p></li>
+<li><p><strong>params</strong> – DH Parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted parameters from the model.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><cite>params</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="robotic_skin.calibration.optimizer.PassThroughStopCondition">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.optimizer.</code><code class="sig-name descname">PassThroughStopCondition</code><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#PassThroughStopCondition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.PassThroughStopCondition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.optimizer.StopCondition" title="robotic_skin.calibration.optimizer.StopCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.optimizer.StopCondition</span></code></a></p>
+<p>PassThroughStopCondition class.</p>
+<dl class="method">
+<dt id="robotic_skin.calibration.optimizer.PassThroughStopCondition.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">e</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#PassThroughStopCondition.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.PassThroughStopCondition.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="robotic_skin.calibration.optimizer.SeparateOptimizer">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.optimizer.</code><code class="sig-name descname">SeparateOptimizer</code><span class="sig-paren">(</span><em class="sig-param">error_functions</em>, <em class="sig-param">stop_conditions</em>, <em class="sig-param">su_dhparams=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#SeparateOptimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.SeparateOptimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.optimizer.Optimizer" title="robotic_skin.calibration.optimizer.Optimizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.optimizer.Optimizer</span></code></a></p>
+<p>Separate Optimizer class</p>
+<dl class="method">
+<dt id="robotic_skin.calibration.optimizer.SeparateOptimizer.convert_dhparams_to_Tdof2su">
+<code class="sig-name descname">convert_dhparams_to_Tdof2su</code><span class="sig-paren">(</span><em class="sig-param">merged_params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#SeparateOptimizer.convert_dhparams_to_Tdof2su"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.SeparateOptimizer.convert_dhparams_to_Tdof2su" title="Permalink to this definition">¶</a></dt>
+<dd><p>converts current dh parameters to a
+transformation matrix from dof to skin unit.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="robotic_skin.calibration.optimizer.SeparateOptimizer.objective">
+<code class="sig-name descname">objective</code><span class="sig-paren">(</span><em class="sig-param">target_params</em>, <em class="sig-param">grad</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#SeparateOptimizer.objective"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.SeparateOptimizer.objective" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes an error e_T = e_1 + e_2 from current parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target_params</strong> (<em>list of floats</em>) – Target parameters to be estimated</p></li>
+<li><p><strong>constant_params</strong> (<em>list of floats</em>) – Parameters that are not to be optimized but used</p></li>
+<li><p><strong>i</strong> (<em>int</em>) – ith sensor</p></li>
+<li><p><strong>Tdofs</strong> (<em>list of TransMat</em>) – Transformation Matrices between Dofs</p></li>
+<li><p><strong>grad</strong> (<em>np.ndarray</em>) – Gradient, but we do not use any gradient information
+(We could in the future)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>error</strong> – Error between measured values and estimated model outputs</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="robotic_skin.calibration.optimizer.SeparateOptimizer.optimize">
+<code class="sig-name descname">optimize</code><span class="sig-paren">(</span><em class="sig-param">i_imu</em>, <em class="sig-param">Tdofs</em>, <em class="sig-param">params</em>, <em class="sig-param">bounds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#SeparateOptimizer.optimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.SeparateOptimizer.optimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will optimize the given parameters in two steps.
+First it optimizes for rotational parameters and then
+optimizes for translational parameters. Hence, the name
+“Separate”Optimizer.</p>
+<dl class="simple">
+<dt>i_imu: int</dt><dd><p>ith IMU to be optimized</p>
+</dd>
+<dt>Tdofs: list of TransMat</dt><dd><p>List of Transformation Matrices from 0th to ith Joint (Not to SU)</p>
+</dd>
+<dt>params: list of float</dt><dd><p>DH parameters to be optimized.
+This will be converted to Tdof2su which is a transformation
+matrix from ith Joint to ith SU (6 parameters)
+If the number of parameters were 10, it also includes
+4 DH parameter for i-1th to the ith Joint.</p>
+</dd>
+<dt>bounds: np.ndarray</dt><dd><p>Boundaries (Min and Max) for each parameter</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="robotic_skin.calibration.optimizer.StopCondition">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.optimizer.</code><code class="sig-name descname">StopCondition</code><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#StopCondition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.StopCondition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Stop condition base class</p>
+<dl class="method">
+<dt id="robotic_skin.calibration.optimizer.StopCondition.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#StopCondition.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.StopCondition.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="robotic_skin.calibration.optimizer.StopCondition.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">e</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#StopCondition.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.StopCondition.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="robotic_skin.calibration.optimizer.convert_dhparams_to_Tdof2su">
+<code class="sig-prename descclassname">robotic_skin.calibration.optimizer.</code><code class="sig-name descname">convert_dhparams_to_Tdof2su</code><span class="sig-paren">(</span><em class="sig-param">params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#convert_dhparams_to_Tdof2su"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.convert_dhparams_to_Tdof2su" title="Permalink to this definition">¶</a></dt>
+<dd><p>For the 1st IMU, we do not need to think of DoF-to-DoF transformation.
+Thus, 6 Params (2+4 for each IMU).
+Otherwise 10 = 4 (DoF to DoF) + 6 (IMU)
+This condition also checks whether DH params are passed or not
+If given, only the parameters for IMU should be estimated.</p>
 </dd></dl>
 
 </div>
@@ -456,22 +600,54 @@ where
 <dl class="function">
 <dt id="robotic_skin.calibration.plot_data.estimate_acceleration_analytically">
 <code class="sig-prename descclassname">robotic_skin.calibration.plot_data.</code><code class="sig-name descname">estimate_acceleration_analytically</code><span class="sig-paren">(</span><em class="sig-param">Tdofs</em>, <em class="sig-param">Tjoints</em>, <em class="sig-param">Tdofi2su</em>, <em class="sig-param">d</em>, <em class="sig-param">i</em>, <em class="sig-param">curr_w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/plot_data.html#estimate_acceleration_analytically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.plot_data.estimate_acceleration_analytically" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Estimates the acceleration analytically.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Tdofs</strong> (List of <cite>TransMat</cite>) – transformation matrices from dof to dof</p></li>
+<li><p><strong>Tjoints</strong> (List of <cite>TransMat</cite>) – transformation matrices from joint to joint</p></li>
+<li><p><strong>Tdofi2su</strong> (<cite>TransMat</cite>) – transformation matrix from the last dofi to skin unit</p></li>
+<li><p><strong>d</strong> (<cite>int</cite>) – dof <cite>d</cite></p></li>
+<li><p><strong>i</strong> (<cite>int</cite>) – imu <cite>i</cite></p></li>
+<li><p><strong>curr_w</strong> (<cite>int</cite>) – Angular velocity</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="function">
 <dt id="robotic_skin.calibration.plot_data.get_su_transmat">
 <code class="sig-prename descclassname">robotic_skin.calibration.plot_data.</code><code class="sig-name descname">get_su_transmat</code><span class="sig-paren">(</span><em class="sig-param">i</em>, <em class="sig-param">robot='panda'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/plot_data.html#get_su_transmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.plot_data.get_su_transmat" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>gets the skin unit parameters.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="robotic_skin.calibration.plot_data.load_data">
 <code class="sig-prename descclassname">robotic_skin.calibration.plot_data.</code><code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param">robot='panda'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/plot_data.html#load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.plot_data.load_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Loads the data generated from the ros_robotic_skin data collection scripts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>robot</strong> (<cite>string</cite>) – Robot name.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><cite>constant</cite></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="function">
 <dt id="robotic_skin.calibration.plot_data.load_dhparams">
 <code class="sig-prename descclassname">robotic_skin.calibration.plot_data.</code><code class="sig-name descname">load_dhparams</code><span class="sig-paren">(</span><em class="sig-param">robot='panda'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/plot_data.html#load_dhparams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.plot_data.load_dhparams" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Loads DH parameters of the robot</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>robot</strong> (<cite>string</cite>) – Name of the robot.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 <div class="section" id="module-robotic_skin.calibration.utils">
@@ -606,6 +782,12 @@ of two transformation matrices</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="robotic_skin.calibration.utils.TransMat.q">
+<em class="property">property </em><code class="sig-name descname">q</code><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quaternion as a result of the transformation</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="robotic_skin.calibration.utils.TransMat.set_params">
 <code class="sig-name descname">set_params</code><span class="sig-paren">(</span><em class="sig-param">params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#TransMat.set_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.set_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set parameters that have been optimized</p>
@@ -688,6 +870,24 @@ returns 4x4 matrix of the form</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="robotic_skin.calibration.utils.get_IMU_pose">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">get_IMU_pose</code><span class="sig-paren">(</span><em class="sig-param">Tdofs</em>, <em class="sig-param">Tdof2su</em>, <em class="sig-param">joints=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#get_IMU_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.get_IMU_pose" title="Permalink to this definition">¶</a></dt>
+<dd><p>gets the imu pose.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="robotic_skin.calibration.utils.load_robot_configs">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">load_robot_configs</code><span class="sig-paren">(</span><em class="sig-param">configdir</em>, <em class="sig-param">robot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#load_robot_configs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.load_robot_configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads robot’s DH parameters, SUs’ DH parameters and their poses</p>
+<dl class="simple">
+<dt>configdir: str</dt><dd><p>Path to the config directory where robot yaml files exist</p>
+</dd>
+<dt>robot: str</dt><dd><p>Name of the robot</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="robotic_skin.calibration.utils.n2s">
 <code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">n2s</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">precision=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#n2s"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.n2s" title="Permalink to this definition">¶</a></dt>
 <dd><p>converts numpy array to string.</p>
@@ -716,7 +916,9 @@ returns 4x4 matrix of the form</p>
 <dl class="function">
 <dt id="robotic_skin.calibration.utils.quaternion_from_two_vectors">
 <code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">quaternion_from_two_vectors</code><span class="sig-paren">(</span><em class="sig-param">source</em>, <em class="sig-param">target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#quaternion_from_two_vectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion_from_two_vectors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Computes the quaternion from vector <cite>source</cite>
+to vector <cite>target</cite>.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="robotic_skin.calibration.utils.quaternion_l2_distance">
