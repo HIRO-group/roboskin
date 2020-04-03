@@ -376,6 +376,11 @@ def quaternion_l2_distance(q1, q2):
 
 
 def quaternion_from_two_vectors(source, target):
+    """
+    Computes the quaternion from vector `source`
+    to vector `target`.
+
+    """
     source = source / np.linalg.norm(source)
     target = target / np.linalg.norm(target)
 
@@ -407,6 +412,10 @@ def n2s(x, precision=2):
 
 
 def get_IMU_pose(Tdofs, Tdof2su, joints=None):
+    """
+    gets the imu pose.
+
+    """
     T = TransMat(np.zeros(4))
     # Transformation Matrix until the joint
     # where SU is attached
