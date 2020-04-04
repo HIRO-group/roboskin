@@ -88,14 +88,18 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, curr_w, max_w,
     for Tdof, Tjoint in zip(Tdofs, Tjoints):
         T = T.dot(Tdof).dot(Tjoint)
     T = T.dot(Tdof2su)
+    # rotation matrix of reference segment to skin unit
     Rrs2su = T.R.T
 
     # Compute Acceleration at RS frame
-    dt = 1.0/30.0
+    dt = 1.0/2000.0
     pos = lambda dt: accelerometer_position(dt, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_angle_func)  # noqa: E731
     gravity = np.array([0, 0, 9.81])
 
-    accel_rs = (pos(dt) + pos(-dt) - 2*pos(0)) / (dt**2) + gravity
+    # get acceleration and include gravity
+    accel_rs = ((pos(dt) + pos(-dt) - 2*pos(0)) / (dt**2)) + gravity
+
+    # rotate into su frame
     accel_su = np.dot(Rrs2su, accel_rs)
 
     return accel_su
@@ -144,13 +148,14 @@ def accelerometer_position(t, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_a
     return T.position
 
 
-def max_acceleration_joint_angle(curr_w, max_w, t):
+def max_acceleration_joint_angle(curr_w, amplitude, t):
     """
     max acceleration along a joint angle of robot.
+    includes pattern
     """
     # th_pattern = np.sign(t) * max_w / (curr_w) * (1 - np.cos(curr_w*t))
     # th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
-    th_pattern = max_w / (2*np.pi*C.PATTERN_FREQ) * np.sin(2*np.pi*C.PATTERN_FREQ*t) * t
+    th_pattern = (amplitude / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
     # print('-'*20, th_pattern, curr_w, '-'*20)
     return TransMat(th_pattern)
 
@@ -343,7 +348,8 @@ class MaxAccelerationErrorFunction(ErrorFunction):
             for d in range(max(0, i-2), i+1):
                 max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][:3]
                 curr_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][3]
-                # max_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][4]
+                # A is used as amplitude of pose pattern
+                A = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][4]
                 joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][5:5+i+1]
                 Tjoints = [TransMat(joint) for joint in joints]
                 # max_accel_model = self.estimate_acceleration_numerically(
