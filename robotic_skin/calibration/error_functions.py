@@ -349,7 +349,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][:3]
                 curr_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][3]
                 # A is used as amplitude of pose pattern
-                A = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][4]
+                # A = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][4]
                 joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][5:5+i+1]
                 Tjoints = [TransMat(joint) for joint in joints]
                 # max_accel_model = self.estimate_acceleration_numerically(
