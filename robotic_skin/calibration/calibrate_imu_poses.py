@@ -24,7 +24,8 @@ from robotic_skin.calibration.error_functions import (
     StaticErrorFunction,
     ConstantRotationErrorFunction
 )
-from robotic_skin.calibration.loss import L1Loss
+# from robotic_skin.calibration.loss import L1Loss
+from robotic_skin.calibration.loss import L2Loss
 
 # Sawyer IMU Position
 # THESE ARE THE TRUE VALUES of THE IMU POSITIONS
@@ -97,16 +98,16 @@ class KinematicEstimator():
             [0, np.pi]])        # alpha
         self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_configs['dh_parameter'])
 
-        hyperparams = None
         error_functions = {
-            'Rotation': StaticErrorFunction(data, L1Loss(hyperparams)),
-            'Translation': ConstantRotationErrorFunction(data, L1Loss(hyperparams))
+            'Rotation': StaticErrorFunction(data, L2Loss()),
+            'Translation': ConstantRotationErrorFunction(data, L2Loss())
         }
         stop_conditions = {
             'Rotation': PassThroughStopCondition(),
             'Translation': DeltaXStopCondition()
         }
         self.optimizer = SeparateOptimizer(error_functions, stop_conditions)
+        # self.optimizer = Optimizer(error_functions, stop_conditions)
 
         self.imu_true_positions = robot_configs['su_pose']
         self.all_euclidean_distances = []

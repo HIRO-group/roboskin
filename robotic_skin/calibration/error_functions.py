@@ -205,7 +205,7 @@ class StaticErrorFunction(ErrorFunction):
         # return np.sum(np.linalg.norm(gravities - np.mean(gravities, 0), axis=1))
         # return np.sum(np.linalg.norm(gravities - gravity, axis=1))
         # return np.mean(np.linalg.norm(gravities - gravity, axis=1))
-        return self.loss_func(gravities - gravity)
+        return np.mean(self.loss_func(gravities - gravity, axis=1))
 
 
 class ConstantRotationErrorFunction(ErrorFunction):
@@ -253,7 +253,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
                     # Tdofs, Tjoints, Tdof2su, d, curr_w, None, constant_velocity_joint_angle)
                     model_accel = estimate_acceleration_analytically(Tdofs, Tjoints, Tdof2su, d, i, curr_w)
                     # error2 = np.sum(np.abs(model_accel - meas_accel))
-                    error2 = np.sum(np.linalg.norm(model_accel - meas_accel))
+                    error2 = self.loss_func(model_accel - meas_accel)
                     # print(i, d, joint[d], curr_w, n2s(model_accel), n2s(meas_accel))
                     # print(n2s(joint))
 

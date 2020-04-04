@@ -32,15 +32,16 @@ def convert_dhparams_to_Tdof2su(params):
 class Optimizer():
     """
     """
-    def __init__(self, error_functions, stop_condition=None, su_dhparams=None):
+    def __init__(self, error_functions, stop_conditions=None, su_dhparams=None):
         """
         """
         self.error_functions = error_functions
         self.su_dhparams = su_dhparams
         self.error_types = list(error_functions.keys())
-        self.stop_condition = stop_condition
-        if stop_condition is None:
-            self.stop_condition = PassThroughStopCondition()
+        self.stop_conditions = stop_conditions
+        self.target = self.error_types[0]
+        if stop_conditions is None:
+            self.stop_conditions = {'both': PassThroughStopCondition()}
 
     def optimize(self, i_imu, Tdofs, params, bounds):
         """
@@ -83,7 +84,7 @@ class Optimizer():
             for error_type, error_function in self.error_functions.items():
                 e += error_function(self.i_imu, self.Tdofs, Tdof2su)
 
-        return self.stop_condition.update(params, None, e)
+        return self.stop_conditions[self.target].update(params, None, e)
 
     def choose_true_or_estimated_Tdof2su(self, params):
         if self.su_dhparams is not None:
