@@ -101,7 +101,6 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, curr_w, max_w,
 
     # rotate into su frame
     accel_su = np.dot(Rrs2su, accel_rs)
-
     return accel_su
 
 
@@ -144,7 +143,6 @@ def accelerometer_position(t, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_a
             T = T.dot(Tpattern)
 
     T = T.dot(Tdof2su)
-
     return T.position
 
 
@@ -354,10 +352,10 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 Tjoints = [TransMat(joint) for joint in joints]
                 # max_accel_model = self.estimate_acceleration_numerically(
                 # Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
-                max_accel_model = self.estimate_acceleration_analytically(Tdofs, Tjoints, Tdof2su, d, i, curr_w)
+                max_accel_model = estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max_acceleration_joint_angle)
                 # if p == 0:
                 #     print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
-                error = np.sum(np.abs(max_accel_train - max_accel_model))
+                error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
                 e2 += error
                 n_data += 1
 

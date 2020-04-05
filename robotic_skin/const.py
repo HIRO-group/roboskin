@@ -12,6 +12,7 @@ FLEXIFORCE_PIN = 3
 N_POSE = 20
 N_JOINT = 7
 ACCEL_FREQ = 1000               # Hz
+GLOBAL_STOP = 0.0001
 ROT_GLOBAL_STOP = 0.036         #
 POS_GLOBAL_STOP = 0.01          #
 LOCAL_STOP = 1e-10              #
