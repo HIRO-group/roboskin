@@ -56,12 +56,12 @@ def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
     return a_su
 
 
-def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_angle_func):
+def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max_w, joint_angle_func):
     """
     Compute an acceleration value from positions.
     .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`
 
-    This equation came from Taylor Expansion.
+    This equation came from Taylor Expansion to get the second derivative from f(t).
     .. math:: f(t+{\Delta t}) = f(t) + hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)
     .. math:: f(t-{\Delta t}) = f(t) - hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)
 
@@ -85,22 +85,39 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, curr_w, max_w,
     """  # noqa: W605
     # Compute Transformation Matrix from RS to SU
     T = TransMat(np.zeros(4))
+    dofd_T_dofi = TransMat(np.zeros(4))
+
+    for j in range(d+1, i+1):
+        T = T.dot(Tdofs[j]).dot(Tjoints[j])
+        dofd_T_dofi = dofd_T_dofi.dot(Tdofs[j]).dot(Tjoints[j])
+
     for Tdof, Tjoint in zip(Tdofs, Tjoints):
         T = T.dot(Tdof).dot(Tjoint)
     T = T.dot(Tdof2su)
+    dof_T_su = dofd_T_dofi.dot(Tdof2su)
+
+    dofd_r_su = dof_T_su.position
+
+
     # rotation matrix of reference segment to skin unit
     Rrs2su = T.R.T
 
     # Compute Acceleration at RS frame
+    # dt should be a small value, recommended to use 1/(1000 * freq)
     dt = 1.0/1000.0
     pos = lambda dt: accelerometer_position(dt, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_angle_func)  # noqa: E731
     gravity = np.array([0, 0, 9.81])
-
+    # we need centripetal acceleration here.
+    w_dofd = np.array([0, 0, curr_w])
+    a_dofd = np.cross(w_dofd, np.cross(w_dofd, dofd_r_su))
     # get acceleration and include gravity
-    accel_rs = ((pos(dt) + pos(-dt) - 2*pos(0)) / (dt**2))
+    accel_rs = ((pos(dt) + pos(-dt) - 2*pos(0)) / (dt**2)) + gravity
+
+    # Every joint rotates along its own z axis, one joint moves at a time
     # rotate into su frame
+    accel_rs += a_dofd
     accel_su = np.dot(Rrs2su, accel_rs)
-    # estimate acceleration of skin unit 
+    # estimate acceleration of skin unit
     return accel_su
 
 
@@ -355,7 +372,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 Tjoints = [TransMat(joint) for joint in joints]
                 # max_accel_model = self.estimate_acceleration_numerically(
                 # Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
-                max_accel_model = estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, A, max_acceleration_joint_angle)
+                max_accel_model = estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, A, curr_w, max_acceleration_joint_angle)
                 # if p == 0:
                 #     print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
                 error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
