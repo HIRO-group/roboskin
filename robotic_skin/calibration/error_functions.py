@@ -372,7 +372,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 Tjoints = [TransMat(joint) for joint in joints]
                 # max_accel_model = self.estimate_acceleration_numerically(
                 # Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
-                max_accel_model = estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, A, curr_w, max_acceleration_joint_angle)
+                max_accel_model = estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, A, max_acceleration_joint_angle)
                 # if p == 0:
                 #     print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
                 error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
