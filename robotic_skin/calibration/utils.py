@@ -70,7 +70,6 @@ class TransMat():
         elif params.size == 4:
             th, d, a, al = params
         else:
-            print(params)
             raise ValueError('Wrong number of parameters passed. It should be 1, 2 or 4')
 
         return th, d, a, al

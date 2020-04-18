@@ -92,15 +92,15 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, curr_w, max_w,
     Rrs2su = T.R.T
 
     # Compute Acceleration at RS frame
-    dt = 1.0/2000.0
+    dt = 1.0/1000.0
     pos = lambda dt: accelerometer_position(dt, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_angle_func)  # noqa: E731
     gravity = np.array([0, 0, 9.81])
 
     # get acceleration and include gravity
-    accel_rs = ((pos(dt) + pos(-dt) - 2*pos(0)) / (dt**2)) + gravity
-
+    accel_rs = ((pos(dt) + pos(-dt) - 2*pos(0)) / (dt**2))
     # rotate into su frame
     accel_su = np.dot(Rrs2su, accel_rs)
+    # estimate acceleration of skin unit 
     return accel_su
 
 
@@ -143,6 +143,7 @@ def accelerometer_position(t, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_a
             T = T.dot(Tpattern)
 
     T = T.dot(Tdof2su)
+    # print(T.position)
     return T.position
 
 
@@ -178,9 +179,9 @@ class ErrorFunction():
         self.data = data
         self.loss_func = loss_func
 
-        self.pose_names = list(data.constant.keys())
-        self.joint_names = list(data.constant[self.pose_names[0]].keys())
-        self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
+        self.pose_names = list(data.dynamic.keys())
+        self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
+        self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
         self.n_pose = len(self.pose_names)
         self.n_joint = len(self.joint_names)
         self.n_sensor = self.n_joint
@@ -344,15 +345,17 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         n_data = 0
         for p in range(self.n_pose):
             for d in range(max(0, i-2), i+1):
-                max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][:3]
-                curr_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][3]
+                # max acceleration (x,y,z) of the data
+                max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0][:3]
+
+                curr_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0][5]
                 # A is used as amplitude of pose pattern
-                # A = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][4]
-                joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][5:5+i+1]
+                A = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0][4]
+                joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0][7:7+i+1]
                 Tjoints = [TransMat(joint) for joint in joints]
                 # max_accel_model = self.estimate_acceleration_numerically(
                 # Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
-                max_accel_model = estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max_acceleration_joint_angle)
+                max_accel_model = estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, A, max_acceleration_joint_angle)
                 # if p == 0:
                 #     print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
                 error = np.sum(np.abs(max_accel_train - max_accel_model)**2)

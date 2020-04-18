@@ -17,14 +17,16 @@ from robotic_skin.calibration.utils import (
 )
 from robotic_skin.calibration.optimizer import (
     SeparateOptimizer,
+    Optimizer,
     PassThroughStopCondition,
     DeltaXStopCondition
 )
 from robotic_skin.calibration.error_functions import (
     StaticErrorFunction,
-    ConstantRotationErrorFunction
+    ConstantRotationErrorFunction,
+    MaxAccelerationErrorFunction
 )
-from robotic_skin.calibration.loss import L1Loss
+from robotic_skin.calibration.loss import L1Loss, L2Loss
 
 # Sawyer IMU Position
 # THESE ARE THE TRUE VALUES of THE IMU POSITIONS
@@ -68,9 +70,9 @@ class KinematicEstimator():
         # Assume n_sensor is equal to n_joint for now
         self.robot_configs = robot_configs
 
-        self.pose_names = list(data.constant.keys())
-        self.joint_names = list(data.constant[self.pose_names[0]].keys())
-        self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
+        self.pose_names = list(data.dynamic.keys())
+        self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
+        self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
         self.n_pose = len(self.pose_names)
         self.n_joint = len(self.joint_names)
         self.n_sensor = self.n_joint
@@ -100,14 +102,13 @@ class KinematicEstimator():
         hyperparams = None
         error_functions = {
             'Rotation': StaticErrorFunction(data, L1Loss(hyperparams)),
-            'Translation': ConstantRotationErrorFunction(data, L1Loss(hyperparams))
+            'Translation': MaxAccelerationErrorFunction(data, L2Loss(hyperparams))
         }
         stop_conditions = {
             'Rotation': PassThroughStopCondition(),
             'Translation': DeltaXStopCondition()
         }
-        self.optimizer = SeparateOptimizer(error_functions, stop_conditions)
-
+        self.optimizer = Optimizer(error_functions, DeltaXStopCondition())
         self.imu_true_positions = robot_configs['su_pose']
         self.all_euclidean_distances = []
 
@@ -213,12 +214,11 @@ def load_data(robot):
 
     static = read_pickle('static_data', robot)
     constant = read_pickle('constant_data', robot)
-    # dynamic = read_pickle('dynamic_data', robot)
-
-    # Data = namedtuple('Data', 'static dynamic constant')
-    # data = Data(static, dynamic, constant)
-    Data = namedtuple('Data', 'static constant')
-    data = Data(static, constant)
+    dynamic = read_pickle('dynamic_data', robot)
+    Data = namedtuple('Data', 'static dynamic constant')
+    data = Data(static, dynamic, constant)
+    # Data = namedtuple('Data', 'static dynamic')
+    # data = Data(static, dynamic)
 
     return data
 
@@ -243,7 +243,7 @@ if __name__ == '__main__':
 
     measured_data = load_data(args.robot)
     robot_configs = load_robot_configs(args.configdir, args.robot)
-
+    print(robot_configs)
     estimator = KinematicEstimator(measured_data, robot_configs)
     estimator.optimize()
 

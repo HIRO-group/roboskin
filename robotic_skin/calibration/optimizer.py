@@ -55,6 +55,7 @@ class Optimizer():
         if stop_condition is None:
             self.stop_condition = PassThroughStopCondition()
 
+
     def optimize(self, i_imu, Tdofs, params, bounds):
         """
         Sets up the optimizer and runs the model.
@@ -225,7 +226,6 @@ class SeparateOptimizer(Optimizer):
         local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
         opt.set_local_optimizer(local_opt)
         param_pos = opt.optimize(params[self.position_index])
-
         params[self.rotation_index] = param_rot
         params[self.position_index] = param_pos
 
