@@ -25,7 +25,7 @@ from robotic_skin.calibration.error_functions import (
     ConstantRotationErrorFunction
 )
 # from robotic_skin.calibration.loss import L1Loss
-from robotic_skin.calibration.loss import L2Loss
+from robotic_skin.calibration import loss
 
 # Sawyer IMU Position
 # THESE ARE THE TRUE VALUES of THE IMU POSITIONS
@@ -54,7 +54,7 @@ class KinematicEstimator():
     Class for estimating the kinematics of the arm
     and corresponding sensor unit positions.
     """
-    def __init__(self, data, robot_configs):
+    def __init__(self, data, robot_configs, loss_func):
         """
         Arguments
         ------------
@@ -99,8 +99,8 @@ class KinematicEstimator():
         self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_configs['dh_parameter'])
 
         error_functions = {
-            'Rotation': StaticErrorFunction(data, L2Loss()),
-            'Translation': ConstantRotationErrorFunction(data, L2Loss())
+            'Rotation': StaticErrorFunction(data, loss_func()),
+            'Translation': ConstantRotationErrorFunction(data, loss_func())
         }
         stop_conditions = {
             'Rotation': PassThroughStopCondition(),
@@ -235,7 +235,7 @@ def parse_arguments():
     parser.add_argument('-sf', '--savefile', type=str, default='estimate_imu_positions.txt',
                         help="Please Provide a filename for saving estimated IMU poses")
     parser.add_argument('-cd', '--configdir', type=str, default=os.path.join(repodir, 'config'))
-
+    parser.add_argument('-l', '--loss', type=str, default='L2Loss')
     return parser.parse_args()
 
 
@@ -245,7 +245,7 @@ if __name__ == '__main__':
     measured_data = load_data(args.robot)
     robot_configs = load_robot_configs(args.configdir, args.robot)
 
-    estimator = KinematicEstimator(measured_data, robot_configs)
+    estimator = KinematicEstimator(measured_data, robot_configs, getattr(loss, args.loss))
     estimator.optimize()
 
     data = estimator.get_all_accelerometer_positions()
