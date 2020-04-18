@@ -88,16 +88,15 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max
     dofd_T_dofi = TransMat(np.zeros(4))
 
     for j in range(d+1, i+1):
-        T = T.dot(Tdofs[j]).dot(Tjoints[j])
         dofd_T_dofi = dofd_T_dofi.dot(Tdofs[j]).dot(Tjoints[j])
 
     for Tdof, Tjoint in zip(Tdofs, Tjoints):
         T = T.dot(Tdof).dot(Tjoint)
+
     T = T.dot(Tdof2su)
     dof_T_su = dofd_T_dofi.dot(Tdof2su)
 
     dofd_r_su = dof_T_su.position
-
 
     # rotation matrix of reference segment to skin unit
     Rrs2su = T.R.T
@@ -107,16 +106,17 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max
     dt = 1.0/1000.0
     pos = lambda dt: accelerometer_position(dt, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_angle_func)  # noqa: E731
     gravity = np.array([0, 0, 9.81])
+
     # we need centripetal acceleration here.
     w_dofd = np.array([0, 0, curr_w])
     a_dofd = np.cross(w_dofd, np.cross(w_dofd, dofd_r_su))
+
     # get acceleration and include gravity
     accel_rs = ((pos(dt) + pos(-dt) - 2*pos(0)) / (dt**2)) + gravity
 
     # Every joint rotates along its own z axis, one joint moves at a time
     # rotate into su frame
-    accel_rs += a_dofd
-    accel_su = np.dot(Rrs2su, accel_rs)
+    accel_su = np.dot(dof_T_su.R.T, a_dofd) + np.dot(Rrs2su, accel_rs)
     # estimate acceleration of skin unit
     return accel_su
 
