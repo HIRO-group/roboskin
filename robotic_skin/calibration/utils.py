@@ -263,6 +263,7 @@ class ParameterManager():
         if self.dhparams is not None:
             self.Tdof2dof = [TransMat(dhparams['joint' + str(i+1)]) for i in range(n_joint)]
         else:
+            # uninitialized dh params
             self.Tdof2dof = [TransMat(bounds=bounds) for i in range(n_joint)]
 
         self.Tdof2vdof = [TransMat(bounds=bounds_su[:2, :]) for i in range(n_joint)]
@@ -318,7 +319,7 @@ class ParameterManager():
         if self.dhparams is not None:
             return self.Tdof2dof[:i+1]
         else:
-            return self.Tdof2dof[:max(0, i)]
+            return self.Tdof2dof[:max(0, i+1)]
 
     def set_params_at(self, i, params):
         """

@@ -55,7 +55,7 @@ class KinematicEstimator():
     Class for estimating the kinematics of the arm
     and corresponding sensor unit positions.
     """
-    def __init__(self, data, robot_configs):
+    def __init__(self, data, robot_configs, optimize_only_su_params=True):
         """
         Arguments
         ------------
@@ -97,12 +97,15 @@ class KinematicEstimator():
             [0.0, 0.2],         # d
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
-        self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_configs['dh_parameter'])
+        if 'dh_parameter' not in robot_configs:
+            optimize_only_su_params = False
+        robot_dhparams = robot_configs['dh_parameter'] if optimize_only_su_params else None
+        self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_dhparams)
 
         hyperparams = None
         error_functions = {
             'Rotation': StaticErrorFunction(data, L1Loss(hyperparams)),
-            'Translation': MaxAccelerationErrorFunction(data, L2Loss(hyperparams))
+            'Translation': MaxAccelerationErrorFunction(data, L1Loss(hyperparams))
         }
         stop_conditions = {
             'Rotation': PassThroughStopCondition(),
