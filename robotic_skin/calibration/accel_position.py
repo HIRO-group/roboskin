@@ -55,7 +55,7 @@ class KinematicEstimator():
     Class for estimating the kinematics of the arm
     and corresponding sensor unit positions.
     """
-    def __init__(self, data, robot_configs, optimize_only_su_params=True):
+    def __init__(self, data, robot_configs, optimize_only_su_params):
         """
         Arguments
         ------------
@@ -237,6 +237,8 @@ def parse_arguments():
     parser.add_argument('-sf', '--savefile', type=str, default='estimate_imu_positions.txt',
                         help="Please Provide a filename for saving estimated IMU poses")
     parser.add_argument('-cd', '--configdir', type=str, default=os.path.join(repodir, 'config'))
+    parser.add_argument('-oa', '--optimizeall', type=bool, default=False,
+                        help='Please specify if you want to optimize all of the dh parameters.')
 
     return parser.parse_args()
 
@@ -246,8 +248,7 @@ if __name__ == '__main__':
 
     measured_data = load_data(args.robot)
     robot_configs = load_robot_configs(args.configdir, args.robot)
-    print(robot_configs)
-    estimator = KinematicEstimator(measured_data, robot_configs)
+    estimator = KinematicEstimator(measured_data, robot_configs, args.optimizeall)
     estimator.optimize()
 
     data = estimator.get_all_accelerometer_positions()
