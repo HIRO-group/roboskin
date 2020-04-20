@@ -32,11 +32,11 @@ def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
     # Transformation Matrix from the last DoFi to the excited DoFd
     dofd_T_dofi = TransMat(np.zeros(4))
 
-    for j in range(d+1):
+    for j in range(d + 1):
         # print(j)
         rs_T_su = rs_T_su.dot(Tdofs[j]).dot(Tjoints[j])
 
-    for j in range(d+1, i+1):
+    for j in range(d + 1, i + 1):
         # print(j, d, i)
         rs_T_su = rs_T_su.dot(Tdofs[j]).dot(Tjoints[j])
         dofd_T_dofi = dofd_T_dofi.dot(Tdofs[j]).dot(Tjoints[j])
@@ -91,11 +91,12 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, curr_w, max_w,
     Rrs2su = T.R.T
 
     # Compute Acceleration at RS frame
-    dt = 1.0/30.0
-    pos = lambda dt: accelerometer_position(dt, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_angle_func)  # noqa: E731
+    dt = 1.0 / 30.0
+    pos = lambda dt: accelerometer_position(dt, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w,
+                                            joint_angle_func)  # noqa: E731
     gravity = np.array([0, 0, 9.81])
 
-    accel_rs = (pos(dt) + pos(-dt) - 2*pos(0)) / (dt**2) + gravity
+    accel_rs = (pos(dt) + pos(-dt) - 2 * pos(0)) / (dt ** 2) + gravity
     accel_su = np.dot(Rrs2su, accel_rs)
 
     return accel_su
@@ -150,7 +151,7 @@ def max_acceleration_joint_angle(curr_w, max_w, t):
     """
     # th_pattern = np.sign(t) * max_w / (curr_w) * (1 - np.cos(curr_w*t))
     # th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
-    th_pattern = max_w / (2*np.pi*C.PATTERN_FREQ) * np.sin(2*np.pi*C.PATTERN_FREQ*t) * t
+    th_pattern = max_w / (2 * np.pi * C.PATTERN_FREQ) * np.sin(2 * np.pi * C.PATTERN_FREQ * t) * t
     # print('-'*20, th_pattern, curr_w, '-'*20)
     return TransMat(th_pattern)
 
@@ -160,7 +161,7 @@ def constant_velocity_joint_angle(curr_w, max_w, t):
     Returns transformation matrix given `t` and current
     angular velocity `curr_w`
     """
-    return TransMat(curr_w*t)
+    return TransMat(curr_w * t)
 
 
 class ErrorFunction():
@@ -168,6 +169,7 @@ class ErrorFunction():
     Error Function class used to evaluate kinematics
     estimation models.
     """
+
     def __init__(self, data, loss_func):
         """
         Parses the data and gets the loss function.
@@ -194,6 +196,7 @@ class StaticErrorFunction(ErrorFunction):
     Static error is an deviation of the gravity vector for p positions.
 
     """
+
     def __init__(self, data, loss_func):
         super().__init__(data, loss_func)
 
@@ -224,16 +227,14 @@ class StaticErrorFunction(ErrorFunction):
 
         """  # noqa: W605
         gravities = np.zeros((self.n_pose, 3))
-        gravity = np.empty(shape=(0, 3), dtype=float)
-        for _ in range(self.n_pose):
-            gravity = np.append(gravity, np.array([[0, 0, 9.81]]), axis=0)
+        gravity = np.array([[0, 0, 9.8], ] * self.n_pose, dtype=float)
 
         for p in range(self.n_pose):
-            joints = self.data.static[self.pose_names[p]][self.imu_names[i]][3:3+i+1]
+            joints = self.data.static[self.pose_names[p]][self.imu_names[i]][3:3 + i + 1]
             Tjoints = [TransMat(joint) for joint in joints]
 
             # 1 Pose are consists for n_joint DoF
-            T = TransMat(np.zeros(4))   # equals to I Matrix
+            T = TransMat(np.zeros(4))  # equals to I Matrix
             for Tdof, Tjoint in zip(Tdofs, Tjoints):
                 T = T.dot(Tdof).dot(Tjoint)
             # DoF to SU
@@ -256,6 +257,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
     An error function used when a robotic arm's joints
     are moving at a constant velocity.
     """
+
     def __init__(self, data, loss_func):
         super().__init__(data, loss_func)
 
@@ -279,7 +281,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
         n_data = 0
         for p in range(self.n_pose):
             # for d in range(i+1):
-            for d in range(max(0, i-2), i+1):
+            for d in range(max(0, i - 2), i + 1):
                 data = self.data.constant[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0]
                 meas_qs = data[:, :4]
                 meas_accels = data[:, 4:7]
@@ -295,7 +297,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
                     """
 
                     # Acceleration Error
-                    Tjoints = [TransMat(joint) for joint in joint[:i+1]]
+                    Tjoints = [TransMat(joint) for joint in joint[:i + 1]]
                     # model_accel = self.estimate_acceleration_numerically(
                     # Tdofs, Tjoints, Tdof2su, d, curr_w, None, constant_velocity_joint_angle)
                     model_accel = estimate_acceleration_analytically(Tdofs, Tjoints, Tdof2su, d, i, curr_w)
@@ -308,7 +310,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
                     errors += error2
                     n_data += 1
 
-        return errors/n_data
+        return errors / n_data
 
 
 class MaxAccelerationErrorFunction(ErrorFunction):
@@ -316,6 +318,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
     Compute errors between estimated and measured max acceleration for sensor i
 
     """
+
     def __init__(self, data, loss_func):
         super().__init__(data, loss_func)
 
@@ -342,11 +345,11 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         e2 = 0.0
         n_data = 0
         for p in range(self.n_pose):
-            for d in range(max(0, i-2), i+1):
+            for d in range(max(0, i - 2), i + 1):
                 max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][:3]
                 curr_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][3]
                 # max_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][4]
-                joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][5:5+i+1]
+                joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][5:5 + i + 1]
                 Tjoints = [TransMat(joint) for joint in joints]
                 # max_accel_model = self.estimate_acceleration_numerically(
                 # Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
@@ -357,7 +360,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 e2 += error
                 n_data += 1
 
-        return e2/n_data
+        return e2 / n_data
 
 
 class ErrorFunctions():
