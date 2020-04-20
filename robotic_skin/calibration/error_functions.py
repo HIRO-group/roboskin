@@ -224,9 +224,7 @@ class StaticErrorFunction(ErrorFunction):
 
         """  # noqa: W605
         gravities = np.zeros((self.n_pose, 3))
-        gravity = np.empty(shape=(0, 3), dtype=float)
-        for _ in range(self.n_pose):
-            gravity = np.append(gravity, np.array([[0, 0, 9.81]]), axis=0)
+        gravity = np.array([[0, 0, 9.8], ] * self.n_pose, dtype=float)
 
         for p in range(self.n_pose):
             joints = self.data.static[self.pose_names[p]][self.imu_names[i]][3:3+i+1]
