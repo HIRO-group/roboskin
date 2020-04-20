@@ -121,7 +121,7 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max
     return accel_su
 
 
-def accelerometer_position(t, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_angle_func):
+def accelerometer_position(t, Tdofs, Tjoints, Tdof2su, d, curr_w, amplitude, joint_angle_func):
     """
     Compute ith accelerometer position excited by joint d in pose p at time t
 
@@ -155,8 +155,9 @@ def accelerometer_position(t, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_a
     for i_joint, (Tdof, Tjoint) in enumerate(zip(Tdofs, Tjoints)):
         T = T.dot(Tdof).dot(Tjoint)
         if i_joint == d:
-            Tpattern = joint_angle_func(curr_w, max_w, t)
+            Tpattern = joint_angle_func(curr_w, amplitude, t)
             # print(Tpattern.parameters, curr_w, max_w, t, d)
+            # adjust based on joint angle function applied to excited dof.
             T = T.dot(Tpattern)
 
     T = T.dot(Tdof2su)
@@ -166,7 +167,7 @@ def accelerometer_position(t, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_a
 
 def max_acceleration_joint_angle(curr_w, amplitude, t):
     """
-    max acceleration along a joint angle of robot.
+    max acceleration along a joint angle of robot function.
     includes pattern
     """
     # th_pattern = np.sign(t) * max_w / (curr_w) * (1 - np.cos(curr_w*t))

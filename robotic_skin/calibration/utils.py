@@ -324,6 +324,9 @@ class ParameterManager():
     def set_params_at(self, i, params):
         """
         Set DH parameters
+        Depending of if we
+        are optimizing 6 (just su params)
+        or 10 (all dh params)
 
         Arguments
         ------------

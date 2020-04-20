@@ -55,7 +55,7 @@ class KinematicEstimator():
     Class for estimating the kinematics of the arm
     and corresponding sensor unit positions.
     """
-    def __init__(self, data, robot_configs, optimize_only_su_params):
+    def __init__(self, data, robot_configs, optimize_all):
         """
         Arguments
         ------------
@@ -97,9 +97,14 @@ class KinematicEstimator():
             [0.0, 0.2],         # d
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
+        options = ["false", "f", "n", "no"]
+        if optimize_all.lower() in options:
+            optimize_all_params = False
+        else:
+            optimize_all_params = True
         if 'dh_parameter' not in robot_configs:
-            optimize_only_su_params = False
-        robot_dhparams = robot_configs['dh_parameter'] if optimize_only_su_params else None
+            optimize_all_params = False
+        robot_dhparams = robot_configs['dh_parameter'] if not optimize_all_params else None
         self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_dhparams)
 
         hyperparams = None
@@ -237,7 +242,7 @@ def parse_arguments():
     parser.add_argument('-sf', '--savefile', type=str, default='estimate_imu_positions.txt',
                         help="Please Provide a filename for saving estimated IMU poses")
     parser.add_argument('-cd', '--configdir', type=str, default=os.path.join(repodir, 'config'))
-    parser.add_argument('-oa', '--optimizeall', type=bool, default=False,
+    parser.add_argument('-oa', '--optimizeall', type=str, default="false",
                         help='Please specify if you want to optimize all of the dh parameters.')
 
     return parser.parse_args()
