@@ -55,7 +55,6 @@ class Optimizer():
         if stop_condition is None:
             self.stop_condition = PassThroughStopCondition()
 
-
     def optimize(self, i_imu, Tdofs, params, bounds):
         """
         Sets up the optimizer and runs the model.
