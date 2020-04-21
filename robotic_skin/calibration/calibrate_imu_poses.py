@@ -231,13 +231,18 @@ def parse_arguments():
     parser.add_argument('-sf', '--savefile', type=str, default='estimate_imu_positions.txt',
                         help="Please Provide a filename for saving estimated IMU poses")
     parser.add_argument('-cd', '--configdir', type=str, default=os.path.join(repodir, 'config'))
-    parser.add_argument('-k', '--all_keys', nargs='+', default=['Rotation', 'Translation'])
+    parser.add_argument('-k', '--all_keys', nargs='+', default=['Rotation', 'Translation'],
+                        help="Please Provide a list of keys for the error functions and stop conditions dictionary")
     parser.add_argument('-e', '--all_error_functions', nargs='+', default=['StaticErrorFunction',
-                                                                           'ConstantRotationErrorFunction'])
-    parser.add_argument('-l', '--all_loss_functions', nargs='+', default=['L2Loss', 'L2Loss'])
+                                                                           'ConstantRotationErrorFunction'],
+                        help="Please provide error function for each key provided")
+    parser.add_argument('-l', '--all_loss_functions', nargs='+', default=['L2Loss', 'L2Loss'],
+                        help="Please provide a loss function for each key provided")
     parser.add_argument('-s', '--stop_conditions', nargs='+', default=['PassThroughStopCondition',
-                                                                       'DeltaXStopCondition'])
-    parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer')
+                                                                       'DeltaXStopCondition'],
+                        help="Please provide a stop function for each key provided")
+    parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer',
+                        help="Please provide an optimizer function for each key provided")
     return parser.parse_args()
 
 
