@@ -47,7 +47,7 @@ class KinematicEstimator():
     Class for estimating the kinematics of the arm
     and corresponding sensor unit positions.
     """
-    def __init__(self, data, robot_configs, error_functions_dict, stop_conditions_dict):
+    def __init__(self, data, robot_configs, optimizer_function, error_functions_dict, stop_conditions_dict):
         """
         Arguments
         ------------
@@ -102,7 +102,7 @@ class KinematicEstimator():
         # }
         error_functions = error_functions_dict
         stop_conditions = stop_conditions_dict
-        self.optimizer = optimizer.SeparateOptimizer(error_functions, stop_conditions)
+        self.optimizer = optimizer_function(error_functions, stop_conditions)
         # self.optimizer = Optimizer(error_functions, stop_conditions)
 
         self.imu_true_positions = robot_configs['su_pose']
@@ -237,6 +237,7 @@ def parse_arguments():
     parser.add_argument('-l', '--all_loss_functions', nargs='+', default=['L2Loss', 'L2Loss'])
     parser.add_argument('-s', '--stop_conditions', nargs='+', default=['PassThroughStopCondition',
                                                                        'DeltaXStopCondition'])
+    parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer')
     return parser.parse_args()
 
 
@@ -259,7 +260,9 @@ if __name__ == '__main__':
         stop_function = getattr(optimizer, stop_func)
         gen_error_functions_dict[key] = error_function(measured_data, loss_function())
         gen_stop_conditions_dict[key] = stop_function()
-    estimator = KinematicEstimator(measured_data, robot_configs, gen_error_functions_dict, gen_stop_conditions_dict)
+    optimizer = getattr(optimizer, args.optimizer)
+    estimator = KinematicEstimator(measured_data, robot_configs, optimizer,
+                                   gen_error_functions_dict, gen_stop_conditions_dict)
     estimator.optimize()
     data = estimator.get_all_accelerometer_positions()
     ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
