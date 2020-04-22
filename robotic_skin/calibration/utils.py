@@ -401,9 +401,12 @@ def angle_between_quaternions(q_1: np.ndarray, q_2: np.ndarray) -> float:
     form np.ndarray([x, y, z, w]).
     The formula for angle between quaternions is:
     .. math:: \theta \;=\; \cos^{-1}\bigl(2\langle q_1,q_2\rangle^2 -1\bigr)  # noqa: W605
+
     where ⟨q1,q2⟩ denotes the inner product of the corresponding quaternions:
-    .. math:: \langle a_1 +b_1 \textbf{i} + c_1 \textbf{j} + d_1 \textbf{k},\; a_2 + b_2 \textbf{i} + c_2 \textbf{j} + d_2 \textbf{k}\rangle \\  # noqa: W605,E501
+    .. math:: \langle a_1 +b_1 \textbf{i} + c_1 \textbf{j} + d_1 \textbf{k},\;  # noqa: W605
+            a_2 + b_2 \textbf{i} + c_2 \textbf{j} + d_2 \textbf{k}\rangle \\  # noqa: W605
               \;=\; a_1a_2 + b_1b_2 + c_1 c_2 + d_1d_2.  # noqa: W605
+
     Reference: https://math.stackexchange.com/questions/90081/quaternion-distance
     :param q_1: np.ndarray
         Quaternion a
