@@ -15,18 +15,10 @@ from robotic_skin.calibration.utils import (
     get_IMU_pose,
     load_robot_configs
 )
-from robotic_skin.calibration.optimizer import (
-    # SeparateOptimizer,
-    Optimizer,
-    # PassThroughStopCondition,
-    DeltaXStopCondition
-)
-from robotic_skin.calibration.error_functions import (
-    StaticErrorFunction,
-    # ConstantRotationErrorFunction,
-    MaxAccelerationErrorFunction
-)
-from robotic_skin.calibration.loss import L1Loss  # , L2Loss
+from robotic_skin.calibration import optimizer
+from robotic_skin.calibration import error_functions
+# from robotic_skin.calibration.loss import L1Loss
+from robotic_skin.calibration import loss
 
 # Sawyer IMU Position
 # THESE ARE THE TRUE VALUES of THE IMU POSITIONS
@@ -55,7 +47,7 @@ class KinematicEstimator():
     Class for estimating the kinematics of the arm
     and corresponding sensor unit positions.
     """
-    def __init__(self, data, robot_configs, optimize_all):
+    def __init__(self, data, robot_configs, optimizer_function, error_functions_dict, stop_conditions_dict):
         """
         Arguments
         ------------
@@ -107,16 +99,20 @@ class KinematicEstimator():
         robot_dhparams = robot_configs['dh_parameter'] if not optimize_all_params else None
         self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_dhparams)
 
-        hyperparams = None
-        error_functions = {
-            'Rotation': StaticErrorFunction(data, L1Loss(hyperparams)),
-            'Translation': MaxAccelerationErrorFunction(data, L1Loss(hyperparams))
-        }
+        # Below is an example of what error_functions and stop_conditions dictionary looks like
+        # error_functions = {
+        #     'Rotation': error_func_rotation(data, loss_func()),
+        #     'Translation': error_func_transaltion(data, loss_func())
+        # }
         # stop_conditions = {
         #     'Rotation': PassThroughStopCondition(),
         #     'Translation': DeltaXStopCondition()
         # }
-        self.optimizer = Optimizer(error_functions, DeltaXStopCondition())
+        error_functions = error_functions_dict
+        stop_conditions = stop_conditions_dict
+        self.optimizer = optimizer_function(error_functions, stop_conditions)
+        # self.optimizer = Optimizer(error_functions, stop_conditions)
+
         self.imu_true_positions = robot_configs['su_pose']
         self.all_euclidean_distances = []
 
@@ -242,9 +238,18 @@ def parse_arguments():
     parser.add_argument('-sf', '--savefile', type=str, default='estimate_imu_positions.txt',
                         help="Please Provide a filename for saving estimated IMU poses")
     parser.add_argument('-cd', '--configdir', type=str, default=os.path.join(repodir, 'config'))
-    parser.add_argument('-oa', '--optimizeall', type=str, default="false",
-                        help='Please specify if you want to optimize all of the dh parameters.')
-
+    parser.add_argument('-k', '--all_keys', nargs='+', default=['Rotation', 'Translation'],
+                        help="Please Provide a list of keys for the error functions and stop conditions dictionary")
+    parser.add_argument('-e', '--all_error_functions', nargs='+', default=['StaticErrorFunction',
+                                                                           'ConstantRotationErrorFunction'],
+                        help="Please provide error function for each key provided")
+    parser.add_argument('-l', '--all_loss_functions', nargs='+', default=['L2Loss', 'L2Loss'],
+                        help="Please provide a loss function for each key provided")
+    parser.add_argument('-s', '--stop_conditions', nargs='+', default=['PassThroughStopCondition',
+                                                                       'DeltaXStopCondition'],
+                        help="Please provide a stop function for each key provided")
+    parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer',
+                        help="Please provide an optimizer function for each key provided")
     return parser.parse_args()
 
 
@@ -253,11 +258,25 @@ if __name__ == '__main__':
 
     measured_data = load_data(args.robot)
     robot_configs = load_robot_configs(args.configdir, args.robot)
-    estimator = KinematicEstimator(measured_data, robot_configs, args.optimizeall)
+
+    if not (len(args.all_keys) == len(args.all_error_functions)
+            == len(args.all_loss_functions) == len(args.stop_conditions)):
+        raise Exception("The # of arguments of all_keys, all_error_functions, all_loss_functions, "
+                        "stop_conditions should be same hence exiting...")
+    gen_error_functions_dict = {}
+    gen_stop_conditions_dict = {}
+    for key, error_func, loss_func, stop_func in \
+            zip(args.all_keys, args.all_error_functions, args.all_loss_functions, args.stop_conditions):
+        error_function = getattr(error_functions, error_func)
+        loss_function = getattr(loss, loss_func)
+        stop_function = getattr(optimizer, stop_func)
+        gen_error_functions_dict[key] = error_function(measured_data, loss_function())
+        gen_stop_conditions_dict[key] = stop_function()
+    optimizer = getattr(optimizer, args.optimizer)
+    estimator = KinematicEstimator(measured_data, robot_configs, optimizer,
+                                   gen_error_functions_dict, gen_stop_conditions_dict)
     estimator.optimize()
-
     data = estimator.get_all_accelerometer_positions()
-
     ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
     save_path = os.path.join(ros_robotic_skin_path, 'data', args.savefile)
     np.savetxt(save_path, data)
