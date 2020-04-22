@@ -4,10 +4,10 @@ robotic\_skin.calibration package
 Submodules
 ----------
 
-robotic\_skin.calibration.accel\_position module
-------------------------------------------------
+robotic\_skin.calibration.calibrate\_imu\_poses module
+------------------------------------------------------
 
-.. automodule:: robotic_skin.calibration.accel_position
+.. automodule:: robotic_skin.calibration.calibrate_imu_poses
    :members:
    :undoc-members:
    :show-inheritance:
