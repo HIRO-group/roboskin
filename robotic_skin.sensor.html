@@ -187,13 +187,13 @@
 <a class="reference external" href="https://github.com/CRImier/python-lsm6ds3">https://github.com/CRImier/python-lsm6ds3</a>
 Thanks Homie!
 Datasheet Link: <a class="reference external" href="https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf">https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf</a></p>
-<dl class="class">
+<dl class="py class">
 <dt id="robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.lsm6ds3_accel.</code><code class="sig-name descname">LSM6DS3_acclerometer</code><span class="sig-paren">(</span><em class="sig-param">config_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.lsm6ds3_accel.</code><code class="sig-name descname">LSM6DS3_acclerometer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#robotic_skin.sensor.sensor.Sensor" title="robotic_skin.sensor.sensor.Sensor"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.sensor.sensor.Sensor</span></code></a></p>
 <p>This is the Python Class for LSM6DS3. This includes all subroutines including calibration to handle everything
 related to the device.</p>
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.calibrate">
 <code class="sig-name descname">calibrate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer.calibrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.calibrate" title="Permalink to this definition">¶</a></dt>
 <dd><p># Need to implement this function</p>
@@ -207,7 +207,7 @@ related to the device.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.detect">
 <code class="sig-name descname">detect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer.detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.detect" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will detect if the accelerometer is LSM6DS3 or not</p>
@@ -221,9 +221,9 @@ related to the device.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.make_16bit_value">
-<code class="sig-name descname">make_16bit_value</code><span class="sig-paren">(</span><em class="sig-param">vh</em>, <em class="sig-param">vl</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer.make_16bit_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.make_16bit_value" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">make_16bit_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vh</span></em>, <em class="sig-param"><span class="n">vl</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer.make_16bit_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.make_16bit_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>The acceleration is usually from 2 Byte sized registers. We obtain acceleration value in 2’s complement form
 So first we obtain both MSByte as well as LSByte, combine them both, and convert them into 2’s complement form
 :param vh: The MSByte
@@ -240,7 +240,7 @@ So first we obtain both MSByte as well as LSByte, combine them both, and convert
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.read">
 <code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads the sensor values and continuously streams them back to the function whoever called it. This is the
@@ -249,9 +249,9 @@ function you need to put while(True) loop for continuous acquisition of accelero
 :rtype: list</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.read_reg">
-<code class="sig-name descname">read_reg</code><span class="sig-paren">(</span><em class="sig-param">reg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer.read_reg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.read_reg" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_reg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reg</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer.read_reg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.read_reg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read the Register Value in form of int
 :param reg: Register from which you want to read the value from
 :type reg: int</p>
@@ -265,7 +265,7 @@ function you need to put while(True) loop for continuous acquisition of accelero
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.setup">
 <code class="sig-name descname">setup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.setup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Setup the LSM6DS3 accelerometer with the preferences hexadecimal values from self.initial_reg_values. It also
@@ -282,9 +282,9 @@ else False</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.twos_comp">
-<code class="sig-name descname">twos_comp</code><span class="sig-paren">(</span><em class="sig-param">val</em>, <em class="sig-param">num_of_bits</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer.twos_comp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.twos_comp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">twos_comp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span></em>, <em class="sig-param"><span class="n">num_of_bits</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer.twos_comp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.twos_comp" title="Permalink to this definition">¶</a></dt>
 <dd><p>compute the 2’s complement of int value val. Reference:
 <a class="reference external" href="https://en.wikipedia.org/wiki/Two%27s_complement">https://en.wikipedia.org/wiki/Two%27s_complement</a>
 :param val: The original value, which we have to convert to 2’s complement
@@ -304,9 +304,9 @@ length. So that’s what we will pass</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.write_reg">
-<code class="sig-name descname">write_reg</code><span class="sig-paren">(</span><em class="sig-param">reg</em>, <em class="sig-param">val</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer.write_reg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.write_reg" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">write_reg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reg</span></em>, <em class="sig-param"><span class="n">val</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/lsm6ds3_accel.html#LSM6DS3_acclerometer.write_reg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.lsm6ds3_accel.LSM6DS3_acclerometer.write_reg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write value to the register specified
 :param reg: Value of the register to which you want the write some value
 :type reg: int
@@ -331,18 +331,18 @@ length. So that’s what we will pass</p>
 <div class="section" id="module-robotic_skin.sensor.sensor">
 <span id="robotic-skin-sensor-sensor-module"></span><h2>robotic_skin.sensor.sensor module<a class="headerlink" href="#module-robotic_skin.sensor.sensor" title="Permalink to this headline">¶</a></h2>
 <p>Generic Sensor Module</p>
-<dl class="class">
+<dl class="py class">
 <dt id="robotic_skin.sensor.sensor.Sensor">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.sensor.</code><code class="sig-name descname">Sensor</code><span class="sig-paren">(</span><em class="sig-param">config_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/sensor.html#Sensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.sensor.Sensor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.sensor.</code><code class="sig-name descname">Sensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/sensor.html#Sensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.sensor.Sensor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Sensor Class</p>
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.sensor.Sensor.calibrate">
 <code class="sig-name descname">calibrate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/sensor.html#Sensor.calibrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.sensor.Sensor.calibrate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calibrate the sensor</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.sensor.Sensor.read">
 <code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/sensor.html#Sensor.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.sensor.Sensor.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fetch sensor data</p>
@@ -356,12 +356,12 @@ length. So that’s what we will pass</p>
 <p>This is a python class for VL53L1X Proximity Sensor
 Datasheet Link: <a class="reference external" href="https://www.st.com/resource/en/datasheet/vl53l1x.pdf">https://www.st.com/resource/en/datasheet/vl53l1x.pdf</a>
 This library heavily uses VL53L1X pip application: pip install VL53L1X</p>
-<dl class="class">
+<dl class="py class">
 <dt id="robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.vl53l1x.</code><code class="sig-name descname">VL53L1X_ProximitySensor</code><span class="sig-paren">(</span><em class="sig-param">config_file</em>, <em class="sig-param">range_value=0</em>, <em class="sig-param">timing_budget=33000</em>, <em class="sig-param">inter_measurement_period=33</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/vl53l1x.html#VL53L1X_ProximitySensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.sensor.vl53l1x.</code><code class="sig-name descname">VL53L1X_ProximitySensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span></em>, <em class="sig-param"><span class="n">range_value</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">timing_budget</span><span class="o">=</span><span class="default_value">33000</span></em>, <em class="sig-param"><span class="n">inter_measurement_period</span><span class="o">=</span><span class="default_value">33</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/vl53l1x.html#VL53L1X_ProximitySensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#robotic_skin.sensor.sensor.Sensor" title="robotic_skin.sensor.sensor.Sensor"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.sensor.sensor.Sensor</span></code></a></p>
 <p>Code for VL53L1X distance sensor class.</p>
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor.calibrate">
 <code class="sig-name descname">calibrate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/vl53l1x.html#VL53L1X_ProximitySensor.calibrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor.calibrate" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the calibration function.
@@ -370,7 +370,7 @@ This library heavily uses VL53L1X pip application: pip install VL53L1X</p>
 :rtype: None</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor.read">
 <code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/vl53l1x.html#VL53L1X_ProximitySensor.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads the sensor values and continuously streams them back to the function whoever called it. This is the
@@ -379,7 +379,7 @@ function you need to put while(True) loop for continuous acquisition of accelero
 :rtype: float</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor.stop">
 <code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/sensor/vl53l1x.html#VL53L1X_ProximitySensor.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.sensor.vl53l1x.VL53L1X_ProximitySensor.stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop VL53L1X ToF Sensor Ranging</p>
