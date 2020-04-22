@@ -396,16 +396,18 @@ def quaternion_from_two_vectors(source, target):
 
 
 def angle_between_quaternions(q_1: np.ndarray, q_2: np.ndarray) -> float:
-    """
+    r"""
     Angle between quaternions a and b in degrees. Please note the input quaternions should be of
     form np.ndarray([x, y, z, w]).
     The formula for angle between quaternions is:
+
     .. math::
-        \theta = \cos^{-1}\bigl(2\langle q_1,q_2\rangle^2 -1\bigr)  # noqa: W605
+        \theta = \cos^{-1}\bigl(2\langle q_1,q_2\rangle^2 -1\bigr)
 
     where ⟨q1,q2⟩ denotes the inner product of the corresponding quaternions:
+
     .. math::
-        \langle a_1 +b_1 \textbf{i} + c_1 \textbf{j} + d_1 \textbf{k}, \\   # noqa: W605
+        \langle a_1 +b_1 \textbf{i} + c_1 \textbf{j} + d_1 \textbf{k}, \\
         a_2 + b_2 \textbf{i} + c_2 \textbf{j} + d_2 \textbf{k}\rangle \\
         = a_1a_2 + b_1b_2 + c_1 c_2 + d_1d_2.
 
