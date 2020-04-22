@@ -179,7 +179,7 @@
 <div class="section" id="module-robotic_skin.calibration.accel_position">
 <span id="robotic-skin-calibration-accel-position-module"></span><h2>robotic_skin.calibration.accel_position module<a class="headerlink" href="#module-robotic_skin.calibration.accel_position" title="Permalink to this headline">¶</a></h2>
 <p>Module for Kinematics Estimation.</p>
-<dl class="class">
+<dl class="py class">
 <dt id="robotic_skin.calibration.accel_position.KinematicEstimator">
 <em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">KinematicEstimator</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">robot_configs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -537,7 +537,7 @@ transformation matrix from dof to skin unit.</p>
 <dd class="field-even"><p><strong>error</strong> – Error between measured values and estimated model outputs</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
+<dd class="field-odd"><p><cite>params</cite></p>
 </dd>
 </dl>
 </dd></dl>
@@ -545,6 +545,29 @@ transformation matrix from dof to skin unit.</p>
 <dl class="method">
 <dt id="robotic_skin.calibration.optimizer.SeparateOptimizer.optimize">
 <code class="sig-name descname">optimize</code><span class="sig-paren">(</span><em class="sig-param">i_imu</em>, <em class="sig-param">Tdofs</em>, <em class="sig-param">params</em>, <em class="sig-param">bounds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#SeparateOptimizer.optimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.SeparateOptimizer.optimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will optimize the given parameters in two steps.
+First it optimizes for rotational parameters and then
+optimizes for translational parameters. Hence, the name
+“Separate”Optimizer.</p>
+<dl class="simple">
+<dt>i_imu: int</dt><dd><p>ith IMU to be optimized</p>
+</dd>
+<dt>Tdofs: list of TransMat</dt><dd><p>List of Transformation Matrices from 0th to ith Joint (Not to SU)</p>
+</dd>
+<dt>params: list of float</dt><dd><p>DH parameters to be optimized.
+This will be converted to Tdof2su which is a transformation
+matrix from ith Joint to ith SU (6 parameters)
+If the number of parameters were 10, it also includes
+4 DH parameter for i-1th to the ith Joint.</p>
+</dd>
+<dt>bounds: np.ndarray</dt><dd><p>Boundaries (Min and Max) for each parameter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.optimizer.SeparateOptimizer.optimize">
+<code class="sig-name descname">optimize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_imu</span></em>, <em class="sig-param"><span class="n">Tdofs</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">bounds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#SeparateOptimizer.optimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.SeparateOptimizer.optimize" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will optimize the given parameters in two steps.
 First it optimizes for rotational parameters and then
 optimizes for translational parameters. Hence, the name
@@ -653,14 +676,14 @@ If given, only the parameters for IMU should be estimated.</p>
 <div class="section" id="module-robotic_skin.calibration.utils">
 <span id="robotic-skin-calibration-utils-module"></span><h2>robotic_skin.calibration.utils module<a class="headerlink" href="#module-robotic_skin.calibration.utils" title="Permalink to this headline">¶</a></h2>
 <p>Utilities module for Robotic Skin.</p>
-<dl class="class">
+<dl class="py class">
 <dt id="robotic_skin.calibration.utils.ParameterManager">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">ParameterManager</code><span class="sig-paren">(</span><em class="sig-param">n_joint</em>, <em class="sig-param">bounds</em>, <em class="sig-param">bounds_su</em>, <em class="sig-param">dhparams=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#ParameterManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.ParameterManager" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">ParameterManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_joint</span></em>, <em class="sig-param"><span class="n">bounds</span></em>, <em class="sig-param"><span class="n">bounds_su</span></em>, <em class="sig-param"><span class="n">dhparams</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#ParameterManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.ParameterManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class for managing DH parameters</p>
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.calibration.utils.ParameterManager.get_params_at">
-<code class="sig-name descname">get_params_at</code><span class="sig-paren">(</span><em class="sig-param">i</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#ParameterManager.get_params_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.ParameterManager.get_params_at" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_params_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#ParameterManager.get_params_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.ParameterManager.get_params_at" title="Permalink to this definition">¶</a></dt>
 <dd><p>if n_joint is 7 DoF i = 0, 1, …, 6</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -675,9 +698,9 @@ If given, only the parameters for IMU should be estimated.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.calibration.utils.ParameterManager.get_tmat_until">
-<code class="sig-name descname">get_tmat_until</code><span class="sig-paren">(</span><em class="sig-param">i</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#ParameterManager.get_tmat_until"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.ParameterManager.get_tmat_until" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_tmat_until</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#ParameterManager.get_tmat_until"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.ParameterManager.get_tmat_until" title="Permalink to this definition">¶</a></dt>
 <dd><p>get transformation matrices when optimizing ith joint (sensor)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -693,9 +716,9 @@ If given, only the parameters for IMU should be estimated.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.calibration.utils.ParameterManager.set_params_at">
-<code class="sig-name descname">set_params_at</code><span class="sig-paren">(</span><em class="sig-param">i</em>, <em class="sig-param">params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#ParameterManager.set_params_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.ParameterManager.set_params_at" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_params_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#ParameterManager.set_params_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.ParameterManager.set_params_at" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set DH parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -709,14 +732,14 @@ If given, only the parameters for IMU should be estimated.</p>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="robotic_skin.calibration.utils.TransMat">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">TransMat</code><span class="sig-paren">(</span><em class="sig-param">params=None</em>, <em class="sig-param">bounds=None</em>, <em class="sig-param">mat=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#TransMat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">TransMat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bounds</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mat</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#TransMat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class for Transformation Matrix
 Manages all its parameters and computation
 It also outputs Rotation Matrix and Position of the transformed result</p>
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.calibration.utils.TransMat.R">
 <em class="property">property </em><code class="sig-name descname">R</code><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.R" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rotation Matrix</p>
@@ -730,9 +753,9 @@ It also outputs Rotation Matrix and Position of the transformed result</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.calibration.utils.TransMat.check_params">
-<code class="sig-name descname">check_params</code><span class="sig-paren">(</span><em class="sig-param">params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#TransMat.check_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.check_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">check_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#TransMat.check_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.check_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check the size of the given dh parameters
 Complement other parameters according to the size</p>
 <dl class="field-list simple">
@@ -742,9 +765,9 @@ Complement other parameters according to the size</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.calibration.utils.TransMat.dot">
-<code class="sig-name descname">dot</code><span class="sig-paren">(</span><em class="sig-param">T</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#TransMat.dot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.dot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">dot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#TransMat.dot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.dot" title="Permalink to this definition">¶</a></dt>
 <dd><p>In our implementation, we use * for dot product</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -760,14 +783,14 @@ of two transformation matrices</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.calibration.utils.TransMat.parameters">
 <em class="property">property </em><code class="sig-name descname">parameters</code><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns: DH parameters of this transformation matrix
 :rtype: np.array</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.calibration.utils.TransMat.position">
 <em class="property">property </em><code class="sig-name descname">position</code><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.position" title="Permalink to this definition">¶</a></dt>
 <dd><p>Position as a result of the transformation</p>
@@ -789,7 +812,7 @@ of two transformation matrices</p>
 
 <dl class="method">
 <dt id="robotic_skin.calibration.utils.TransMat.set_params">
-<code class="sig-name descname">set_params</code><span class="sig-paren">(</span><em class="sig-param">params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#TransMat.set_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.set_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#TransMat.set_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.set_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set parameters that have been optimized</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -798,9 +821,9 @@ of two transformation matrices</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.calibration.utils.TransMat.transformation_matrix">
-<code class="sig-name descname">transformation_matrix</code><span class="sig-paren">(</span><em class="sig-param">th</em>, <em class="sig-param">d</em>, <em class="sig-param">a</em>, <em class="sig-param">al</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#TransMat.transformation_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.transformation_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">transformation_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">th</span></em>, <em class="sig-param"><span class="n">d</span></em>, <em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">al</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#TransMat.transformation_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.TransMat.transformation_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Create a transformation matrix
 DH Parameters are defined with only 4 parameters.
@@ -889,7 +912,7 @@ returns 4x4 matrix of the form</p>
 
 <dl class="function">
 <dt id="robotic_skin.calibration.utils.n2s">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">n2s</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">precision=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#n2s"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.n2s" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">n2s</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#n2s"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.n2s" title="Permalink to this definition">¶</a></dt>
 <dd><p>converts numpy array to string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -901,28 +924,28 @@ returns 4x4 matrix of the form</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="robotic_skin.calibration.utils.pyquat_to_numpy">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">pyquat_to_numpy</code><span class="sig-paren">(</span><em class="sig-param">q</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#pyquat_to_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.pyquat_to_numpy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">pyquat_to_numpy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#pyquat_to_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.pyquat_to_numpy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a pyqt quaternion to a numpy array.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="robotic_skin.calibration.utils.pyquat_to_tfquat">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">pyquat_to_tfquat</code><span class="sig-paren">(</span><em class="sig-param">q</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#pyquat_to_tfquat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.pyquat_to_tfquat" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">pyquat_to_tfquat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#pyquat_to_tfquat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.pyquat_to_tfquat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts a pyqt quaternion to a tf quaternion</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="robotic_skin.calibration.utils.quaternion_from_two_vectors">
 <code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">quaternion_from_two_vectors</code><span class="sig-paren">(</span><em class="sig-param">source</em>, <em class="sig-param">target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#quaternion_from_two_vectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion_from_two_vectors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the quaternion from vector <cite>source</cite>
 to vector <cite>target</cite>.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="robotic_skin.calibration.utils.quaternion_l2_distance">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">quaternion_l2_distance</code><span class="sig-paren">(</span><em class="sig-param">q1</em>, <em class="sig-param">q2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#quaternion_l2_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion_l2_distance" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">quaternion_l2_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q1</span></em>, <em class="sig-param"><span class="n">q2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#quaternion_l2_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion_l2_distance" title="Permalink to this definition">¶</a></dt>
 <dd><p>A metric for computing the distance
 between 2 quaternions.
 sources:
@@ -930,9 +953,9 @@ sources:
 - <a class="reference external" href="http://kieranwynn.github.io/pyquaternion/#accessing-individual-elements">http://kieranwynn.github.io/pyquaternion/#accessing-individual-elements</a></p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="robotic_skin.calibration.utils.tfquat_to_pyquat">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">tfquat_to_pyquat</code><span class="sig-paren">(</span><em class="sig-param">q</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#tfquat_to_pyquat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.tfquat_to_pyquat" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">tfquat_to_pyquat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#tfquat_to_pyquat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.tfquat_to_pyquat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts a tf quaternion to a pyqt quaternion</p>
 </dd></dl>
 

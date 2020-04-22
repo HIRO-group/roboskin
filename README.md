@@ -2,7 +2,7 @@
 
 # HIRO Robotic Skin
 - **Current Release**: `0.0.1` as of 2020/01/14
-- **Target Python versions**: Python 2.7
+- **Target Python versions**: Python 3.7
 - **Documentation**: http://hiro-group.ronc.one/robotic_skin/
 
 # HTTPS Installation
