@@ -358,15 +358,9 @@ class ParameterManagerTest(unittest.TestCase):
         """
         param_manager = ParameterManager(N_JOINT, BOUNDS, BOUNDS_SU)
 
-        Tdof = param_manager.get_tmat_until(i=0)
-        self.assertEqual(len(Tdof), 0)
-
-        Tdof = param_manager.get_tmat_until(i=1)
-        self.assertEqual(len(Tdof), 1)
-
-        for i in range(2, N_JOINT):
+        for i in range(0, N_JOINT):
             Tdof = param_manager.get_tmat_until(i=i)
-            self.assertEqual(len(Tdof), i)
+            self.assertEqual(len(Tdof), i+1)
 
     def test_set_params(self):
         """
