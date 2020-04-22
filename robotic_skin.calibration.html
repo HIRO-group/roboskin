@@ -88,9 +88,9 @@
 <li class="toctree-l3"><a class="reference internal" href="robotic_skin.algorithm.html">robotic_skin.algorithm package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">robotic_skin.calibration package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.accel_position">robotic_skin.calibration.accel_position module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#robotic-skin-calibration-calibrate-imu-poses-module">robotic_skin.calibration.calibrate_imu_poses module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.error_functions">robotic_skin.calibration.error_functions module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.loss">robotic_skin.calibration.loss module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#robotic-skin-calibration-loss-module">robotic_skin.calibration.loss module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.optimizer">robotic_skin.calibration.optimizer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.plot_data">robotic_skin.calibration.plot_data module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.utils">robotic_skin.calibration.utils module</a></li>
@@ -176,80 +176,8 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-robotic_skin.calibration.accel_position">
-<span id="robotic-skin-calibration-accel-position-module"></span><h2>robotic_skin.calibration.accel_position module<a class="headerlink" href="#module-robotic_skin.calibration.accel_position" title="Permalink to this headline">¶</a></h2>
-<p>Module for Kinematics Estimation.</p>
-<dl class="py class">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">KinematicEstimator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">robot_configs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Class for estimating the kinematics of the arm
-and corresponding sensor unit positions.</p>
-<dl class="py method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.get_all_accelerometer_positions">
-<code class="sig-name descname">get_all_accelerometer_positions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.get_all_accelerometer_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.get_all_accelerometer_positions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns all accelerometer positions in the initial position</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><strong>positions</strong> – All accelerometer positions</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.get_i_accelerometer_position">
-<code class="sig-name descname">get_i_accelerometer_position</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_sensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.get_i_accelerometer_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.get_i_accelerometer_position" title="Permalink to this definition">¶</a></dt>
-<dd><p>gets the ith accelerometer position on the robot.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>i_sensor</strong> (<cite>int</cite>) – IMU number <cite>i_sensor</cite></p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>`T.position`</strong> (<cite>np.array</cite>) – position of the imu</p></li>
-<li><p><strong>`T.q`</strong> (<cite>np.array</cite>) – orientation of the imu</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="robotic_skin.calibration.accel_position.KinematicEstimator.optimize">
-<code class="sig-name descname">optimize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#KinematicEstimator.optimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.KinematicEstimator.optimize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Optimizes DH parameters using the training data.
-The error function is defined by the error between the measured accelerations
-and estimated accelerations.
-Nonlinear Optimizer will optimize the parameters by decreasing the error.
-There are two different types of error: static and dynamic motion.
-For further explanation, read each function.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt id="robotic_skin.calibration.accel_position.load_data">
-<code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">robot</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.load_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function for collecting acceleration data with poses</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><strong>data</strong> – Data includes static and dynamic accelerations data</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>Data</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="robotic_skin.calibration.accel_position.parse_arguments">
-<code class="sig-prename descclassname">robotic_skin.calibration.accel_position.</code><code class="sig-name descname">parse_arguments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/accel_position.html#parse_arguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.accel_position.parse_arguments" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parse Arguments</p>
-</dd></dl>
-
+<div class="section" id="robotic-skin-calibration-calibrate-imu-poses-module">
+<h2>robotic_skin.calibration.calibrate_imu_poses module<a class="headerlink" href="#robotic-skin-calibration-calibrate-imu-poses-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-robotic_skin.calibration.error_functions">
 <span id="robotic-skin-calibration-error-functions-module"></span><h2>robotic_skin.calibration.error_functions module<a class="headerlink" href="#module-robotic_skin.calibration.error_functions" title="Permalink to this headline">¶</a></h2>
@@ -389,29 +317,8 @@ angular velocity <cite>curr_w</cite></p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-robotic_skin.calibration.loss">
-<span id="robotic-skin-calibration-loss-module"></span><h2>robotic_skin.calibration.loss module<a class="headerlink" href="#module-robotic_skin.calibration.loss" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="robotic_skin.calibration.loss.L1Loss">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.loss.</code><code class="sig-name descname">L1Loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">hyper_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/loss.html#L1Loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.loss.L1Loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.loss.Loss" title="robotic_skin.calibration.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.loss.Loss</span></code></a></p>
-<p>L1 Loss</p>
-</dd></dl>
-
-<dl class="py class">
-<dt id="robotic_skin.calibration.loss.L2Loss">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.loss.</code><code class="sig-name descname">L2Loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">hyper_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/loss.html#L2Loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.loss.L2Loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.loss.Loss" title="robotic_skin.calibration.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.loss.Loss</span></code></a></p>
-<p>L2Loss.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt id="robotic_skin.calibration.loss.Loss">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.loss.</code><code class="sig-name descname">Loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">hyper_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/loss.html#Loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.loss.Loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Loss function base class</p>
-</dd></dl>
-
+<div class="section" id="robotic-skin-calibration-loss-module">
+<h2>robotic_skin.calibration.loss module<a class="headerlink" href="#robotic-skin-calibration-loss-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-robotic_skin.calibration.optimizer">
 <span id="robotic-skin-calibration-optimizer-module"></span><h2>robotic_skin.calibration.optimizer module<a class="headerlink" href="#module-robotic_skin.calibration.optimizer" title="Permalink to this headline">¶</a></h2>
@@ -436,7 +343,7 @@ until the updates are very small.</p>
 
 <dl class="py class">
 <dt id="robotic_skin.calibration.optimizer.Optimizer">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.optimizer.</code><code class="sig-name descname">Optimizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error_functions</span></em>, <em class="sig-param"><span class="n">stop_condition</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">su_dhparams</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#Optimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.Optimizer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.optimizer.</code><code class="sig-name descname">Optimizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error_functions</span></em>, <em class="sig-param"><span class="n">stop_conditions</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">su_dhparams</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#Optimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.Optimizer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Optimizer class to evaluate the data.</p>
 <dl class="py method">
