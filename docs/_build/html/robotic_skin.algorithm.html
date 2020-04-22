@@ -198,14 +198,14 @@ descending order</p>
 </dd>
 </dl>
 <p># TODO: Next PR, I will add more examples of why this approach is correct. I derived some in my IPad</p>
-<dl class="class">
+<dl class="py class">
 <dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.algorithm.convert_to_lowertriangular_matrix.</code><code class="sig-name descname">ConvertToLT</code><span class="sig-paren">(</span><em class="sig-param">input_matrix</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.algorithm.convert_to_lowertriangular_matrix.</code><code class="sig-name descname">ConvertToLT</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_matrix</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This is a class to convert LT convertible matrix to LT matrix</p>
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.convert_to_floating_point">
-<code class="sig-name descname">convert_to_floating_point</code><span class="sig-paren">(</span><em class="sig-param">my_number</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.convert_to_floating_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.convert_to_floating_point" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">convert_to_floating_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">my_number</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.convert_to_floating_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.convert_to_floating_point" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method is used to convert some number like 768 to 0.768. Basically used to add weight value
 :param my_number: Input Number
 :type my_number: int</p>
@@ -219,9 +219,9 @@ descending order</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.find_zero_ndarray">
-<code class="sig-name descname">find_zero_ndarray</code><span class="sig-paren">(</span><em class="sig-param">input_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.find_zero_ndarray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.find_zero_ndarray" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">find_zero_ndarray</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.find_zero_ndarray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.find_zero_ndarray" title="Permalink to this definition">¶</a></dt>
 <dd><p>As this is a binary matrix, with values only 0 and 1, equating min value and max value to 0, we can say
 the array is a zero array
 :param input_array: Input matrix is the matrix we want to find out whether it’s a zero array or not.
@@ -236,7 +236,7 @@ the array is a zero array
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.get_lt_matrix_infos">
 <code class="sig-name descname">get_lt_matrix_infos</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.get_lt_matrix_infos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.get_lt_matrix_infos" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is just used to return values in the order
@@ -252,9 +252,9 @@ np.ndarray: The Joint ID’s in the order of their arrangement on the robotic ar
 :rtype: bool, np.ndarray, int, np.ndarray, np.ndarray</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_lower_triangular_fn">
-<code class="sig-name descname">is_lower_triangular_fn</code><span class="sig-paren">(</span><em class="sig-param">input_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.is_lower_triangular_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_lower_triangular_fn" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_lower_triangular_fn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.is_lower_triangular_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_lower_triangular_fn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Directly copied from: <a class="reference external" href="https://www.geeksforgeeks.org/program-check-matrix-lower-triangular/">https://www.geeksforgeeks.org/program-check-matrix-lower-triangular/</a>
 And also checked. Will output if input matrix input_array is a lower triangular matrix or not
 :param input_array: The matrix in question, whether it’s lower triangular or not
@@ -269,16 +269,16 @@ And also checked. Will output if input matrix input_array is a lower triangular 
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_matrix_lt_convertible">
-<code class="sig-name descname">is_matrix_lt_convertible</code><span class="sig-paren">(</span><em class="sig-param">input_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.is_matrix_lt_convertible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_matrix_lt_convertible" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_matrix_lt_convertible</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.is_matrix_lt_convertible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_matrix_lt_convertible" title="Permalink to this definition">¶</a></dt>
 <dd><p>Assuming that passed triangle is binary matrix, this will only work in that case
 :param input_array:</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_square_matrix">
-<code class="sig-name descname">is_square_matrix</code><span class="sig-paren">(</span><em class="sig-param">input_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.is_square_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_square_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_square_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.is_square_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.is_square_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is a function which raises an exception, if the output matrix isn’t square matrix
 :param input_array:
 :type input_array: Input Matrix</p>
@@ -292,7 +292,7 @@ And also checked. Will output if input matrix input_array is a lower triangular 
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.main_algorithm">
 <code class="sig-name descname">main_algorithm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.main_algorithm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.main_algorithm" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the main algorithm implementation. The algorithm details are at the top of the file.
@@ -300,9 +300,9 @@ And also checked. Will output if input matrix input_array is a lower triangular 
 :rtype: None</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.numpyarray_toint">
-<code class="sig-name descname">numpyarray_toint</code><span class="sig-paren">(</span><em class="sig-param">my_array</em>, <em class="sig-param">reverse</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.numpyarray_toint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.numpyarray_toint" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">numpyarray_toint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">my_array</span></em>, <em class="sig-param"><span class="n">reverse</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.numpyarray_toint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.numpyarray_toint" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will convert a numpy 1D array which is considered a binary number into a decimal number
 :param my_array: Input array
 :type my_array: np.ndarray
@@ -318,16 +318,16 @@ And also checked. Will output if input matrix input_array is a lower triangular 
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.sort_columns_in_descending_order">
-<code class="sig-name descname">sort_columns_in_descending_order</code><span class="sig-paren">(</span><em class="sig-param">input_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.sort_columns_in_descending_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.sort_columns_in_descending_order" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sort_columns_in_descending_order</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.sort_columns_in_descending_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.sort_columns_in_descending_order" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sort columns of input matrix. The algorithm is specified at the top.
 :param input_array:</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.sort_rows_in_ascending_order">
-<code class="sig-name descname">sort_rows_in_ascending_order</code><span class="sig-paren">(</span><em class="sig-param">input_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.sort_rows_in_ascending_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.sort_rows_in_ascending_order" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sort_rows_in_ascending_order</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/algorithm/convert_to_lowertriangular_matrix.html#ConvertToLT.sort_rows_in_ascending_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.algorithm.convert_to_lowertriangular_matrix.ConvertToLT.sort_rows_in_ascending_order" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sort rows of input matrix. Algorithm at the top.
 References:
 # Stackoverflow links: <a class="reference external" href="https://stackoverflow.com/questions/52216526/sort-array-columns-based-upon-sum/52216674">https://stackoverflow.com/questions/52216526/sort-array-columns-based-upon-sum/52216674</a>
