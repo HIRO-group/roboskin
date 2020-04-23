@@ -422,8 +422,8 @@ def angle_between_quaternions(q_1: np.ndarray, q_2: np.ndarray) -> float:
     if not (np.linalg.norm(q_1) == np.linalg.norm(q_2) == 1):
         raise Exception("Please only pass unit quaternions")
     angle = np.arccos(2 * ((q_1 @ q_2) ** 2) - 1)  # noqa: E999
-    angle_in_degrees = (angle / np.pi) * 180
-    return angle_in_degrees
+    # angle_in_degrees = (angle / np.pi) * 180
+    return angle
 
 
 def n2s(x, precision=2):
