@@ -419,6 +419,14 @@ class QuaternionTest(unittest.TestCase):
 
         assert q == Quaternion(axis=[0, 0, 1], angle=np.pi/2)
 
+    def test_quaternion_angles(self):
+        a = Quaternion(axis=[1, 0, 0], angle=-np.pi / 2)
+        b = Quaternion(axis=[1, 0, 0], angle=np.pi / 3)
+        a = np.array([a[1], a[2], a[3], a[0]])
+        b = np.array([b[1], b[2], b[3], b[0]])
+        angle_in_degrees = utils.angle_between_quaternions(a, b)
+        self.assertAlmostEqual(angle_in_degrees, 150)
+
 
 if __name__ == '__main__':
     unittest.main()
