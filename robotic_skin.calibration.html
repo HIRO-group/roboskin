@@ -777,6 +777,36 @@ returns 4x4 matrix of the form</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="robotic_skin.calibration.utils.angle_between_quaternions">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">angle_between_quaternions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q_1</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">q_2</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; float<a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#angle_between_quaternions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.angle_between_quaternions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Angle between quaternions a and b in degrees. Please note the input quaternions should be of
+form np.ndarray([x, y, z, w]).
+The formula for angle between quaternions is:</p>
+<div class="math notranslate nohighlight">
+\[\theta = \cos^{-1}\bigl(2\langle q_1,q_2\rangle^2 -1\bigr)\]</div>
+<p>where ⟨q1,q2⟩ denotes the inner product of the corresponding quaternions:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\langle a_1 +b_1 \textbf{i} + c_1 \textbf{j} + d_1 \textbf{k}, \\
+a_2 + b_2 \textbf{i} + c_2 \textbf{j} + d_2 \textbf{k}\rangle \\
+= a_1a_2 + b_1b_2 + c_1 c_2 + d_1d_2.\end{split}\]</div>
+<p>Reference: <a class="reference external" href="https://math.stackexchange.com/questions/90081/quaternion-distance">https://math.stackexchange.com/questions/90081/quaternion-distance</a>
+:param q_1: np.ndarray</p>
+<blockquote>
+<div><p>Quaternion a</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>q_2</strong> – np.ndarray
+Quaternion b</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>float
+Angle between quaternions in degrees</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt id="robotic_skin.calibration.utils.get_IMU_pose">
 <code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">get_IMU_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Tdofs</span></em>, <em class="sig-param"><span class="n">Tdof2su</span></em>, <em class="sig-param"><span class="n">joints</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#get_IMU_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.get_IMU_pose" title="Permalink to this definition">¶</a></dt>
 <dd><p>gets the imu pose.</p>
