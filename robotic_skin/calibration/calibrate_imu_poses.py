@@ -117,6 +117,7 @@ class KinematicEstimator():
 
         self.imu_true_positions = robot_configs['su_pose']
         self.all_euclidean_distances = []
+        self.estimated_dh_params = []
 
     def optimize(self):
         """
@@ -143,7 +144,11 @@ class KinematicEstimator():
 
             euclidean_distance = np.linalg.norm(pos - self.imu_true_positions['su%i' % (i_imu+1)]['position'])
             self.all_euclidean_distances.append(euclidean_distance)
-            self.estimated_dh_params = params
+            """
+            size of params will be different depending on if we are 
+            optimizing all or just su dh parameters.
+            """
+            self.estimated_dh_params.append(params)
             print('='*100)
             print('Position:', pos)
             print('Quaternion:', quat)

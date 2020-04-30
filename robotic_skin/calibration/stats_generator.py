@@ -18,6 +18,7 @@ if __name__ == "__main__":
     args = parse_arguments()
     measured_data = load_data(args.robot)
     robot_configs = load_robot_configs(args.configdir, args.robot)
+    optimize_all = args.optimizeall
     # Below code is for
     # 1) A graph with SU's euclidean distance between real and predicted points.
     #     One legend will be Mittendorfer's method and another will be ours
@@ -34,7 +35,7 @@ if __name__ == "__main__":
     }
     optimizer_function = SeparateOptimizer
     method1_kinematics_estimator = KinematicEstimator(measured_data, robot_configs, optimizer_function,
-                                                      error_functions, stop_conditions)
+                                                      error_functions, stop_conditions, optimize_all)
     method1_kinematics_estimator.optimize()
 
     # Method 2
@@ -47,9 +48,11 @@ if __name__ == "__main__":
         'Rotation': PassThroughStopCondition(),
         'Translation': DeltaXStopCondition()
     }
-    optimizer_function = SeparateOptimizer
+    # optimization for each loss function is not done separately.
+
+    optimizer_function = Optimizer
     method2_kinematics_estimator = KinematicEstimator(measured_data, robot_configs, optimizer_function,
-                                                      error_functions, stop_conditions)
+                                                      error_functions, stop_conditions, optimize_all)
     method2_kinematics_estimator.optimize()
 
     # Method 3
@@ -63,11 +66,15 @@ if __name__ == "__main__":
         'Rotation': PassThroughStopCondition(),
         'Translation': DeltaXStopCondition()
     }
-    optimizer_function = SeparateOptimizer
-    method3_kinematics_estimator = KinematicEstimator(measured_data, robot_configs, optimizer_function,
-                                                      error_functions, stop_conditions)
-    method3_kinematics_estimator.optimize()
+    # optimization for each loss function is not done separately.
 
+    optimizer_function = Optimizer
+    method3_kinematics_estimator = KinematicEstimator(measured_data, robot_configs, optimizer_function,
+                                                      error_functions, stop_conditions, optimize_all)
+    method3_kinematics_estimator.optimize()
+    # the *predicted* dh parameters list can be obtained by:
+    # methodn_kinematics_estimator.estimated_dh_params
+    # write to csv? pandas?
     plt.plot(method1_kinematics_estimator.all_euclidean_distances, "-b", label=method1_name)
     plt.plot(method2_kinematics_estimator.all_euclidean_distances, "-r", label=method2_name)
     plt.plot(method3_kinematics_estimator.all_euclidean_distances, "-g", label=method3_name)
