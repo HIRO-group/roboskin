@@ -47,7 +47,7 @@ class KinematicEstimator():
     Class for estimating the kinematics of the arm
     and corresponding sensor unit positions.
     """
-    def __init__(self, data, robot_configs, optimizer_function, error_functions_dict, stop_conditions_dict):
+    def __init__(self, data, robot_configs, optimizer_function, error_functions_dict, stop_conditions_dict, optimize_all):
         """
         Arguments
         ------------
@@ -89,7 +89,17 @@ class KinematicEstimator():
             [0.0, 0.2],         # d
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
-        self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_configs['dh_parameter'])
+
+        options = ["false", "f", "n", "no"]
+        if optimize_all.lower() in options:
+            optimize_all_params = False
+        else:
+            optimize_all_params = True
+
+        if 'dh_parameter' not in robot_configs:
+            optimize_all_params = False
+        robot_dhparams = robot_configs['dh_parameter'] if not optimize_all_params else None
+        self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_dhparams)
 
         # Below is an example of what error_functions and stop_conditions dictionary looks like
         # error_functions = {
@@ -133,7 +143,7 @@ class KinematicEstimator():
 
             euclidean_distance = np.linalg.norm(pos - self.imu_true_positions['su%i' % (i_imu+1)]['position'])
             self.all_euclidean_distances.append(euclidean_distance)
-
+            self.estimated_dh_params = params
             print('='*100)
             print('Position:', pos)
             print('Quaternion:', quat)
@@ -243,6 +253,8 @@ def parse_arguments():
                         help="Please provide a stop function for each key provided")
     parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer',
                         help="Please provide an optimizer function for each key provided")
+    parser.add_argument('-oa', '--optimizeall', type=str, default='false',
+                        help="Determines if the optimizer will be run to find all of the dh parameters.")
     return parser.parse_args()
 
 
