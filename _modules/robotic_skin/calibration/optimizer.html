@@ -373,7 +373,6 @@
         <span class="n">local_opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">LOCAL_OPTIMIZER</span><span class="p">,</span> <span class="n">n_param</span><span class="p">)</span>
         <span class="n">opt</span><span class="o">.</span><span class="n">set_local_optimizer</span><span class="p">(</span><span class="n">local_opt</span><span class="p">)</span>
         <span class="n">param_pos</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">position_index</span><span class="p">])</span>
-
         <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rotation_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_rot</span>
         <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">position_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_pos</span>
 
