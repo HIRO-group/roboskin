@@ -47,7 +47,7 @@ class KinematicEstimator():
     Class for estimating the kinematics of the arm
     and corresponding sensor unit positions.
     """
-    def __init__(self, data, robot_configs, optimizer_function, error_functions_dict, stop_conditions_dict):
+    def __init__(self, data, robot_configs, optimizer_function, error_functions_dict, stop_conditions_dict, optimize_all):
         """
         Arguments
         ------------
@@ -62,9 +62,9 @@ class KinematicEstimator():
         # Assume n_sensor is equal to n_joint for now
         self.robot_configs = robot_configs
 
-        self.pose_names = list(data.constant.keys())
-        self.joint_names = list(data.constant[self.pose_names[0]].keys())
-        self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
+        self.pose_names = list(data.dynamic.keys())
+        self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
+        self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
         self.n_pose = len(self.pose_names)
         self.n_joint = len(self.joint_names)
         self.n_sensor = self.n_joint
@@ -89,7 +89,18 @@ class KinematicEstimator():
             [0.0, 0.2],         # d
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
-        self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_configs['dh_parameter'])
+
+        # taken care of in argparse
+        options = ["false", "f", "n", "no"]
+        if optimize_all.lower() in options:
+            optimize_all_params = False
+        else:
+            optimize_all_params = True
+
+        if 'dh_parameter' not in robot_configs:
+            optimize_all_params = False
+        robot_dhparams = robot_configs['dh_parameter'] if not optimize_all_params else None
+        self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_dhparams)
 
         # Below is an example of what error_functions and stop_conditions dictionary looks like
         # error_functions = {
@@ -210,12 +221,12 @@ def load_data(robot):
 
     static = read_pickle('static_data', robot)
     constant = read_pickle('constant_data', robot)
-    # dynamic = read_pickle('dynamic_data', robot)
-
-    # Data = namedtuple('Data', 'static dynamic constant')
-    # data = Data(static, dynamic, constant)
-    Data = namedtuple('Data', 'static constant')
-    data = Data(static, constant)
+    dynamic = read_pickle('dynamic_data', robot)
+    Data = namedtuple('Data', 'static dynamic constant')
+    # load all of the data!
+    data = Data(static, dynamic, constant)
+    # Data = namedtuple('Data', 'static dynamic')
+    # data = Data(static, dynamic)
 
     return data
 
@@ -243,6 +254,9 @@ def parse_arguments():
                         help="Please provide a stop function for each key provided")
     parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer',
                         help="Please provide an optimizer function for each key provided")
+
+    parser.add_argument('-oa', '--optimizeall', type=str, default='false',
+                        help="Determines if the optimizer will be run to find all of the dh parameters.")
     return parser.parse_args()
 
 
@@ -267,7 +281,8 @@ if __name__ == '__main__':
         gen_stop_conditions_dict[key] = stop_function()
     optimizer = getattr(optimizer, args.optimizer)
     estimator = KinematicEstimator(measured_data, robot_configs, optimizer,
-                                   gen_error_functions_dict, gen_stop_conditions_dict)
+                                   gen_error_functions_dict, gen_stop_conditions_dict, args.optimizeall)
+
     estimator.optimize()
     data = estimator.get_all_accelerometer_positions()
     ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')

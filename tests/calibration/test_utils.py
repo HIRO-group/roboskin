@@ -358,15 +358,9 @@ class ParameterManagerTest(unittest.TestCase):
         """
         param_manager = ParameterManager(N_JOINT, BOUNDS, BOUNDS_SU)
 
-        Tdof = param_manager.get_tmat_until(i=0)
-        self.assertEqual(len(Tdof), 0)
-
-        Tdof = param_manager.get_tmat_until(i=1)
-        self.assertEqual(len(Tdof), 1)
-
-        for i in range(2, N_JOINT):
+        for i in range(0, N_JOINT):
             Tdof = param_manager.get_tmat_until(i=i)
-            self.assertEqual(len(Tdof), i)
+            self.assertEqual(len(Tdof), i+1)
 
     def test_set_params(self):
         """
@@ -425,7 +419,7 @@ class QuaternionTest(unittest.TestCase):
         a = np.array([a[1], a[2], a[3], a[0]])
         b = np.array([b[1], b[2], b[3], b[0]])
         angle_in_degrees = utils.angle_between_quaternions(a, b)
-        self.assertAlmostEqual(angle_in_degrees, 150)
+        self.assertAlmostEqual(angle_in_degrees, 2.6179938779914944)
 
 
 if __name__ == '__main__':

@@ -70,13 +70,13 @@ class TransMat():
         elif params.size == 4:
             th, d, a, al = params
         else:
-            print(params)
             raise ValueError('Wrong number of parameters passed. It should be 1, 2 or 4')
 
         return th, d, a, al
 
     def transformation_matrix(self, th, d, a, al):
         """
+
         Create a transformation matrix
         DH Parameters are defined with only 4 parameters.
         2 Translational parameters and 2 Rotations parameters.
@@ -264,6 +264,7 @@ class ParameterManager():
         if self.dhparams is not None:
             self.Tdof2dof = [TransMat(dhparams['joint' + str(i+1)]) for i in range(n_joint)]
         else:
+            # uninitialized dh params
             self.Tdof2dof = [TransMat(bounds=bounds) for i in range(n_joint)]
 
         self.Tdof2vdof = [TransMat(bounds=bounds_su[:2, :]) for i in range(n_joint)]
@@ -319,11 +320,14 @@ class ParameterManager():
         if self.dhparams is not None:
             return self.Tdof2dof[:i+1]
         else:
-            return self.Tdof2dof[:max(0, i)]
+            return self.Tdof2dof[:max(0, i+1)]
 
     def set_params_at(self, i, params):
         """
         Set DH parameters
+        Depending of if we
+        are optimizing 6 (just su params)
+        or 10 (all dh params)
 
         Arguments
         ------------
@@ -395,7 +399,7 @@ def quaternion_from_two_vectors(source, target):
     return pyqt.Quaternion(axis=axis, angle=angle)
 
 
-def angle_between_quaternions(q_1: np.ndarray, q_2: np.ndarray) -> float:
+def angle_between_quaternions(q_1: np.ndarray, q_2: np.ndarray) -> float:  # noqa: E999
     r"""
     Angle between quaternions a and b in degrees. Please note the input quaternions should be of
     form np.ndarray([x, y, z, w]).
