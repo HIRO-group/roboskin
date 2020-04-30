@@ -542,6 +542,37 @@
     <span class="k">return</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="n">angle</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="angle_between_quaternions"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.utils.angle_between_quaternions">[docs]</a><span class="k">def</span> <span class="nf">angle_between_quaternions</span><span class="p">(</span><span class="n">q_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">q_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Angle between quaternions a and b in degrees. Please note the input quaternions should be of</span>
+<span class="sd">    form np.ndarray([x, y, z, w]).</span>
+<span class="sd">    The formula for angle between quaternions is:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \theta = \cos^{-1}\bigl(2\langle q_1,q_2\rangle^2 -1\bigr)</span>
+
+<span class="sd">    where ⟨q1,q2⟩ denotes the inner product of the corresponding quaternions:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \langle a_1 +b_1 \textbf{i} + c_1 \textbf{j} + d_1 \textbf{k}, \\</span>
+<span class="sd">        a_2 + b_2 \textbf{i} + c_2 \textbf{j} + d_2 \textbf{k}\rangle \\</span>
+<span class="sd">        = a_1a_2 + b_1b_2 + c_1 c_2 + d_1d_2.</span>
+
+<span class="sd">    Reference: https://math.stackexchange.com/questions/90081/quaternion-distance</span>
+<span class="sd">    :param q_1: np.ndarray</span>
+<span class="sd">        Quaternion a</span>
+<span class="sd">    :param q_2: np.ndarray</span>
+<span class="sd">        Quaternion b</span>
+<span class="sd">    :return: float</span>
+<span class="sd">        Angle between quaternions in degrees</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">q_1</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">q_2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Please only pass unit quaternions&quot;</span><span class="p">)</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">((</span><span class="n">q_1</span> <span class="o">@</span> <span class="n">q_2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># noqa: E999</span>
+    <span class="c1"># angle_in_degrees = (angle / np.pi) * 180</span>
+    <span class="k">return</span> <span class="n">angle</span></div>
+
+
 <div class="viewcode-block" id="n2s"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.utils.n2s">[docs]</a><span class="k">def</span> <span class="nf">n2s</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    converts numpy array to string.</span>
