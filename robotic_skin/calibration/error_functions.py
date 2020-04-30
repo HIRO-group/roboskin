@@ -26,6 +26,7 @@ def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
 
     `curr_w`: `int`
         Angular velocity
+
     """
     # Transformation Matrix from su to rs in rs frame
     rs_T_su = TransMat(np.zeros(4))
@@ -56,7 +57,8 @@ def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
     return a_su
 
 
-def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max_w, joint_angle_func):
+def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max_w, joint_angle_func,
+                                      apply_normal_mittendorder=False):
     """
     Compute an acceleration value from positions.
     .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`
@@ -77,6 +79,9 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max
         Transformation Matrices between Dofs
     Tjoints: list of TransMat
         Transformation Matrices (Rotation Matrix)
+    apply_normal_mittendorfer: bool
+        determines if we resort to the normal method
+        mittendorfer uses (which we modified due to some possible missing terms
 
     Returns
     ---------
@@ -112,8 +117,11 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max
     a_dofd = np.cross(w_dofd, np.cross(w_dofd, dofd_r_su))
 
     # get acceleration and include gravity
-    accel_rs = ((pos(dt) + pos(-dt) - 2*pos(0)) / (dt**2)) + gravity
+    accel_rs = ((pos(dt) + pos(-dt) - 2*pos(0)) / (dt**2))
+    if apply_normal_mittendorder:
+        return np.dot(Rrs2su, accel_rs)
 
+    accel_rs += gravity
     # Every joint rotates along its own z axis, one joint moves at a time
     # rotate into su frame
     accel_su = np.dot(dof_T_su.R.T, a_dofd) + np.dot(Rrs2su, accel_rs)
@@ -336,8 +344,9 @@ class MaxAccelerationErrorFunction(ErrorFunction):
     Compute errors between estimated and measured max acceleration for sensor i
 
     """
-    def __init__(self, data, loss_func):
+    def __init__(self, data, loss_func, use_modified_mittendorfer=True):
         super().__init__(data, loss_func)
+        self.use_modified_mittendorfer = use_modified_mittendorfer
 
     def __call__(self, i, Tdofs, Tdof2su):
         """
@@ -373,7 +382,9 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 Tjoints = [TransMat(joint) for joint in joints]
                 # max_accel_model = self.estimate_acceleration_numerically(
                 # Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
-                max_accel_model = estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, A, max_acceleration_joint_angle)
+                # use mittendorfer's original or modified based on condition
+                max_accel_model = estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, A, max_acceleration_joint_angle,
+                                                                    self.use_modified_mittendorfer)
                 # if p == 0:
                 #     print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
                 error = np.sum(np.abs(max_accel_train - max_accel_model)**2)

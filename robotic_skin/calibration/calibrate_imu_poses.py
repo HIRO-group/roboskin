@@ -89,13 +89,14 @@ class KinematicEstimator():
             [0.0, 0.2],         # d
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
-        
+
         # taken care of in argparse
         options = ["false", "f", "n", "no"]
         if optimize_all.lower() in options:
             optimize_all_params = False
         else:
             optimize_all_params = True
+
         if 'dh_parameter' not in robot_configs:
             optimize_all_params = False
         robot_dhparams = robot_configs['dh_parameter'] if not optimize_all_params else None
@@ -222,6 +223,7 @@ def load_data(robot):
     constant = read_pickle('constant_data', robot)
     dynamic = read_pickle('dynamic_data', robot)
     Data = namedtuple('Data', 'static dynamic constant')
+    # load all of the data!
     data = Data(static, dynamic, constant)
     # Data = namedtuple('Data', 'static dynamic')
     # data = Data(static, dynamic)
