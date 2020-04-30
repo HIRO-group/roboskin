@@ -62,9 +62,9 @@ class KinematicEstimator():
         # Assume n_sensor is equal to n_joint for now
         self.robot_configs = robot_configs
 
-        self.pose_names = list(data.constant.keys())
-        self.joint_names = list(data.constant[self.pose_names[0]].keys())
-        self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
+        self.pose_names = list(data.dynamic.keys())
+        self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
+        self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
         self.n_pose = len(self.pose_names)
         self.n_joint = len(self.joint_names)
         self.n_sensor = self.n_joint
@@ -225,12 +225,12 @@ def load_data(robot):
 
     static = read_pickle('static_data', robot)
     constant = read_pickle('constant_data', robot)
-    # dynamic = read_pickle('dynamic_data', robot)
-
-    # Data = namedtuple('Data', 'static dynamic constant')
-    # data = Data(static, dynamic, constant)
-    Data = namedtuple('Data', 'static constant')
-    data = Data(static, constant)
+    dynamic = read_pickle('dynamic_data', robot)
+    Data = namedtuple('Data', 'static dynamic constant')
+    # load all of the data!
+    data = Data(static, dynamic, constant)
+    # Data = namedtuple('Data', 'static dynamic')
+    # data = Data(static, dynamic)
 
     return data
 
@@ -284,7 +284,8 @@ if __name__ == '__main__':
         gen_stop_conditions_dict[key] = stop_function()
     optimizer = getattr(optimizer, args.optimizer)
     estimator = KinematicEstimator(measured_data, robot_configs, optimizer,
-                                   gen_error_functions_dict, gen_stop_conditions_dict)
+                                   gen_error_functions_dict, gen_stop_conditions_dict, args.optimizeall)
+
     estimator.optimize()
     data = estimator.get_all_accelerometer_positions()
     ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
