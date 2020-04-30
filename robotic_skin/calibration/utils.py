@@ -76,6 +76,7 @@ class TransMat():
 
     def transformation_matrix(self, th, d, a, al):
         """
+
         Create a transformation matrix
         DH Parameters are defined with only 4 parameters.
         2 Translational parameters and 2 Rotations parameters.
