@@ -38,10 +38,10 @@ if __name__ == "__main__":
     method1_kinematics_estimator.optimize()
 
     # Method 2
-    method2_name = "Mittendorfers method"
+    method2_name = "Modified Mittendorfer's Method"
     error_functions = {
         'Rotation': StaticErrorFunction(measured_data, L2Loss()),
-        'Translation': ConstantRotationErrorFunction(measured_data, L2Loss())
+        'Translation': MaxAccelerationErrorFunction(measured_data, L2Loss())
     }
     stop_conditions = {
         'Rotation': PassThroughStopCondition(),
@@ -52,8 +52,26 @@ if __name__ == "__main__":
                                                       error_functions, stop_conditions)
     method2_kinematics_estimator.optimize()
 
+    # Method 2
+    method3_name = "Mittendorfer's Method"
+    error_functions = {
+        'Rotation': StaticErrorFunction(measured_data, L2Loss()),
+        'Translation': MaxAccelerationErrorFunction(measured_data, L2Loss(),
+                                                    use_modified_mittendorfer=False)
+    }
+    stop_conditions = {
+        'Rotation': PassThroughStopCondition(),
+        'Translation': DeltaXStopCondition()
+    }
+    optimizer_function = SeparateOptimizer
+    method3_kinematics_estimator = KinematicEstimator(measured_data, robot_configs, optimizer_function,
+                                                      error_functions, stop_conditions)
+    method3_kinematics_estimator.optimize()
+
     plt.plot(method1_kinematics_estimator.all_euclidean_distances, "-b", label=method1_name)
     plt.plot(method2_kinematics_estimator.all_euclidean_distances, "-r", label=method2_name)
+    plt.plot(method3_kinematics_estimator.all_euclidean_distances, "-g", label=method3_name)
+
     plt.legend(loc="upper left")
     plt.show()
 
