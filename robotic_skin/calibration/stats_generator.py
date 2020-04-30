@@ -52,7 +52,7 @@ if __name__ == "__main__":
                                                       error_functions, stop_conditions)
     method2_kinematics_estimator.optimize()
 
-    # Method 2
+    # Method 3
     method3_name = "Mittendorfer's Method"
     error_functions = {
         'Rotation': StaticErrorFunction(measured_data, L2Loss()),
