@@ -22,11 +22,14 @@ from robotic_skin.calibration.calibrate_imu_poses import KinematicEstimator
 from robotic_skin.calibration.calibrate_imu_poses import parse_arguments
 from robotic_skin.calibration.utils import load_robot_configs
 import matplotlib.pyplot as plt
+import os
 
 if __name__ == "__main__":
     args = parse_arguments()
     measured_data = load_data(args.robot)
-    robot_configs = load_robot_configs(args.configdir, args.robot)
+    repodir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    configdir = os.path.join(repodir, 'config')
+    robot_configs = load_robot_configs(configdir, args.robot)
     optimize_all = args.optimizeall
     # Below code is for
     # 1) A graph with SU's euclidean distance between real and predicted points.

@@ -205,10 +205,13 @@ class ErrorFunction():
         self.data = data
         self.loss_func = loss_func
 
-        self.pose_names = list(data.dynamic.keys())
-        self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
-        self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
-        self.n_pose = len(self.pose_names)
+        self.pose_names = list(data.constant.keys())
+        self.joint_names = list(data.constant[self.pose_names[0]].keys())
+        self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
+        self.n_dynamic_pose = len(list(data.dynamic.keys()))
+        self.n_constant_pose = len(list(data.constant.keys()))
+        self.n_static_pose = len(list(data.static.keys()))
+
         self.n_joint = len(self.joint_names)
         self.n_sensor = self.n_joint
 
@@ -253,10 +256,10 @@ class StaticErrorFunction(ErrorFunction):
             Static Error
 
         """  # noqa: W605
-        gravities = np.zeros((self.n_pose, 3))
-        gravity = np.array([[0, 0, 9.8], ] * self.n_pose, dtype=float)
+        gravities = np.zeros((self.n_static_pose, 3))
+        gravity = np.array([[0, 0, 9.8], ] * self.n_static_pose, dtype=float)
 
-        for p in range(self.n_pose):
+        for p in range(self.n_static_pose):
             joints = self.data.static[self.pose_names[p]][self.imu_names[i]][3:3+i+1]
             Tjoints = [TransMat(joint) for joint in joints]
 
@@ -305,7 +308,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
         """
         errors = 0.0
         n_data = 0
-        for p in range(self.n_pose):
+        for p in range(self.n_constant_pose):
             # for d in range(i+1):
             for d in range(max(0, i-2), i+1):
                 data = self.data.constant[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0]
@@ -370,7 +373,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         """  # noqa: W605
         e2 = 0.0
         n_data = 0
-        for p in range(self.n_pose):
+        for p in range(self.n_dynamic_pose):
             for d in range(max(0, i-2), i+1):
                 # max acceleration (x,y,z) of the data
                 max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0][:3]
