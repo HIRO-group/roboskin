@@ -83,7 +83,7 @@ if __name__ == "__main__":
         'Rotation': DeltaXStopCondition(),
         'Translation': DeltaXStopCondition()
     }
-    # optimization for each loss function is not done separately.
+    # optimization for each loss function is not done separately in mittendorfer's method
 
     optimizer_function = Optimizer
     method2_kinematics_estimator = KinematicEstimator(measured_data, robot_configs, optimizer_function,
