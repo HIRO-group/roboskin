@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # 1) A graph with SU's euclidean distance between real and predicted points.
     #     One legend will be Mittendorfer's method and another will be ours
 
-    # Method 1
+    # # Method 1
     method1_name = "Our Method"
     error_functions = {
         'Rotation': StaticErrorFunction(measured_data, L2Loss()),
@@ -57,7 +57,7 @@ if __name__ == "__main__":
         'Translation': MaxAccelerationErrorFunction(measured_data, L2Loss())
     }
     stop_conditions = {
-        'Rotation': PassThroughStopCondition(),
+        'Rotation': DeltaXStopCondition(),
         'Translation': DeltaXStopCondition()
     }
     # optimization for each loss function is not done separately.
@@ -75,7 +75,7 @@ if __name__ == "__main__":
                                                     use_modified_mittendorfer=False)
     }
     stop_conditions = {
-        'Rotation': PassThroughStopCondition(),
+        'Rotation': DeltaXStopCondition(),
         'Translation': DeltaXStopCondition()
     }
     # optimization for each loss function is not done separately.
