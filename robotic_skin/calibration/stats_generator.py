@@ -122,6 +122,7 @@ if __name__ == "__main__":
     # 1) A table comparing the dh params individually of our method and the others
     all_methods = [method1_name]
     all_kinematics_estimators = [method1_kinematics_estimator]
+    number_of_imus = method1_kinematics_estimator.n_sensor
     dh_parameter_headers = ["DH Parameters", "IMU 1", "IMU 2", "IMU 3", "IMU 4", "IMU 5", "IMU 6"]
     method_header = [""]
     for each_table_header in dh_parameter_headers[1:]:
@@ -131,8 +132,7 @@ if __name__ == "__main__":
     table_rows = ["Θ<sub>0</sub>", "d", "a", "α", "Θ<sub>acc</sub>", "d<sub>acc</sub>"]
     for i, each_table_row in enumerate(table_rows):
         individual_row = [each_table_row]
-        # As there are 6 SU's
-        for j in range(6):
+        for j in range(number_of_imus):
             individual_row.append(list_to_html_table([round(each_ke.estimated_dh_params[j][i], 2)
                                                       for each_ke in all_kinematics_estimators]))
         table.append(individual_row)
