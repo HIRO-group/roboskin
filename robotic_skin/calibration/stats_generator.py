@@ -49,6 +49,7 @@ def list_to_html_table(my_list: list, is_header: bool = False) -> str:
     return_string += trailing_string
     return return_string
 
+
 class original_parameters:
     def __init__(self):
         repodir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -66,8 +67,6 @@ class original_parameters:
                 continue
             orientation_array.append(su_contents['rotation'])
         self.all_orientations = orientation_array
-
-
 
 
 if __name__ == "__main__":
@@ -142,12 +141,12 @@ if __name__ == "__main__":
     plt.show()
 
     open("stats.md", 'w').close()
-    # Below code is for
-    # 1) A table comparing the dh params individually of our method and the others
     all_methods = [original_params, method1_name, method2_name, method3_name]
     all_kinematics_estimators = [OG, method1_kinematics_estimator, method2_kinematics_estimator,
                                  method3_kinematics_estimator]
     number_of_imus = method1_kinematics_estimator.n_sensor - 1
+    # Below code is for
+    # 1) A table comparing the dh params individually of our method and the others
     dh_parameter_headers = ["DH Parameters", "IMU 1", "IMU 2", "IMU 3", "IMU 4", "IMU 5", "IMU 6"]
     method_header = [""]
     for each_table_header in dh_parameter_headers[1:]:
@@ -169,10 +168,6 @@ if __name__ == "__main__":
 
     # Below code is for
     # 1) A table comparing the orientations individually of our method and the others
-    all_methods = [original_params, method1_name, method2_name, method3_name]
-    all_kinematics_estimators = [OG, method1_kinematics_estimator, method2_kinematics_estimator,
-                                 method3_kinematics_estimator]
-    number_of_imus = method1_kinematics_estimator.n_sensor - 1
     orientation_headers = ["Orientations", "IMU 1", "IMU 2", "IMU 3", "IMU 4", "IMU 5", "IMU 6"]
     method_header = [""]
     for each_table_header in orientation_headers[1:]:
