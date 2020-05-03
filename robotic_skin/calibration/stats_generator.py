@@ -71,7 +71,7 @@ if __name__ == "__main__":
     optimizer_function = SeparateOptimizer
     method1_kinematics_estimator = KinematicEstimator(measured_data, robot_configs, optimizer_function,
                                                       error_functions, stop_conditions, optimize_all)
-    # method1_kinematics_estimator.optimize()
+    method1_kinematics_estimator.optimize()
 
     # Method 2
     method2_name = "Modified Mittendorfer's Method"
@@ -120,9 +120,10 @@ if __name__ == "__main__":
     open("stats.md", 'w').close()
     # Below code is for
     # 1) A table comparing the dh params individually of our method and the others
-    all_methods = [method1_name]
-    all_kinematics_estimators = [method1_kinematics_estimator]
-    number_of_imus = method1_kinematics_estimator.n_sensor
+    all_methods = [method1_name, method2_name, method3_name]
+    all_kinematics_estimators = [method1_kinematics_estimator, method2_kinematics_estimator,
+                                 method3_kinematics_estimator]
+    number_of_imus = method1_kinematics_estimator.n_sensor - 1
     dh_parameter_headers = ["DH Parameters", "IMU 1", "IMU 2", "IMU 3", "IMU 4", "IMU 5", "IMU 6"]
     method_header = [""]
     for each_table_header in dh_parameter_headers[1:]:
@@ -142,3 +143,23 @@ if __name__ == "__main__":
 
     # Below code is for
     # 1) A table comparing the orientations individually of our method and the others
+    all_methods = [method1_name, method2_name, method3_name]
+    all_kinematics_estimators = [method1_kinematics_estimator, method2_kinematics_estimator,
+                                 method3_kinematics_estimator]
+    number_of_imus = method1_kinematics_estimator.n_sensor - 1
+    orientation_headers = ["Orientations", "IMU 1", "IMU 2", "IMU 3", "IMU 4", "IMU 5", "IMU 6"]
+    method_header = [""]
+    for each_table_header in orientation_headers[1:]:
+        method_header.append(list_to_html_table(all_methods, True))
+    table = []
+    table.append(method_header)
+    table_rows = ["w", "x", "y", "z"]
+    for i, each_table_row in enumerate(table_rows):
+        individual_row = [each_table_row]
+        for j in range(number_of_imus):
+            individual_row.append(list_to_html_table([round(each_ke.all_orientations[j][i], 2)
+                                                      for each_ke in all_kinematics_estimators]))
+        table.append(individual_row)
+    print(tabulate(table, orientation_headers, tablefmt="github"))
+    with open("stats.md", "a") as f:
+        f.write(tabulate(table, orientation_headers, tablefmt="github").__str__())
