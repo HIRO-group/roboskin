@@ -49,6 +49,26 @@ def list_to_html_table(my_list: list, is_header: bool = False) -> str:
     return_string += trailing_string
     return return_string
 
+class original_parameters:
+    def __init__(self):
+        repodir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        config = os.path.join(repodir, 'config')
+        robot_configs = load_robot_configs(config, 'panda')
+        dh_params_array = []
+        for each_su, dh_params in robot_configs['su_dh_parameter'].items():
+            if each_su == 'su1':
+                continue
+            dh_params_array.append(dh_params)
+        self.estimated_dh_params = dh_params_array
+        orientation_array = []
+        for each_su, su_contents in robot_configs['su_pose'].items():
+            if each_su == 'su1':
+                continue
+            orientation_array.append(su_contents['rotation'])
+        self.all_orientations = orientation_array
+
+
+
 
 if __name__ == "__main__":
     args = parse_arguments()
@@ -58,8 +78,12 @@ if __name__ == "__main__":
     robot_configs = load_robot_configs(configdir, args.robot)
     optimize_all = args.optimizeall
 
+    # Original_Params
+    original_params = "OG"
+    OG = original_parameters()
+
     # Method 1
-    method1_name = "Our Method"
+    method1_name = "OM"
     error_functions = {
         'Rotation': StaticErrorFunction(measured_data, L2Loss()),
         'Translation': ConstantRotationErrorFunction(measured_data, L2Loss())
@@ -74,7 +98,7 @@ if __name__ == "__main__":
     method1_kinematics_estimator.optimize()
 
     # Method 2
-    method2_name = "Modified Mittendorfer's Method"
+    method2_name = "MMM"
     error_functions = {
         'Rotation': StaticErrorFunction(measured_data, L2Loss()),
         'Translation': MaxAccelerationErrorFunction(measured_data, L2Loss())
@@ -91,7 +115,7 @@ if __name__ == "__main__":
     method2_kinematics_estimator.optimize()
 
     # Method 3
-    method3_name = "Mittendorfer's Method"
+    method3_name = "MM"
     error_functions = {
         'Rotation': StaticErrorFunction(measured_data, L2Loss()),
         'Translation': MaxAccelerationErrorFunction(measured_data, L2Loss(),
@@ -120,8 +144,8 @@ if __name__ == "__main__":
     open("stats.md", 'w').close()
     # Below code is for
     # 1) A table comparing the dh params individually of our method and the others
-    all_methods = [method1_name, method2_name, method3_name]
-    all_kinematics_estimators = [method1_kinematics_estimator, method2_kinematics_estimator,
+    all_methods = [original_params, method1_name, method2_name, method3_name]
+    all_kinematics_estimators = [OG, method1_kinematics_estimator, method2_kinematics_estimator,
                                  method3_kinematics_estimator]
     number_of_imus = method1_kinematics_estimator.n_sensor - 1
     dh_parameter_headers = ["DH Parameters", "IMU 1", "IMU 2", "IMU 3", "IMU 4", "IMU 5", "IMU 6"]
@@ -140,11 +164,13 @@ if __name__ == "__main__":
     print(tabulate(table, dh_parameter_headers, tablefmt="github"))
     with open("stats.md", "a") as f:
         f.write(tabulate(table, dh_parameter_headers, tablefmt="github").__str__())
+        f.write("\n")
+        f.write("\n")
 
     # Below code is for
     # 1) A table comparing the orientations individually of our method and the others
-    all_methods = [method1_name, method2_name, method3_name]
-    all_kinematics_estimators = [method1_kinematics_estimator, method2_kinematics_estimator,
+    all_methods = [original_params, method1_name, method2_name, method3_name]
+    all_kinematics_estimators = [OG, method1_kinematics_estimator, method2_kinematics_estimator,
                                  method3_kinematics_estimator]
     number_of_imus = method1_kinematics_estimator.n_sensor - 1
     orientation_headers = ["Orientations", "IMU 1", "IMU 2", "IMU 3", "IMU 4", "IMU 5", "IMU 6"]
