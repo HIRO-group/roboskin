@@ -77,6 +77,7 @@ if __name__ == "__main__":
     robot_configs = load_robot_configs(configdir, args.robot)
     optimize_all = args.optimizeall
 
+    stats_file_name = "stats.md"
     # Original_Params
     original_params = "OG"
     OG = original_parameters()
@@ -140,7 +141,7 @@ if __name__ == "__main__":
     plt.legend(loc="upper left")
     plt.show()
 
-    open("stats.md", 'w').close()
+    open(stats_file_name, 'w').close()
     all_methods = [original_params, method1_name, method2_name, method3_name]
     all_kinematics_estimators = [OG, method1_kinematics_estimator, method2_kinematics_estimator,
                                  method3_kinematics_estimator]
@@ -182,5 +183,7 @@ if __name__ == "__main__":
                                                       for each_ke in all_kinematics_estimators]))
         table.append(individual_row)
     print(tabulate(table, orientation_headers, tablefmt="github"))
-    with open("stats.md", "a") as f:
+    with open(stats_file_name, "a") as f:
         f.write(tabulate(table, orientation_headers, tablefmt="github").__str__())
+        f.write("\n")
+        f.write("\n")
