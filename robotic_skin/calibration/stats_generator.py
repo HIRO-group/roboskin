@@ -137,10 +137,18 @@ if __name__ == "__main__":  # noqa: C901
     # Below code is for
     # 1) A graph with SU's euclidean distance between real and predicted points.
     #     One legend will be Mittendorfer's method and another will be ours
+    assert len(method3_kinematics_estimator.all_euclidean_distances) == \
+           len(method1_kinematics_estimator.all_euclidean_distances) == \
+           len(method3_kinematics_estimator.all_euclidean_distances)
     plt.plot(method1_kinematics_estimator.all_euclidean_distances, "-b", label=method1_name)
     plt.plot(method2_kinematics_estimator.all_euclidean_distances, "-r", label=method2_name)
     plt.plot(method3_kinematics_estimator.all_euclidean_distances, "-g", label=method3_name)
+    plt.title("L2 norms of each SU from original SU location")
+    plt.xlabel("IMU number starting from 1")
+    plt.ylabel("L2 Norm")
     plt.legend(loc="upper left")
+    plt.xticks(np.arange(len(method3_kinematics_estimator.all_euclidean_distances)),
+               np.arange(1, len(method3_kinematics_estimator.all_euclidean_distances) + 1))
     plt.show()
 
     open(stats_file_name, 'w').close()
@@ -219,7 +227,9 @@ if __name__ == "__main__":  # noqa: C901
         individual_row = [each_table_row]
         for j in range(number_of_imus):
             individual_row.append(list_to_html_table([round(angle_between_quaternions(np.array(OG.all_orientations[j]),
-                                                                                      np.array(each_ke.all_orientations[j]), True), 2)
+                                                                                      np.array(
+                                                                                          each_ke.all_orientations[j]),
+                                                                                      True), 2)
                                                       for each_ke in all_kinematics_estimators]))
         table.append(individual_row)
     print(tabulate(table, orientation_headers, tablefmt="github"))
