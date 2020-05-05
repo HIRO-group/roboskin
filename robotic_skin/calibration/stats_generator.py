@@ -150,11 +150,11 @@ if __name__ == "__main__":  # noqa: C901
     plt.legend(loc="upper left")
     plt.xticks(np.arange(len(method3_kinematics_estimator.all_euclidean_distances)),
                np.arange(1, len(method3_kinematics_estimator.all_euclidean_distances) + 1))
-    plt.show()
     if os.path.isfile(l2_norm_plot_file_name):
         # Matplotlib doesn't overwrite if file exists
         os.remove(l2_norm_plot_file_name)
-    plt.savefig(l2_norm_plot_file_name, bbox_inches='tight')
+    plt.savefig(l2_norm_plot_file_name, format="png")
+    plt.show()
     open(stats_file_name, 'w').close()
     # Add the graph to readme
     with open(stats_file_name, 'a')as f:
@@ -246,5 +246,5 @@ if __name__ == "__main__":  # noqa: C901
         f.write(tabulate(table, orientation_headers, tablefmt="github").__str__())
         f.write("\n")
         f.write("\n")
-
+    plt.close()
     print("Generating statistics done!")
