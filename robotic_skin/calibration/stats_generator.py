@@ -26,6 +26,7 @@ import os
 from tabulate import tabulate
 import numpy as np
 from robotic_skin.calibration.utils import angle_between_quaternions
+import os
 
 
 def array_to_table_string(dh_params_array: np.ndarray) -> list:
@@ -151,6 +152,9 @@ if __name__ == "__main__":  # noqa: C901
     plt.xticks(np.arange(len(method3_kinematics_estimator.all_euclidean_distances)),
                np.arange(1, len(method3_kinematics_estimator.all_euclidean_distances) + 1))
     plt.show()
+    if os.path.isfile(l2_norm_plot_file_name):
+        # Matplotlib doesn't overwrite if file exists
+        os.remove(l2_norm_plot_file_name)
     plt.savefig(l2_norm_plot_file_name, bbox_inches='tight')
     open(stats_file_name, 'w').close()
     # Add the graph to readme
