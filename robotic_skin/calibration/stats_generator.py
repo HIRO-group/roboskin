@@ -26,7 +26,6 @@ import os
 from tabulate import tabulate
 import numpy as np
 from robotic_skin.calibration.utils import angle_between_quaternions
-import os
 
 
 def array_to_table_string(dh_params_array: np.ndarray) -> list:
