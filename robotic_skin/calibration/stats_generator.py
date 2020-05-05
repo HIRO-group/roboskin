@@ -225,3 +225,5 @@ if __name__ == "__main__":
         f.write(tabulate(table, orientation_headers, tablefmt="github").__str__())
         f.write("\n")
         f.write("\n")
+
+    print("Generating statistics done!")
