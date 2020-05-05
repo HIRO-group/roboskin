@@ -139,7 +139,7 @@ if __name__ == "__main__":  # noqa: C901
     #     One legend will be Mittendorfer's method and another will be ours
     assert len(method3_kinematics_estimator.all_euclidean_distances) == \
            len(method1_kinematics_estimator.all_euclidean_distances) == \
-           len(method3_kinematics_estimator.all_euclidean_distances)
+           len(method3_kinematics_estimator.all_euclidean_distances)  # noqa: E127
     plt.plot(method1_kinematics_estimator.all_euclidean_distances, "-b", label=method1_name)
     plt.plot(method2_kinematics_estimator.all_euclidean_distances, "-r", label=method2_name)
     plt.plot(method3_kinematics_estimator.all_euclidean_distances, "-g", label=method3_name)
