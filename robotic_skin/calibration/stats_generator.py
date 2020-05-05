@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 import os
 from tabulate import tabulate
 import numpy as np
+from robotic_skin.calibration.utils import angle_between_quaternions
 
 
 def array_to_table_string(dh_params_array: np.ndarray) -> list:
@@ -67,6 +68,7 @@ class original_parameters:
                 continue
             orientation_array.append(su_contents['rotation'])
         self.all_orientations = orientation_array
+        self.all_euclidean_distances = [0.0 for _ in range(6)]
 
 
 if __name__ == "__main__":
@@ -147,6 +149,34 @@ if __name__ == "__main__":
                                  method3_kinematics_estimator]
     number_of_imus = method1_kinematics_estimator.n_sensor - 1
     # Below code is for
+    # 1) A table comparing the L2 distances from original point
+    l2_parameter_headers = ["L2 Distances", "IMU 1", "IMU 2", "IMU 3", "IMU 4", "IMU 5", "IMU 6"]
+    method_header = [""]
+    for each_table_header in l2_parameter_headers[1:]:
+        method_header.append(list_to_html_table(all_methods, True))
+    table = []
+    table.append(method_header)
+    table_rows = ["L2 Norm"]
+    for i, each_table_row in enumerate(table_rows):
+        individual_row = [each_table_row]
+        for j in range(number_of_imus):
+            individual_row.append(list_to_html_table([round(each_ke.all_euclidean_distances[j], 2)
+                                                      for each_ke in all_kinematics_estimators]))
+        table.append(individual_row)
+    print(tabulate(table, l2_parameter_headers, tablefmt="github"))
+    with open("stats.md", "a") as f:
+        f.write(tabulate(table, l2_parameter_headers, tablefmt="github").__str__())
+        f.write("\n")
+        f.write("\n")
+    # Print all average euclidean distances
+    with open("stats.md", "a") as f:
+        for each_method, each_ke in zip(all_methods, all_kinematics_estimators):
+            Average_euclidean_distance = sum(each_ke.all_euclidean_distances) / len(each_ke.all_euclidean_distances)
+            f.write(f"Method name {each_method} Average Euclidean distance is {Average_euclidean_distance}")
+            f.write("\n")
+            f.write("\n")
+
+    # Below code is for
     # 1) A table comparing the dh params individually of our method and the others
     dh_parameter_headers = ["DH Parameters", "IMU 1", "IMU 2", "IMU 3", "IMU 4", "IMU 5", "IMU 6"]
     method_header = [""]
@@ -180,6 +210,14 @@ if __name__ == "__main__":
         individual_row = [each_table_row]
         for j in range(number_of_imus):
             individual_row.append(list_to_html_table([round(each_ke.all_orientations[j][i], 2)
+                                                      for each_ke in all_kinematics_estimators]))
+        table.append(individual_row)
+    table_rows = ["Θ<sub>difference</sub>"]
+    for i, each_table_row in enumerate(table_rows):
+        individual_row = [each_table_row]
+        for j in range(number_of_imus):
+            individual_row.append(list_to_html_table([round(angle_between_quaternions(np.array(OG.all_orientations[j]),
+                                                                                      np.array(each_ke.all_orientations[j]), True), 2)
                                                       for each_ke in all_kinematics_estimators]))
         table.append(individual_row)
     print(tabulate(table, orientation_headers, tablefmt="github"))

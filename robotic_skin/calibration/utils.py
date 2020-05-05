@@ -6,6 +6,7 @@ import yaml
 import numpy as np
 import pyquaternion as pyqt
 from geometry_msgs.msg import Quaternion
+import math
 
 
 class TransMat():
@@ -399,7 +400,7 @@ def quaternion_from_two_vectors(source, target):
     return pyqt.Quaternion(axis=axis, angle=angle)
 
 
-def angle_between_quaternions(q_1: np.ndarray, q_2: np.ndarray) -> float:  # noqa: E999
+def angle_between_quaternions(q_1: np.ndarray, q_2: np.ndarray, output_in_degrees: bool = False) -> float:  # noqa: E999
     r"""
     Angle between quaternions a and b in degrees. Please note the input quaternions should be of
     form np.ndarray([x, y, z, w]).
@@ -423,10 +424,16 @@ def angle_between_quaternions(q_1: np.ndarray, q_2: np.ndarray) -> float:  # noq
     :return: float
         Angle between quaternions in degrees
     """
-    if not (np.linalg.norm(q_1) == np.linalg.norm(q_2) == 1):
+    if not (math.isclose(np.linalg.norm(q_1), 1.0, abs_tol=0.1) and math.isclose(np.linalg.norm(q_2), 1.0, abs_tol=0.1)):
         raise Exception("Please only pass unit quaternions")
     angle = np.arccos(2 * ((q_1 @ q_2) ** 2) - 1)  # noqa: E999
-    # angle_in_degrees = (angle / np.pi) * 180
+    if np.isnan(angle):
+        # usually some values overflow 1. arc-cos isn't defined in range > 1
+        # So it's just an overflow error and the angle can be safely be assumed zero
+        return 0.0
+    if output_in_degrees:
+        angle_in_degrees = (angle / np.pi) * 180
+        return angle_in_degrees
     return angle
 
 
