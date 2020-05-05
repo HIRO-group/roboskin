@@ -6,3 +6,4 @@
 .git/
 robotic_skin/PandaDeployment/deployment_info.json
 **/stats.md
+**/l2_norm_graph.png

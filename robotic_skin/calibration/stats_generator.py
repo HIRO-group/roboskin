@@ -80,6 +80,7 @@ if __name__ == "__main__":  # noqa: C901
     optimize_all = args.optimizeall
 
     stats_file_name = "stats.md"
+    l2_norm_plot_file_name = "l2_norm_graph.png"
     # Original_Params
     original_params = "OG"
     OG = original_parameters()
@@ -150,8 +151,13 @@ if __name__ == "__main__":  # noqa: C901
     plt.xticks(np.arange(len(method3_kinematics_estimator.all_euclidean_distances)),
                np.arange(1, len(method3_kinematics_estimator.all_euclidean_distances) + 1))
     plt.show()
-
+    plt.savefig(l2_norm_plot_file_name, bbox_inches='tight')
     open(stats_file_name, 'w').close()
+    # Add the graph to readme
+    with open(stats_file_name, 'a')as f:
+        f.write(f"![]({l2_norm_plot_file_name})")
+        f.write("\n")
+        f.write("\n")
     all_methods = [original_params, method1_name, method2_name, method3_name]
     all_kinematics_estimators = [OG, method1_kinematics_estimator, method2_kinematics_estimator,
                                  method3_kinematics_estimator]
@@ -172,12 +178,12 @@ if __name__ == "__main__":  # noqa: C901
                                                       for each_ke in all_kinematics_estimators]))
         table.append(individual_row)
     print(tabulate(table, l2_parameter_headers, tablefmt="github"))
-    with open("stats.md", "a") as f:
+    with open(stats_file_name, "a") as f:
         f.write(tabulate(table, l2_parameter_headers, tablefmt="github").__str__())
         f.write("\n")
         f.write("\n")
     # Print all average euclidean distances
-    with open("stats.md", "a") as f:
+    with open(stats_file_name, "a") as f:
         for each_method, each_ke in zip(all_methods, all_kinematics_estimators):
             Average_euclidean_distance = round(
                 sum(each_ke.all_euclidean_distances) / len(each_ke.all_euclidean_distances),
@@ -202,7 +208,7 @@ if __name__ == "__main__":  # noqa: C901
                                                       for each_ke in all_kinematics_estimators]))
         table.append(individual_row)
     print(tabulate(table, dh_parameter_headers, tablefmt="github"))
-    with open("stats.md", "a") as f:
+    with open(stats_file_name, "a") as f:
         f.write(tabulate(table, dh_parameter_headers, tablefmt="github").__str__())
         f.write("\n")
         f.write("\n")
