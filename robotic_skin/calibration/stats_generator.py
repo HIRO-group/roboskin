@@ -171,7 +171,9 @@ if __name__ == "__main__":  # noqa: C901
     # Print all average euclidean distances
     with open("stats.md", "a") as f:
         for each_method, each_ke in zip(all_methods, all_kinematics_estimators):
-            Average_euclidean_distance = sum(each_ke.all_euclidean_distances) / len(each_ke.all_euclidean_distances)
+            Average_euclidean_distance = round(
+                sum(each_ke.all_euclidean_distances) / len(each_ke.all_euclidean_distances),
+                2)
             f.write(f"Method name {each_method} Average Euclidean distance is {Average_euclidean_distance}")
             f.write("\n")
             f.write("\n")
