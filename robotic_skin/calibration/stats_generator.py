@@ -71,7 +71,7 @@ class original_parameters:
         self.all_euclidean_distances = [0.0 for _ in range(6)]
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # noqa: C901
     args = parse_arguments()
     measured_data = load_data(args.robot)
     repodir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
