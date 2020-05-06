@@ -104,7 +104,8 @@ if __name__ == "__main__":  # noqa: C901
     method2_name = "MMM"
     error_functions = {
         'Rotation': StaticErrorFunction(measured_data, L2Loss()),
-        'Translation': MaxAccelerationErrorFunction(measured_data, L2Loss())
+        'Translation': MaxAccelerationErrorFunction(measured_data, L2Loss(),
+                                                    apply_normal_mittendorfer=False)
     }
     stop_conditions = {
         'Rotation': DeltaXStopCondition(),
@@ -122,7 +123,7 @@ if __name__ == "__main__":  # noqa: C901
     error_functions = {
         'Rotation': StaticErrorFunction(measured_data, L2Loss()),
         'Translation': MaxAccelerationErrorFunction(measured_data, L2Loss(),
-                                                    use_modified_mittendorfer=False)
+                                                    apply_normal_mittendorfer=True)
     }
     stop_conditions = {
         'Rotation': DeltaXStopCondition(),

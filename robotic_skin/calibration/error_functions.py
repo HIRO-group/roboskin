@@ -206,6 +206,7 @@ class ErrorFunction():
         self.loss_func = loss_func
 
         self.pose_names = list(data.constant.keys())
+        print(self.pose_names)
         self.joint_names = list(data.constant[self.pose_names[0]].keys())
         self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
         self.n_dynamic_pose = len(list(data.dynamic.keys()))
@@ -347,9 +348,9 @@ class MaxAccelerationErrorFunction(ErrorFunction):
     Compute errors between estimated and measured max acceleration for sensor i
 
     """
-    def __init__(self, data, loss_func, use_modified_mittendorfer=True):
+    def __init__(self, data, loss_func, apply_normal_mittendorfer=True):
         super().__init__(data, loss_func)
-        self.use_modified_mittendorfer = use_modified_mittendorfer
+        self.apply_normal_mittendorfer = apply_normal_mittendorfer
 
     def __call__(self, i, Tdofs, Tdof2su):
         """
@@ -387,7 +388,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 # Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
                 # use mittendorfer's original or modified based on condition
                 max_accel_model = estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, A, max_acceleration_joint_angle,
-                                                                    self.use_modified_mittendorfer)
+                                                                    self.apply_normal_mittendorfer)
                 # if p == 0:
                 #     print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
                 error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
