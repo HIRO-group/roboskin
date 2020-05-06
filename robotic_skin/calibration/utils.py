@@ -263,8 +263,10 @@ class ParameterManager():
         self.dhparams = dhparams
 
         if self.dhparams is not None:
+            # 6 parameters to optimize.
             self.Tdof2dof = [TransMat(dhparams['joint' + str(i+1)]) for i in range(n_joint)]
         else:
+            # 10 parameters to optimize.
             # uninitialized dh params
             self.Tdof2dof = [TransMat(bounds=bounds) for i in range(n_joint)]
 
@@ -286,12 +288,14 @@ class ParameterManager():
             Next DH parameters to be optimized
         """
         if self.dhparams is not None:
+            # optimizing just su dh params.
             params = np.r_[self.Tdof2vdof[i].parameters, self.Tvdof2su[i].parameters]
             bounds = self.bounds_su[:, :]
 
             assert params.size == 6
             assert bounds.shape == (6, 2)
         else:
+            # optimizing all dh parameters
             params = np.r_[self.Tdof2dof[i].parameters,
                            self.Tdof2vdof[i].parameters,
                            self.Tvdof2su[i].parameters]
@@ -341,7 +345,7 @@ class ParameterManager():
             self.Tdof2vdof[i].set_params(params[:2])
             self.Tvdof2su[i].set_params(params[2:])
         else:
-            self.Tdof2dof[i-1].set_params(params[:4])
+            self.Tdof2dof[i].set_params(params[:4])
             self.Tdof2vdof[i].set_params(params[4:6])
             self.Tvdof2su[i].set_params(params[6:])
 
