@@ -47,7 +47,8 @@ class KinematicEstimator():
     Class for estimating the kinematics of the arm
     and corresponding sensor unit positions.
     """
-    def __init__(self, data, robot_configs, optimizer_function, error_functions_dict, stop_conditions_dict, optimize_all):
+    def __init__(self, data, robot_configs, optimizer_function, error_functions_dict, stop_conditions_dict, optimize_all,
+                 method_name='OM'):
         """
         Arguments
         ------------
@@ -61,6 +62,7 @@ class KinematicEstimator():
         """
         # Assume n_sensor is equal to n_joint for now
         self.robot_configs = robot_configs
+        self.method_name = method_name
 
         self.pose_names = list(data.dynamic.keys())
         self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
@@ -68,6 +70,8 @@ class KinematicEstimator():
         self.n_pose = len(self.pose_names)
         self.n_joint = len(self.joint_names)
         self.n_sensor = self.n_joint
+
+        self.cumulative_data = []
 
         print(self.pose_names)
         print(self.joint_names)
@@ -112,7 +116,8 @@ class KinematicEstimator():
         # }
         error_functions = error_functions_dict
         stop_conditions = stop_conditions_dict
-        self.optimizer = optimizer_function(error_functions, stop_conditions)
+        self.optimizer = optimizer_function(error_functions, stop_conditions,
+                                            optimize_all=optimize_all_params)
         # self.optimizer = Optimizer(error_functions, stop_conditions)
 
         self.imu_true_positions = robot_configs['su_pose']
@@ -140,6 +145,7 @@ class KinematicEstimator():
 
             # optimize parameters wrt data
             params = self.optimizer.optimize(i_imu, Tdofs, params, bounds)
+            self.cumulative_data.append(self.optimizer.all_params)
             self.param_manager.set_params_at(i_imu, params)
             pos, quat = self.get_i_accelerometer_position(i_imu)
             self.all_orientations.append(quat)
@@ -156,6 +162,10 @@ class KinematicEstimator():
             print('Euclidean distance between real and predicted points: ', euclidean_distance)
             print('='*100)
         self.all_orientations = np.array(self.all_orientations)
+        all_data = np.array(self.cumulative_data)
+        # once done, save to file.
+        np.save(f'{self.method_name}_data.npy', all_data)
+        print(all_data.shape)
         print("Average Euclidean distance = ", sum(self.all_euclidean_distances) / len(self.all_euclidean_distances))
 
     def get_i_accelerometer_position(self, i_sensor):
