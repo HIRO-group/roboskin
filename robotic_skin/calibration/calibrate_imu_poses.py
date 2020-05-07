@@ -94,15 +94,10 @@ class KinematicEstimator():
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
 
-        options = ["false", "f", "n", "no"]
-        if optimize_all.lower() in options:
-            optimize_all_params = False
-        else:
-            optimize_all_params = True
-
         if 'dh_parameter' not in robot_configs:
-            optimize_all_params = False
-        robot_dhparams = robot_configs['dh_parameter'] if not optimize_all_params else None
+            optimize_all = False
+
+        robot_dhparams = robot_configs['dh_parameter'] if not optimize_all else None
         self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_dhparams)
 
         # Below is an example of what error_functions and stop_conditions dictionary looks like
@@ -117,7 +112,7 @@ class KinematicEstimator():
         error_functions = error_functions_dict
         stop_conditions = stop_conditions_dict
         self.optimizer = optimizer_function(error_functions, stop_conditions,
-                                            optimize_all=optimize_all_params)
+                                            optimize_all=optimize_all)
         # self.optimizer = Optimizer(error_functions, stop_conditions)
 
         self.imu_true_positions = robot_configs['su_pose']
@@ -271,7 +266,7 @@ def parse_arguments():
                         help="Please provide a stop function for each key provided")
     parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer',
                         help="Please provide an optimizer function for each key provided")
-    parser.add_argument('-oa', '--optimizeall', type=str, default='false',
+    parser.add_argument('-oa', '--optimizeall', action='store_true',
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
     return parser.parse_args()
 
