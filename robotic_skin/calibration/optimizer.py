@@ -55,6 +55,7 @@ class Optimizer():
         self.error_types = list(error_functions.keys())
         self.stop_conditions = stop_conditions
         self.target = self.error_types[0]
+        self.all_poses = []
         if stop_conditions is None:
             self.stop_conditions = {'both': PassThroughStopCondition()}
 
@@ -80,7 +81,6 @@ class Optimizer():
         """
         self.i_imu = i_imu
         self.Tdofs = Tdofs
-        self.all_params = []
 
         self.n_param = params.shape[0]
         # Construct an global optimizer
@@ -119,9 +119,13 @@ class Optimizer():
         """
         Tdof2su = self.choose_true_or_estimated_Tdof2su(params)
         # self.Tdofs needs to be changed if we are optimizing all params.
-
+        if self.optimize_all:
+            modified_tdof = TransMat(params[:4])
+            # update tdofs
+            self.Tdofs[-1] = modified_tdof
         pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
-
+        full_pose = np.r_[pos, quat]
+        self.all_poses.append(full_pose)
         e = 0.0
 
         if sys.version_info[0] == 2:
@@ -132,9 +136,8 @@ class Optimizer():
             # items() in python3
             for error_type, error_function in self.error_functions.items():
                 e += error_function(self.i_imu, self.Tdofs, Tdof2su)
-        updated_params = self.stop_conditions[self.target].update(params, None, e)
-        self.all_params.append(updated_params)
-        return updated_params
+        res = self.stop_conditions[self.target].update(params, None, e)
+        return res
 
     def choose_true_or_estimated_Tdof2su(self, params):
         """
@@ -215,7 +218,7 @@ class SeparateOptimizer(Optimizer):
         self.n_param = int(n_param/2)
 
         # ################### First Optimize Rotations ####################
-        # this takes care of 3 parameters at a time
+        # this takes care of 3 or 5 parameters at a time
         self.target = 'Rotation'
         self.stop_conditions['Rotation'].initialize()
         self.constant_params = params[self.position_index]
@@ -277,17 +280,20 @@ class SeparateOptimizer(Optimizer):
         Tdof2su = self.choose_true_or_estimated_Tdof2su(
             np.r_[target_params, self.constant_params])
         # tdof is based on
-        first_params = self.current_params[:4]
-        modified_tdof = TransMat(first_params)
-        # update tdofs
-        self.Tdofs[-1] = modified_tdof
+        if self.optimize_all:
+            first_params = self.current_params[:4]
+            modified_tdof = TransMat(first_params)
+            # update tdofs
+            self.Tdofs[-1] = modified_tdof
         # target params from optimization thus far:
+        # doesn't yet account for robot position, needed for later in 0's pose.
         pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
-
+        full_pose = np.r_[pos, quat]
+        self.all_poses.append(full_pose)
+        # append pose
         e = self.error_functions[self.target](self.i_imu, self.Tdofs, Tdof2su)
 
         updated_params = self.stop_conditions[self.target].update(target_params, None, e)
-
         return updated_params
 
     def convert_dhparams_to_Tdof2su(self, merged_params):
@@ -297,8 +303,8 @@ class SeparateOptimizer(Optimizer):
         """
         # size depends on what we're optimizing.
         params = np.zeros(self.n_param * 2)
-
         if self.target == 'Rotation':
+
             params[self.rotation_index] = merged_params[:self.n_param]
             params[self.position_index] = merged_params[self.n_param:]
         elif self.target == 'Translation':

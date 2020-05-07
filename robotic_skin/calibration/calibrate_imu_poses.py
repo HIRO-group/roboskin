@@ -145,7 +145,7 @@ class KinematicEstimator():
 
             # optimize parameters wrt data
             params = self.optimizer.optimize(i_imu, Tdofs, params, bounds)
-            self.cumulative_data.append(self.optimizer.all_params)
+            self.cumulative_data.append(self.optimizer.all_poses)
             self.param_manager.set_params_at(i_imu, params)
             pos, quat = self.get_i_accelerometer_position(i_imu)
             self.all_orientations.append(quat)
