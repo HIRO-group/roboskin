@@ -164,7 +164,9 @@ class KinematicEstimator():
         self.all_orientations = np.array(self.all_orientations)
         all_data = np.array(self.cumulative_data)
         # once done, save to file.
-        np.save(f'{self.method_name}_data.npy', all_data)
+        ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
+        save_path = os.path.join(ros_robotic_skin_path, 'data', f'{self.method_name}_data.npy')
+        np.save(save_path, all_data)
         print(all_data.shape)
         print("Average Euclidean distance = ", sum(self.all_euclidean_distances) / len(self.all_euclidean_distances))
 
