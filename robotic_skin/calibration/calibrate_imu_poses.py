@@ -131,6 +131,7 @@ class KinematicEstimator():
         """
         # Optimize each joint (& sensor) at a time from the root
         # currently starting from 6th skin unit
+        print('Skipping 0th IMU')
         for i_imu in range(1, self.n_sensor):
             print("Optimizing %ith SU ..." % (i_imu))
             params, bounds = self.param_manager.get_params_at(i=i_imu)
