@@ -110,4 +110,3 @@ class ParameterManager():
             self.Tdof2dof[i].set_params(params[:4])
             self.Tdof2vdof[i].set_params(params[4:6], keys=['theta', 'd'])
             self.Tvdof2su[i].set_params(params[6:])
-

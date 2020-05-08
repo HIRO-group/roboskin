@@ -1,4 +1,6 @@
 import numpy as np
+import pyquaternion as pyqt
+from robotic_skin.calibration.utils import pyquat_to_numpy
 
 
 class TransformationMatrix():
@@ -220,4 +222,3 @@ class TransformationMatrix():
 
     def __str__(self):
         return np.array2string(self.matrix)
-
