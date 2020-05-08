@@ -127,9 +127,9 @@ class TransformationMatrix():
         if not isinstance(params, np.array):
             raise ValueError("'params' should be a np.array")
         if params.size != n_params:
-            raise ValueError("Size of 'params' should be %i"%(n_params))
+            raise ValueError("Size of 'params' should be %i" % (n_params))
 
-        d = {k:v for k, v in zip(params, key_order)}
+        d = {k: v for k, v in zip(params, key_order)}
         return cls.from_dict(d)
 
     @classmethod
@@ -138,10 +138,10 @@ class TransformationMatrix():
         if not isinstance(bounds, np.ndarray):
             raise ValueError("'bounds' should be a np.ndarray")
         if bounds.shape != (n_row, 2):
-            raise ValueError("Shape of 'bounds' should be (%i, 2)"%(n_row))
+            raise ValueError("Shape of 'bounds' should be (%i, 2)" % (n_row))
 
         params = np.random.uniform(low=bounds[:, 0], high=bounds[:, 1])
-        d = {k:v for k, v in zip(params, key_order)}
+        d = {k: v for k, v in zip(params, key_order)}
         return cls.from_dict(d)
 
     @classmethod
@@ -224,7 +224,6 @@ class TransformationMatrix():
 
     def __str__(self):
         return np.array2string(self.matrix)
-
 
 
 class TransMat():
