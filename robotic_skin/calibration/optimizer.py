@@ -4,7 +4,8 @@ import nlopt
 
 # import robotic_skin
 import robotic_skin.const as C
-from robotic_skin.calibration.utils import TransMat, get_IMU_pose
+from robotic_skin.calibration.utils import get_IMU_pose
+from robotic_skin.calibration.utils import TransformationMatrix as TM
 
 
 def convert_dhparams_to_Tdof2su(params):
@@ -18,15 +19,15 @@ def convert_dhparams_to_Tdof2su(params):
     if params.shape[0] == 6:
         #     (2)     (4)
         # dof -> vdof -> su
-        Tdof2vdof = TransMat(params[:2])
-        Tvdof2su = TransMat(params[2:])
+        Tdof2vdof = TM.from_numpy(params[:2], keys=['theta', 'd'])
+        Tvdof2su = TM.from_numpy(params[2:])
     else:
         #     (4)    (2)     (4)
         # dof -> dof -> vdof -> su
-        Tdof2vdof = TransMat(params[4:6])
-        Tvdof2su = TransMat(params[6:])
+        Tdof2vdof = TM.from_numpy(params[4:6], keys=['theta', 'd'])
+        Tvdof2su = TM.from_numpy(params[6:])
 
-    return Tdof2vdof.dot(Tvdof2su)
+    return Tdof2vdof * Tvdof2su
 
 
 class Optimizer():
@@ -120,7 +121,7 @@ class Optimizer():
         Tdof2su = self.choose_true_or_estimated_Tdof2su(params)
         # self.Tdofs needs to be changed if we are optimizing all params.
         if self.optimize_all:
-            modified_tdof = TransMat(params[:4])
+            modified_tdof = TM.from_numpy(params[:4])
             # update tdofs
             self.Tdofs[-1] = modified_tdof
         pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
@@ -195,7 +196,7 @@ class SeparateOptimizer(Optimizer):
         i_imu: int
             ith IMU to be optimized
 
-        Tdofs: list of TransMat
+        Tdofs: list of TransformationMatrix
             List of Transformation Matrices from 0th to ith Joint (Not to SU)
 
         params: list of float
@@ -264,7 +265,7 @@ class SeparateOptimizer(Optimizer):
 
         i: int
             ith sensor
-        Tdofs: list of TransMat
+        Tdofs: list of TransformationMatrix
             Transformation Matrices between Dofs
 
         grad: np.ndarray
@@ -282,7 +283,7 @@ class SeparateOptimizer(Optimizer):
         # tdof is based on
         if self.optimize_all:
             first_params = self.current_params[:4]
-            modified_tdof = TransMat(first_params)
+            modified_tdof = TM.from_numpy(first_params)
             # update tdofs
             self.Tdofs[-1] = modified_tdof
         # target params from optimization thus far:
