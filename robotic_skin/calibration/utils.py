@@ -2,7 +2,6 @@
 Utilities module for Robotic Skin.
 """
 import os
-from collections import OrderedDict
 import yaml
 import numpy as np
 import pyquaternion as pyqt
