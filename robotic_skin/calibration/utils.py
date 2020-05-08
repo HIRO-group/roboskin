@@ -2,6 +2,7 @@
 Utilities module for Robotic Skin.
 """
 import os
+from collections import OrderedDict
 import yaml
 import numpy as np
 import pyquaternion as pyqt
@@ -119,21 +120,25 @@ class TransformationMatrix():
 
     @classmethod
     def from_dict(cls, params_dict):
-        return cls(*params_dict)
+        return cls(**params_dict)
 
     @classmethod
     def from_numpy(cls, params, key_order=['theta', 'd', 'a', 'alpha']):
         n_params = len(key_order)
-        if not isinstance(params, np.array):
+        if not isinstance(params, np.ndarray):
             raise ValueError("'params' should be a np.array")
         if params.size != n_params:
             raise ValueError("Size of 'params' should be %i" % (n_params))
 
-        d = {k: v for k, v in zip(params, key_order)}
+        d = {k: v for k, v in zip(key_order, params)}
         return cls.from_dict(d)
 
     @classmethod
-    def from_bound(cls, bounds, key_order=['theta', 'd', 'a', 'alpha']):
+    def from_list(cls, params, key_order=['theta', 'd', 'a', 'alpha']):
+        return cls.from_numpy(np.array(params), key_order)
+
+    @classmethod
+    def from_bounds(cls, bounds, key_order=['theta', 'd', 'a', 'alpha']):
         n_row = len(key_order)
         if not isinstance(bounds, np.ndarray):
             raise ValueError("'bounds' should be a np.ndarray")
@@ -141,7 +146,7 @@ class TransformationMatrix():
             raise ValueError("Shape of 'bounds' should be (%i, 2)" % (n_row))
 
         params = np.random.uniform(low=bounds[:, 0], high=bounds[:, 1])
-        d = {k: v for k, v in zip(params, key_order)}
+        d = {k: v for k, v in zip(key_order, params)}
         return cls.from_dict(d)
 
     @classmethod
