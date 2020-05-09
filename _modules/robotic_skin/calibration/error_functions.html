@@ -147,7 +147,7 @@
   <h1>Source code for robotic_skin.calibration.error_functions</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">robotic_skin.const</span> <span class="k">as</span> <span class="nn">C</span>
-<span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils</span> <span class="kn">import</span> <span class="n">TransMat</span>  <span class="c1"># , get_IMU_pose</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration.transformation_matrix</span> <span class="kn">import</span> <span class="n">TransformationMatrix</span> <span class="k">as</span> <span class="n">TM</span>
 
 
 <div class="viewcode-block" id="estimate_acceleration_analytically"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.estimate_acceleration_analytically">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration_analytically</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdofi2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">):</span>
@@ -156,13 +156,13 @@
 
 <span class="sd">    Arguments</span>
 <span class="sd">    ---------</span>
-<span class="sd">    `Tdofs`: List of `TransMat`</span>
+<span class="sd">    `Tdofs`: List of `TransformationMatrix`</span>
 <span class="sd">        transformation matrices from dof to dof</span>
 
-<span class="sd">    `Tjoints`: List of `TransMat`</span>
+<span class="sd">    `Tjoints`: List of `TransformationMatrix`</span>
 <span class="sd">        transformation matrices from joint to joint</span>
 
-<span class="sd">    `Tdofi2su`: `TransMat`</span>
+<span class="sd">    `Tdofi2su`: `TransformationMatrix`</span>
 <span class="sd">        transformation matrix from the last dofi to skin unit</span>
 
 <span class="sd">    `d`: `int`</span>
@@ -176,21 +176,21 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Transformation Matrix from su to rs in rs frame</span>
-    <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
     <span class="c1"># Transformation Matrix from the last DoFi to the excited DoFd</span>
-    <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
 
     <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
         <span class="c1"># print(j)</span>
-        <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">rs_T_su</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">rs_T_su</span> <span class="o">*</span> <span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
         <span class="c1"># print(j, d, i)</span>
-        <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">rs_T_su</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
-        <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">rs_T_su</span> <span class="o">*</span> <span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span> <span class="o">*</span> <span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
 
-    <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">rs_T_su</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdofi2su</span><span class="p">)</span>
-    <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdofi2su</span><span class="p">)</span>
+    <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">rs_T_su</span> <span class="o">*</span> <span class="n">Tdofi2su</span>
+    <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span> <span class="o">*</span> <span class="n">Tdofi2su</span>
 
     <span class="n">dofd_r_su</span> <span class="o">=</span> <span class="n">dof_T_su</span><span class="o">.</span><span class="n">position</span>
     <span class="c1"># Every joint rotates along its own z axis</span>
@@ -220,11 +220,11 @@
 <span class="sd">    ------------</span>
 <span class="sd">    d: int</span>
 <span class="sd">        dth excited joint</span>
-<span class="sd">    Tdof2su: TransMat</span>
+<span class="sd">    Tdof2su: TransformationMatrix</span>
 <span class="sd">        Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">    Tdofs: list of TransMat</span>
+<span class="sd">    Tdofs: list of TransformationMatrix</span>
 <span class="sd">        Transformation Matrices between Dofs</span>
-<span class="sd">    Tjoints: list of TransMat</span>
+<span class="sd">    Tjoints: list of TransformationMatrix</span>
 <span class="sd">        Transformation Matrices (Rotation Matrix)</span>
 <span class="sd">    apply_normal_mittendorfer: bool</span>
 <span class="sd">        determines if we resort to the normal method</span>
@@ -236,17 +236,17 @@
 <span class="sd">        Acceleration computed from positions</span>
 <span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
     <span class="c1"># Compute Transformation Matrix from RS to SU</span>
-    <span class="n">T</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-    <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
 
     <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-        <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span> <span class="o">*</span> <span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">Tdof</span><span class="p">,</span> <span class="n">Tjoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">):</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoint</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tdof</span> <span class="o">*</span> <span class="n">Tjoint</span>
 
-    <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof2su</span><span class="p">)</span>
-    <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof2su</span><span class="p">)</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tdof2su</span>
+    <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span> <span class="o">*</span> <span class="n">Tdof2su</span>
 
     <span class="n">dofd_r_su</span> <span class="o">=</span> <span class="n">dof_T_su</span><span class="o">.</span><span class="n">position</span>
 
@@ -293,9 +293,9 @@
 <span class="sd">    ------------</span>
 <span class="sd">    d: int</span>
 <span class="sd">        dth excited joint</span>
-<span class="sd">    Tdof2su: TransMat</span>
+<span class="sd">    Tdof2su: TransformationMatrix</span>
 <span class="sd">        Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">    Tdofs: list of TransMat</span>
+<span class="sd">    Tdofs: list of TransformationMatrix</span>
 <span class="sd">        Transformation Matrices between Dofs</span>
 <span class="sd">    Tjoints: list of TransformationMatrix</span>
 <span class="sd">        Tranformation Matrices of all joints in Pose p</span>
@@ -306,16 +306,16 @@
 <span class="sd">    position: np.array</span>
 <span class="sd">        Position of the resulting transformation</span>
 <span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
-    <span class="n">T</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">i_joint</span><span class="p">,</span> <span class="p">(</span><span class="n">Tdof</span><span class="p">,</span> <span class="n">Tjoint</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">)):</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoint</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tdof</span> <span class="o">*</span> <span class="n">Tjoint</span>
         <span class="k">if</span> <span class="n">i_joint</span> <span class="o">==</span> <span class="n">d</span><span class="p">:</span>
             <span class="n">Tpattern</span> <span class="o">=</span> <span class="n">joint_angle_func</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
             <span class="c1"># print(Tpattern.parameters, curr_w, max_w, t, d)</span>
             <span class="c1"># adjust based on joint angle function applied to excited dof.</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tpattern</span><span class="p">)</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tpattern</span>
 
-    <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof2su</span><span class="p">)</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tdof2su</span>
     <span class="c1"># print(T.position)</span>
     <span class="k">return</span> <span class="n">T</span><span class="o">.</span><span class="n">position</span></div>
 
@@ -329,7 +329,7 @@
     <span class="c1"># th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))</span>
     <span class="n">th_pattern</span> <span class="o">=</span> <span class="p">(</span><span class="n">amplitude</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">C</span><span class="o">.</span><span class="n">PATTERN_FREQ</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">C</span><span class="o">.</span><span class="n">PATTERN_FREQ</span><span class="o">*</span><span class="n">t</span><span class="p">))</span>
     <span class="c1"># print(&#39;-&#39;*20, th_pattern, curr_w, &#39;-&#39;*20)</span>
-    <span class="k">return</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">th_pattern</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">TM</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">th_pattern</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="constant_velocity_joint_angle"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.constant_velocity_joint_angle">[docs]</a><span class="k">def</span> <span class="nf">constant_velocity_joint_angle</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
@@ -337,7 +337,7 @@
 <span class="sd">    Returns transformation matrix given `t` and current</span>
 <span class="sd">    angular velocity `curr_w`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">curr_w</span><span class="o">*</span><span class="n">t</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">TM</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">curr_w</span><span class="o">*</span><span class="n">t</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.ErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">ErrorFunction</span><span class="p">():</span>
@@ -393,9 +393,9 @@
 <span class="sd">        ------------</span>
 <span class="sd">        i: int</span>
 <span class="sd">            ith sensor</span>
-<span class="sd">        Tdof2su: TransMat</span>
+<span class="sd">        Tdof2su: TransformationMatrix</span>
 <span class="sd">            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">        Tdofs: list of TransMat</span>
+<span class="sd">        Tdofs: list of TransformationMatrix</span>
 <span class="sd">            Transformation Matrices between Dofs</span>
 
 <span class="sd">        Returns</span>
@@ -409,14 +409,14 @@
 
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">):</span>
             <span class="n">joints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">3</span><span class="p">:</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">Tjoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">TransMat</span><span class="p">(</span><span class="n">joint</span><span class="p">)</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joints</span><span class="p">]</span>
+            <span class="n">Tjoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">TM</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">joint</span><span class="p">)</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joints</span><span class="p">]</span>
 
             <span class="c1"># 1 Pose are consists for n_joint DoF</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">TransMat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>   <span class="c1"># equals to I Matrix</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>   <span class="c1"># equals to I Matrix</span>
             <span class="k">for</span> <span class="n">Tdof</span><span class="p">,</span> <span class="n">Tjoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">):</span>
-                <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tjoint</span><span class="p">)</span>
+                <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tdof</span> <span class="o">*</span> <span class="n">Tjoint</span>
             <span class="c1"># DoF to SU</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Tdof2su</span><span class="p">)</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tdof2su</span>
 
             <span class="n">Rsu2rs</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">R</span>
 
@@ -444,9 +444,9 @@
 <span class="sd">        ------------</span>
 <span class="sd">        i: int</span>
 <span class="sd">            ith sensor</span>
-<span class="sd">        Tdof2su: TransMat</span>
+<span class="sd">        Tdof2su: TransformationMatrix</span>
 <span class="sd">            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">        Tdofs: list of TransMat</span>
+<span class="sd">        Tdofs: list of TransformationMatrix</span>
 <span class="sd">            Transformation Matrices between Dofs</span>
 
 <span class="sd">        Returns</span>
@@ -474,7 +474,7 @@
 <span class="sd">                    &quot;&quot;&quot;</span>
 
                     <span class="c1"># Acceleration Error</span>
-                    <span class="n">Tjoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">TransMat</span><span class="p">(</span><span class="n">joint</span><span class="p">)</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joint</span><span class="p">[:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
+                    <span class="n">Tjoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">TM</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">joint</span><span class="p">)</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joint</span><span class="p">[:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
                     <span class="c1"># model_accel = self.estimate_acceleration_numerically(</span>
                     <span class="c1"># Tdofs, Tjoints, Tdof2su, d, curr_w, None, constant_velocity_joint_angle)</span>
                     <span class="n">model_accel</span> <span class="o">=</span> <span class="n">estimate_acceleration_analytically</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">)</span>
@@ -509,9 +509,9 @@
 <span class="sd">        ------------</span>
 <span class="sd">        i: int</span>
 <span class="sd">            ith sensor</span>
-<span class="sd">        Tdof2su: TransMat</span>
+<span class="sd">        Tdof2su: TransformationMatrix</span>
 <span class="sd">            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">        Tdofs: list of TransMat</span>
+<span class="sd">        Tdofs: list of TransformationMatrix</span>
 <span class="sd">            Transformation Matrices between Dofs</span>
 
 <span class="sd">        Returns</span>
@@ -530,7 +530,7 @@
                 <span class="c1"># A is used as amplitude of pose pattern</span>
                 <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">0</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
                 <span class="n">joints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">:</span><span class="mi">7</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
-                <span class="n">Tjoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">TransMat</span><span class="p">(</span><span class="n">joint</span><span class="p">)</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joints</span><span class="p">]</span>
+                <span class="n">Tjoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">TM</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">joint</span><span class="p">)</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joints</span><span class="p">]</span>
                 <span class="c1"># max_accel_model = self.estimate_acceleration_numerically(</span>
                 <span class="c1"># Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)</span>
                 <span class="c1"># use mittendorfer&#39;s original or modified based on condition</span>
