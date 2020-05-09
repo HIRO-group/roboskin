@@ -154,12 +154,10 @@ class KinematicEstimator():
             print('Euclidean distance between real and predicted points: ', euclidean_distance)
             print('='*100)
         self.all_orientations = np.array(self.all_orientations)
-        all_data = np.array(self.cumulative_data)
         # once done, save to file.
         ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
-        save_path = os.path.join(ros_robotic_skin_path, 'data', f'{self.method_name}_data.npy')
-        np.save(save_path, all_data)
-        print(all_data.shape)
+        save_path = os.path.join(ros_robotic_skin_path, 'data', f'{self.method_name}_data.pkl')
+        pickle.dump(self.cumulative_data, open(save_path, "wb"), protocol=2)
         print("Average Euclidean distance = ", sum(self.all_euclidean_distances) / len(self.all_euclidean_distances))
 
     def get_i_accelerometer_position(self, i_sensor):

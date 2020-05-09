@@ -81,6 +81,8 @@ class Optimizer():
         `params`
             Predicted parameters from the model.
         """
+        self.all_poses = []
+
         self.i_imu = i_imu
         self.Tdofs = Tdofs
 
@@ -211,6 +213,8 @@ class SeparateOptimizer(Optimizer):
             Boundaries (Min and Max) for each parameter
         """
         self.i_imu = i_imu
+        self.all_poses = []
+
         self.Tdofs = Tdofs
         self.params = params
         # Tdofs = self.param_manager.get_tmat_until(i_imu)
@@ -292,6 +296,7 @@ class SeparateOptimizer(Optimizer):
         pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
         full_pose = np.r_[pos, quat]
         self.all_poses.append(full_pose)
+
         # append pose
         e = self.error_functions[self.target](self.i_imu, self.Tdofs, Tdof2su)
 
