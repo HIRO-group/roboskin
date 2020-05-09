@@ -10,14 +10,10 @@ import pickle
 import numpy as np
 import rospkg
 
-from robotic_skin.calibration.utils import (
-    ParameterManager,
-    get_IMU_pose,
-    load_robot_configs
-)
+from robotic_skin.calibration.utils import load_robot_configs
+from robotic_skin.calibration.parameter_manager import ParameterManager, get_IMU_pose
 from robotic_skin.calibration import optimizer
 from robotic_skin.calibration import error_functions
-# from robotic_skin.calibration.loss import L1Loss
 from robotic_skin.calibration import loss
 
 # Sawyer IMU Position
@@ -47,7 +43,8 @@ class KinematicEstimator():
     Class for estimating the kinematics of the arm
     and corresponding sensor unit positions.
     """
-    def __init__(self, data, robot_configs, optimizer_function, error_functions_dict, stop_conditions_dict, optimize_all):
+    def __init__(self, data, robot_configs, optimizer_function, error_functions_dict, stop_conditions_dict, optimize_all,
+                 method_name='OM'):
         """
         Arguments
         ------------
@@ -61,6 +58,7 @@ class KinematicEstimator():
         """
         # Assume n_sensor is equal to n_joint for now
         self.robot_configs = robot_configs
+        self.method_name = method_name
 
         self.pose_names = list(data.dynamic.keys())
         self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
@@ -68,6 +66,8 @@ class KinematicEstimator():
         self.n_pose = len(self.pose_names)
         self.n_joint = len(self.joint_names)
         self.n_sensor = self.n_joint
+
+        self.cumulative_data = []
 
         print(self.pose_names)
         print(self.joint_names)
@@ -90,15 +90,10 @@ class KinematicEstimator():
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
 
-        options = ["false", "f", "n", "no"]
-        if optimize_all.lower() in options:
-            optimize_all_params = False
-        else:
-            optimize_all_params = True
-
         if 'dh_parameter' not in robot_configs:
-            optimize_all_params = False
-        robot_dhparams = robot_configs['dh_parameter'] if not optimize_all_params else None
+            optimize_all = False
+
+        robot_dhparams = robot_configs['dh_parameter'] if not optimize_all else None
         self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_dhparams)
 
         # Below is an example of what error_functions and stop_conditions dictionary looks like
@@ -112,7 +107,8 @@ class KinematicEstimator():
         # }
         error_functions = error_functions_dict
         stop_conditions = stop_conditions_dict
-        self.optimizer = optimizer_function(error_functions, stop_conditions)
+        self.optimizer = optimizer_function(error_functions, stop_conditions,
+                                            optimize_all=optimize_all)
         # self.optimizer = Optimizer(error_functions, stop_conditions)
 
         self.imu_true_positions = robot_configs['su_pose']
@@ -131,6 +127,7 @@ class KinematicEstimator():
         """
         # Optimize each joint (& sensor) at a time from the root
         # currently starting from 6th skin unit
+        print('Skipping 0th IMU')
         for i_imu in range(1, self.n_sensor):
             print("Optimizing %ith SU ..." % (i_imu))
             params, bounds = self.param_manager.get_params_at(i=i_imu)
@@ -140,6 +137,7 @@ class KinematicEstimator():
 
             # optimize parameters wrt data
             params = self.optimizer.optimize(i_imu, Tdofs, params, bounds)
+            self.cumulative_data.append(self.optimizer.all_poses)
             self.param_manager.set_params_at(i_imu, params)
             pos, quat = self.get_i_accelerometer_position(i_imu)
             self.all_orientations.append(quat)
@@ -156,6 +154,12 @@ class KinematicEstimator():
             print('Euclidean distance between real and predicted points: ', euclidean_distance)
             print('='*100)
         self.all_orientations = np.array(self.all_orientations)
+        all_data = np.array(self.cumulative_data)
+        # once done, save to file.
+        ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
+        save_path = os.path.join(ros_robotic_skin_path, 'data', f'{self.method_name}_data.npy')
+        np.save(save_path, all_data)
+        print(all_data.shape)
         print("Average Euclidean distance = ", sum(self.all_euclidean_distances) / len(self.all_euclidean_distances))
 
     def get_i_accelerometer_position(self, i_sensor):
@@ -178,9 +182,8 @@ class KinematicEstimator():
         """
         return get_IMU_pose(
             self.param_manager.Tdof2dof[:i_sensor+1],
-            self.param_manager.Tdof2vdof[i_sensor].dot(
-                self.param_manager.Tvdof2su[i_sensor]
-            )
+            self.param_manager.Tdof2vdof[i_sensor] *
+            self.param_manager.Tvdof2su[i_sensor]
         )
 
     def get_all_accelerometer_positions(self):
@@ -259,7 +262,7 @@ def parse_arguments():
                         help="Please provide a stop function for each key provided")
     parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer',
                         help="Please provide an optimizer function for each key provided")
-    parser.add_argument('-oa', '--optimizeall', type=str, default='false',
+    parser.add_argument('-oa', '--optimizeall', action='store_true',
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
     return parser.parse_args()
 

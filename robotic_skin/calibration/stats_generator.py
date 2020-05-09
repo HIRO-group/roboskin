@@ -79,8 +79,8 @@ if __name__ == "__main__":  # noqa: C901
     robot_configs = load_robot_configs(configdir, args.robot)
     optimize_all = args.optimizeall
 
-    stats_file_name = "stats.md"
-    l2_norm_plot_file_name = "l2_norm_graph.png"
+    stats_file_name = "stats2.md"
+    l2_norm_plot_file_name = "l2_norm_graph2.png"
     # Original_Params
     original_params = "OG"
     OG = original_parameters()
@@ -97,7 +97,8 @@ if __name__ == "__main__":  # noqa: C901
     }
     optimizer_function = SeparateOptimizer
     method1_kinematics_estimator = KinematicEstimator(measured_data, robot_configs, optimizer_function,
-                                                      error_functions, stop_conditions, optimize_all)
+                                                      error_functions, stop_conditions, optimize_all,
+                                                      method_name=method1_name)
     method1_kinematics_estimator.optimize()
 
     # Method 2
@@ -115,7 +116,8 @@ if __name__ == "__main__":  # noqa: C901
 
     optimizer_function = Optimizer
     method2_kinematics_estimator = KinematicEstimator(measured_data, robot_configs, optimizer_function,
-                                                      error_functions, stop_conditions, optimize_all)
+                                                      error_functions, stop_conditions, optimize_all,
+                                                      method_name=method2_name)
     method2_kinematics_estimator.optimize()
 
     # Method 3
@@ -133,7 +135,8 @@ if __name__ == "__main__":  # noqa: C901
 
     optimizer_function = Optimizer
     method3_kinematics_estimator = KinematicEstimator(measured_data, robot_configs, optimizer_function,
-                                                      error_functions, stop_conditions, optimize_all)
+                                                      error_functions, stop_conditions, optimize_all,
+                                                      method_name=method3_name)
     method3_kinematics_estimator.optimize()
 
     # Below code is for

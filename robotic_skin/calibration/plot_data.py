@@ -4,7 +4,8 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-from robotic_skin.calibration.utils import TransMat, ParameterManager
+from robotic_skin.calibration.utils import ParameterManager
+from robotic_skin.calibration.utils import TransformationMatrix as TM
 
 PACKAGE_HOME_DIR = os.path.abspath(__file__ + "/../../../")
 
@@ -72,13 +73,13 @@ def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
 
     Arguments
     ---------
-    `Tdofs`: List of `TransMat`
+    `Tdofs`: List of `TransformationMatrix`
         transformation matrices from dof to dof
 
-    `Tjoints`: List of `TransMat`
+    `Tjoints`: List of `TransformationMatrix`
         transformation matrices from joint to joint
 
-    `Tdofi2su`: `TransMat`
+    `Tdofi2su`: `TransformationMatrix`
         transformation matrix from the last dofi to skin unit
 
     `d`: `int`
@@ -91,21 +92,21 @@ def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
         Angular velocity
     """
     # Transformation Matrix from su to rs in rs frame
-    rs_T_su = TransMat(np.zeros(4))
+    rs_T_su = TM.from_numpy(np.zeros(4))
     # Transformation Matrix from the last DoFi to the excited DoFd
-    dofd_T_dofi = TransMat(np.zeros(4))
+    dofd_T_dofi = TM.from_numpy(np.zeros(4))
 
     for j in range(d+1):
         # print(j)
-        rs_T_su = rs_T_su.dot(Tdofs[j]).dot(Tjoints[j])
+        rs_T_su = rs_T_su * Tdofs[j] * Tjoints[j]
 
     for j in range(d+1, i+1):
         # print(j, d, i)
-        rs_T_su = rs_T_su.dot(Tdofs[j]).dot(Tjoints[j])
-        dofd_T_dofi = dofd_T_dofi.dot(Tdofs[j]).dot(Tjoints[j])
+        rs_T_su = rs_T_su * Tdofs[j] * Tjoints[j]
+        dofd_T_dofi = dofd_T_dofi * Tdofs[j] * Tjoints[j]
 
-    rs_T_su = rs_T_su.dot(Tdofi2su)
-    dof_T_su = dofd_T_dofi.dot(Tdofi2su)
+    rs_T_su = rs_T_su * Tdofi2su
+    dof_T_su = dofd_T_dofi * Tdofi2su
 
     dofd_r_su = dof_T_su.position
     # Every joint rotates along its own z axis
@@ -148,10 +149,10 @@ def get_su_transmat(i, robot='panda'):
     else:
         raise NotImplementedError("Define a robot's DH Parameters")
 
-    Tdof2vdof = TransMat(params[i, :2])
-    Tvdof2su = TransMat(params[i, 2:])
+    Tdof2vdof = TM.from_numpy(params[i, :2], keys=['theta', 'd'])
+    Tvdof2su = TM.from_numpy(params[i, 2:])
 
-    return Tdof2vdof.dot(Tvdof2su)
+    return Tdof2vdof * Tvdof2su
 
 
 if __name__ == '__main__':
@@ -197,7 +198,7 @@ if __name__ == '__main__':
 
                 model_accels = []
                 for meas_accel, joint, curr_w in zip(meas_accels, joints, angular_velocities):
-                    Tjoints = [TransMat(joint) for joint in joint[:i+1]]
+                    Tjoints = [TM(theta=joint) for joint in joint[:i+1]]
                     model_accel = estimate_acceleration_analytically(Tdofs, Tjoints, Tdof2su, d, i, curr_w)
                     model_accels.append(model_accel)
                 model_accels = np.array(model_accels)
