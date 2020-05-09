@@ -205,7 +205,7 @@ estimation models.</p>
 
 <dl class="py class">
 <dt id="robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">MaxAccelerationErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">loss_func</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#MaxAccelerationErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">MaxAccelerationErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">loss_func</span></em>, <em class="sig-param"><span class="n">use_modified_mittendorfer</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#MaxAccelerationErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="robotic_skin.calibration.error_functions.ErrorFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.error_functions.ErrorFunction</span></code></a></p>
 <p>Compute errors between estimated and measured max acceleration for sensor i</p>
 </dd></dl>
@@ -219,7 +219,7 @@ estimation models.</p>
 
 <dl class="py function">
 <dt id="robotic_skin.calibration.error_functions.accelerometer_position">
-<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">accelerometer_position</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">t</span></em>, <em class="sig-param"><span class="n">Tdofs</span></em>, <em class="sig-param"><span class="n">Tjoints</span></em>, <em class="sig-param"><span class="n">Tdof2su</span></em>, <em class="sig-param"><span class="n">d</span></em>, <em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">max_w</span></em>, <em class="sig-param"><span class="n">joint_angle_func</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#accelerometer_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.accelerometer_position" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">accelerometer_position</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">t</span></em>, <em class="sig-param"><span class="n">Tdofs</span></em>, <em class="sig-param"><span class="n">Tjoints</span></em>, <em class="sig-param"><span class="n">Tdof2su</span></em>, <em class="sig-param"><span class="n">d</span></em>, <em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">amplitude</span></em>, <em class="sig-param"><span class="n">joint_angle_func</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#accelerometer_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.accelerometer_position" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute ith accelerometer position excited by joint d in pose p at time t</p>
 <dl class="simple">
 <dt>At pose p, let o be a joint and x be a sensor unit, then it looks like</dt><dd><p>d       i                     dth joint and ith accelerometer</p>
@@ -275,14 +275,14 @@ angular velocity <cite>curr_w</cite></p>
 
 <dl class="py function">
 <dt id="robotic_skin.calibration.error_functions.estimate_acceleration_numerically">
-<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">estimate_acceleration_numerically</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Tdofs</span></em>, <em class="sig-param"><span class="n">Tjoints</span></em>, <em class="sig-param"><span class="n">Tdof2su</span></em>, <em class="sig-param"><span class="n">d</span></em>, <em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">max_w</span></em>, <em class="sig-param"><span class="n">joint_angle_func</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#estimate_acceleration_numerically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.estimate_acceleration_numerically" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">estimate_acceleration_numerically</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Tdofs</span></em>, <em class="sig-param"><span class="n">Tjoints</span></em>, <em class="sig-param"><span class="n">Tdof2su</span></em>, <em class="sig-param"><span class="n">d</span></em>, <em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">max_w</span></em>, <em class="sig-param"><span class="n">joint_angle_func</span></em>, <em class="sig-param"><span class="n">apply_normal_mittendorder</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#estimate_acceleration_numerically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.estimate_acceleration_numerically" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Compute an acceleration value from positions.
 .. math:: <a href="#id3"><span class="problematic" id="id4">`</span></a>a =</p>
 </div></blockquote>
 <p>rac{f({Delta t}) + f({Delta t) - 2 f(0)}{h^2}`</p>
 <blockquote>
-<div><p>This equation came from Taylor Expansion.
+<div><p>This equation came from Taylor Expansion to get the second derivative from f(t).
 .. math:: f(t+{Delta t}) = f(t) + hf^{prime}(t) +</p>
 </div></blockquote>
 <dl>
@@ -302,6 +302,9 @@ angular velocity <cite>curr_w</cite></p>
 </dd>
 <dt>Tjoints: list of TransMat</dt><dd><p>Transformation Matrices (Rotation Matrix)</p>
 </dd>
+<dt>apply_normal_mittendorfer: bool</dt><dd><p>determines if we resort to the normal method
+mittendorfer uses (which we modified due to some possible missing terms</p>
+</dd>
 </dl>
 <dl class="simple">
 <dt>acceleration: np.array</dt><dd><p>Acceleration computed from positions</p>
@@ -312,8 +315,9 @@ angular velocity <cite>curr_w</cite></p>
 
 <dl class="py function">
 <dt id="robotic_skin.calibration.error_functions.max_acceleration_joint_angle">
-<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">max_acceleration_joint_angle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">max_w</span></em>, <em class="sig-param"><span class="n">t</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#max_acceleration_joint_angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.max_acceleration_joint_angle" title="Permalink to this definition">¶</a></dt>
-<dd><p>max acceleration along a joint angle of robot.</p>
+<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">max_acceleration_joint_angle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">amplitude</span></em>, <em class="sig-param"><span class="n">t</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#max_acceleration_joint_angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.max_acceleration_joint_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>max acceleration along a joint angle of robot function.
+includes pattern</p>
 </dd></dl>
 
 </div>
@@ -603,7 +607,10 @@ If given, only the parameters for IMU should be estimated.</p>
 <dl class="py method">
 <dt id="robotic_skin.calibration.utils.ParameterManager.set_params_at">
 <code class="sig-name descname">set_params_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i</span></em>, <em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils.html#ParameterManager.set_params_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.ParameterManager.set_params_at" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set DH parameters</p>
+<dd><p>Set DH parameters
+Depending of if we
+are optimizing 6 (just su params)
+or 10 (all dh params)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">

@@ -33,7 +33,8 @@ class Optimizer():
     """
     Optimizer class to evaluate the data.
     """
-    def __init__(self, error_functions, stop_conditions=None, su_dhparams=None):
+    def __init__(self, error_functions, stop_conditions=None, su_dhparams=None,
+                 optimize_all=False):
         """
         Initializes the optimize with the following arguments:
 
@@ -50,9 +51,11 @@ class Optimizer():
         """
         self.error_functions = error_functions
         self.su_dhparams = su_dhparams
+        self.optimize_all = optimize_all
         self.error_types = list(error_functions.keys())
         self.stop_conditions = stop_conditions
         self.target = self.error_types[0]
+        self.all_poses = []
         if stop_conditions is None:
             self.stop_conditions = {'both': PassThroughStopCondition()}
 
@@ -79,9 +82,9 @@ class Optimizer():
         self.i_imu = i_imu
         self.Tdofs = Tdofs
 
-        n_param = params.shape[0]
+        self.n_param = params.shape[0]
         # Construct an global optimizer
-        opt = nlopt.opt(C.GLOBAL_OPTIMIZER, n_param)
+        opt = nlopt.opt(C.GLOBAL_OPTIMIZER, self.n_param)
         # The objective function only accepts x and grad arguments.
         # This is the only way to pass other arguments to opt
         # https://github.com/JuliaOpt/NLopt.jl/issues/27
@@ -93,7 +96,7 @@ class Optimizer():
         # set stopping threshold
         opt.set_stopval(C.GLOBAL_STOP)
         # Need to set a local optimizer for the global optimizer
-        local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
+        local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, self.n_param)
         opt.set_local_optimizer(local_opt)
 
         # this is where most of the time is spent - in optimization
@@ -104,6 +107,7 @@ class Optimizer():
     def objective(self, params, grad):
         """
         Objective function used in the optimizer.
+        Called continuouly until a stopping condition is met.
 
         Arguments
         ---------
@@ -114,9 +118,14 @@ class Optimizer():
             Gradient
         """
         Tdof2su = self.choose_true_or_estimated_Tdof2su(params)
-
+        # self.Tdofs needs to be changed if we are optimizing all params.
+        if self.optimize_all:
+            modified_tdof = TransMat(params[:4])
+            # update tdofs
+            self.Tdofs[-1] = modified_tdof
         pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
-
+        full_pose = np.r_[pos, quat]
+        self.all_poses.append(full_pose)
         e = 0.0
 
         if sys.version_info[0] == 2:
@@ -127,8 +136,8 @@ class Optimizer():
             # items() in python3
             for error_type, error_function in self.error_functions.items():
                 e += error_function(self.i_imu, self.Tdofs, Tdof2su)
-
-        return self.stop_conditions[self.target].update(params, None, e)
+        res = self.stop_conditions[self.target].update(params, None, e)
+        return res
 
     def choose_true_or_estimated_Tdof2su(self, params):
         """
@@ -157,14 +166,21 @@ class SeparateOptimizer(Optimizer):
     """
     Separate Optimizer class
     """
-    def __init__(self, error_functions, stop_conditions, su_dhparams=None):
-        super().__init__(error_functions, su_dhparams=su_dhparams)
+    def __init__(self, error_functions, stop_conditions, su_dhparams=None,
+                 optimize_all=False):
+        super().__init__(error_functions, su_dhparams=su_dhparams, optimize_all=optimize_all)
         """
         Initializes optimizer with selected error functions,
         certain stop conditions, and skin unit dh parameters.
         """
-        self.rotation_index = [0, 2, 5]
-        self.position_index = [1, 3, 4]
+        # indices vary based on optimizing all dh params.
+        if self.optimize_all:
+            self.rotation_index = [0, 3, 4, 6, 9]
+            self.position_index = [1, 2, 5, 7, 8]
+
+        else:
+            self.rotation_index = [0, 2, 5]
+            self.position_index = [1, 3, 4]
         self.target = None
         self.error_functions = error_functions
         self.stop_conditions = stop_conditions
@@ -194,22 +210,25 @@ class SeparateOptimizer(Optimizer):
         """
         self.i_imu = i_imu
         self.Tdofs = Tdofs
+        self.params = params
+        # Tdofs = self.param_manager.get_tmat_until(i_imu)
 
         n_param = params.shape[0]
         # optimizing half of them at each time
-        n_param = int(n_param/2)
+        self.n_param = int(n_param/2)
 
         # ################### First Optimize Rotations ####################
+        # this takes care of 3 or 5 parameters at a time
         self.target = 'Rotation'
         self.stop_conditions['Rotation'].initialize()
         self.constant_params = params[self.position_index]
 
-        opt = nlopt.opt(C.GLOBAL_OPTIMIZER, n_param)
+        opt = nlopt.opt(C.GLOBAL_OPTIMIZER, self.n_param)
         opt.set_min_objective(self.objective)
         opt.set_lower_bounds(bounds[self.rotation_index, 0])
         opt.set_upper_bounds(bounds[self.rotation_index, 1])
         opt.set_stopval(C.ROT_GLOBAL_STOP)
-        local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
+        local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, self.n_param)
         opt.set_local_optimizer(local_opt)
         param_rot = opt.optimize(params[self.rotation_index])
 
@@ -218,12 +237,12 @@ class SeparateOptimizer(Optimizer):
         self.stop_conditions['Translation'].initialize()
         self.constant_params = param_rot
 
-        opt = nlopt.opt(C.GLOBAL_OPTIMIZER, n_param)
+        opt = nlopt.opt(C.GLOBAL_OPTIMIZER, self.n_param)
         opt.set_min_objective(self.objective)
         opt.set_lower_bounds(bounds[self.position_index, 0])
         opt.set_upper_bounds(bounds[self.position_index, 1])
         opt.set_stopval(C.POS_GLOBAL_STOP)
-        local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, n_param)
+        local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, self.n_param)
         opt.set_local_optimizer(local_opt)
         param_pos = opt.optimize(params[self.position_index])
         params[self.rotation_index] = param_rot
@@ -256,29 +275,42 @@ class SeparateOptimizer(Optimizer):
         error: float
             Error between measured values and estimated model outputs
         """
+        # update self.Tdofs
+
         Tdof2su = self.choose_true_or_estimated_Tdof2su(
             np.r_[target_params, self.constant_params])
-
+        # tdof is based on
+        if self.optimize_all:
+            first_params = self.current_params[:4]
+            modified_tdof = TransMat(first_params)
+            # update tdofs
+            self.Tdofs[-1] = modified_tdof
+        # target params from optimization thus far:
+        # doesn't yet account for robot position, needed for later in 0's pose.
         pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
-
+        full_pose = np.r_[pos, quat]
+        self.all_poses.append(full_pose)
+        # append pose
         e = self.error_functions[self.target](self.i_imu, self.Tdofs, Tdof2su)
 
-        return self.stop_conditions[self.target].update(target_params, None, e)
+        updated_params = self.stop_conditions[self.target].update(target_params, None, e)
+        return updated_params
 
     def convert_dhparams_to_Tdof2su(self, merged_params):
         """
         converts current dh parameters to a
         transformation matrix from dof to skin unit.
         """
-        params = np.zeros(6)
-
+        # size depends on what we're optimizing.
+        params = np.zeros(self.n_param * 2)
         if self.target == 'Rotation':
-            params[self.rotation_index] = merged_params[:3]
-            params[self.position_index] = merged_params[3:]
-        elif self.target == 'Translation':
-            params[self.rotation_index] = merged_params[3:]
-            params[self.position_index] = merged_params[:3]
 
+            params[self.rotation_index] = merged_params[:self.n_param]
+            params[self.position_index] = merged_params[self.n_param:]
+        elif self.target == 'Translation':
+            params[self.rotation_index] = merged_params[self.n_param:]
+            params[self.position_index] = merged_params[:self.n_param]
+        self.current_params = params
         return convert_dhparams_to_Tdof2su(params)
 
 
@@ -336,7 +368,6 @@ class DeltaXStopCondition(StopCondition):
 
         if self.xdiff is not None:
             self.xdiffs = np.append(self.xdiffs, self.xdiff)
-
         if len(self.xdiffs) >= self.windowsize:
             if np.mean(self.xdiffs[-(self.windowsize+1):-1]) <= self.threshold:
                 return self.retval
