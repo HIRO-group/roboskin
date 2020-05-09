@@ -90,7 +90,6 @@ class KinematicEstimator():
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
 
-        # taken care of in argparse
         options = ["false", "f", "n", "no"]
         if optimize_all.lower() in options:
             optimize_all_params = False
@@ -118,6 +117,8 @@ class KinematicEstimator():
 
         self.imu_true_positions = robot_configs['su_pose']
         self.all_euclidean_distances = []
+        self.estimated_dh_params = []
+        self.all_orientations = []
 
     def optimize(self):
         """
@@ -141,16 +142,20 @@ class KinematicEstimator():
             params = self.optimizer.optimize(i_imu, Tdofs, params, bounds)
             self.param_manager.set_params_at(i_imu, params)
             pos, quat = self.get_i_accelerometer_position(i_imu)
-
+            self.all_orientations.append(quat)
             euclidean_distance = np.linalg.norm(pos - self.imu_true_positions['su%i' % (i_imu+1)]['position'])
             self.all_euclidean_distances.append(euclidean_distance)
-
+            """
+            size of params will be different depending on if we are
+            optimizing all or just su dh parameters.
+            """
+            self.estimated_dh_params.append(params)
             print('='*100)
             print('Position:', pos)
             print('Quaternion:', quat)
             print('Euclidean distance between real and predicted points: ', euclidean_distance)
             print('='*100)
-
+        self.all_orientations = np.array(self.all_orientations)
         print("Average Euclidean distance = ", sum(self.all_euclidean_distances) / len(self.all_euclidean_distances))
 
     def get_i_accelerometer_position(self, i_sensor):
@@ -254,7 +259,6 @@ def parse_arguments():
                         help="Please provide a stop function for each key provided")
     parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer',
                         help="Please provide an optimizer function for each key provided")
-
     parser.add_argument('-oa', '--optimizeall', type=str, default='false',
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
     return parser.parse_args()
