@@ -153,6 +153,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pyquaternion</span> <span class="k">as</span> <span class="nn">pyqt</span>
 <span class="kn">from</span> <span class="nn">geometry_msgs.msg</span> <span class="kn">import</span> <span class="n">Quaternion</span>
+<span class="kn">import</span> <span class="nn">math</span>
 
 
 <div class="viewcode-block" id="TransMat"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.utils.TransMat">[docs]</a><span class="k">class</span> <span class="nc">TransMat</span><span class="p">():</span>
@@ -546,7 +547,7 @@
     <span class="k">return</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="n">angle</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="angle_between_quaternions"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.utils.angle_between_quaternions">[docs]</a><span class="k">def</span> <span class="nf">angle_between_quaternions</span><span class="p">(</span><span class="n">q_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">q_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>  <span class="c1"># noqa: E999</span>
+<div class="viewcode-block" id="angle_between_quaternions"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.utils.angle_between_quaternions">[docs]</a><span class="k">def</span> <span class="nf">angle_between_quaternions</span><span class="p">(</span><span class="n">q_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">q_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">output_in_degrees</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>  <span class="c1"># noqa: E999</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Angle between quaternions a and b in degrees. Please note the input quaternions should be of</span>
 <span class="sd">    form np.ndarray([x, y, z, w]).</span>
@@ -570,10 +571,16 @@
 <span class="sd">    :return: float</span>
 <span class="sd">        Angle between quaternions in degrees</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">q_1</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">q_2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">q_1</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">q_2</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)):</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Please only pass unit quaternions&quot;</span><span class="p">)</span>
     <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">((</span><span class="n">q_1</span> <span class="o">@</span> <span class="n">q_2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># noqa: E999</span>
-    <span class="c1"># angle_in_degrees = (angle / np.pi) * 180</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">angle</span><span class="p">):</span>
+        <span class="c1"># usually some values overflow 1. arc-cos isn&#39;t defined in range &gt; 1</span>
+        <span class="c1"># So it&#39;s just an overflow error and the angle can be safely be assumed zero</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">output_in_degrees</span><span class="p">:</span>
+        <span class="n">angle_in_degrees</span> <span class="o">=</span> <span class="p">(</span><span class="n">angle</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="mi">180</span>
+        <span class="k">return</span> <span class="n">angle_in_degrees</span>
     <span class="k">return</span> <span class="n">angle</span></div>
 
 
