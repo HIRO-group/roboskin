@@ -65,16 +65,13 @@ class KinematicEstimator():
         self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
         self.n_pose = len(self.pose_names)
         self.n_joint = len(self.joint_names)
-        self.n_sensor = self.n_joint
+        self.n_sensor = len(self.imu_names)
 
         self.cumulative_data = []
 
         print(self.pose_names)
         print(self.joint_names)
         print(self.imu_names)
-
-        assert self.n_joint == 7
-        assert self.n_sensor == 7
 
         # bounds for DH parameters
         bounds = np.array([
@@ -271,10 +268,12 @@ if __name__ == '__main__':
     measured_data = load_data(args.robot)
     robot_configs = load_robot_configs(args.configdir, args.robot)
 
+    # Num of dict keys should be all equal
     if not (len(args.all_keys) == len(args.all_error_functions)
             == len(args.all_loss_functions) == len(args.stop_conditions)):
         raise Exception("The # of arguments of all_keys, all_error_functions, all_loss_functions, "
                         "stop_conditions should be same hence exiting...")
+    # Select ErrorFunction, StopCondition, Optimizer
     gen_error_functions_dict = {}
     gen_stop_conditions_dict = {}
     for key, error_func, loss_func, stop_func in \
@@ -285,11 +284,15 @@ if __name__ == '__main__':
         gen_error_functions_dict[key] = error_function(measured_data, loss_function())
         gen_stop_conditions_dict[key] = stop_function()
     optimizer = getattr(optimizer, args.optimizer)
+    # Initialize a Kinematic Estimator
     estimator = KinematicEstimator(measured_data, robot_configs, optimizer,
                                    gen_error_functions_dict, gen_stop_conditions_dict, args.optimizeall)
-
+    # Run Optimization
     estimator.optimize()
+
+    # Get the estimated data
     data = estimator.get_all_accelerometer_positions()
+    # Save the data in a file
     ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
     save_path = os.path.join(ros_robotic_skin_path, 'data', args.savefile)
     np.savetxt(save_path, data)

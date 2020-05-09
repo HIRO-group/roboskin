@@ -124,22 +124,15 @@ class Optimizer():
         Tdof2su = self.choose_true_or_estimated_Tdof2su(params)
         # self.Tdofs needs to be changed if we are optimizing all params.
         if self.optimize_all:
-            modified_tdof = TM.from_numpy(params[:4])
-            # update tdofs
-            self.Tdofs[-1] = modified_tdof
+            self.Tdofs[-1] = TM.from_numpy(params[:4])
+
         pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
         full_pose = np.r_[pos, quat]
         self.all_poses.append(full_pose)
         e = 0.0
 
-        if sys.version_info[0] == 2:
-            # iteritems() in python2
-            for error_type, error_function in self.error_functions.iteritems():
-                e += error_function(self.i_imu, self.Tdofs, Tdof2su)
-        else:
-            # items() in python3
-            for error_type, error_function in self.error_functions.items():
-                e += error_function(self.i_imu, self.Tdofs, Tdof2su)
+        for error_type, error_function in self.error_functions.items():
+            e += error_function(self.i_imu, self.Tdofs, Tdof2su)
         res = self.stop_conditions[self.target].update(params, None, e)
         return res
 
@@ -155,14 +148,8 @@ class Optimizer():
             Currently estimated dh parameters.
         """
         if self.su_dhparams is not None:
-            return convert_dhparams_to_Tdof2su(
-                self.su_dhparams['su%i' % (self.i_imu+1)])
-        else:
-            return self.convert_dhparams_to_Tdof2su(params)
+            params = self.su_dhparams['su%i' % (self.i_imu+1)]
 
-    def convert_dhparams_to_Tdof2su(self, params):
-        """
-        """
         return convert_dhparams_to_Tdof2su(params)
 
 
@@ -282,15 +269,13 @@ class SeparateOptimizer(Optimizer):
             Error between measured values and estimated model outputs
         """
         # update self.Tdofs
-
         Tdof2su = self.choose_true_or_estimated_Tdof2su(
             np.r_[target_params, self.constant_params])
+
         # tdof is based on
         if self.optimize_all:
-            first_params = self.current_params[:4]
-            modified_tdof = TM.from_numpy(first_params)
-            # update tdofs
-            self.Tdofs[-1] = modified_tdof
+            self.Tdofs[-1] = TM.from_numpy(self.current_params[:4])
+
         # target params from optimization thus far:
         # doesn't yet account for robot position, needed for later in 0's pose.
         pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
@@ -300,8 +285,8 @@ class SeparateOptimizer(Optimizer):
         # append pose
         e = self.error_functions[self.target](self.i_imu, self.Tdofs, Tdof2su)
 
-        updated_params = self.stop_conditions[self.target].update(target_params, None, e)
-        return updated_params
+        res = self.stop_conditions[self.target].update(target_params, None, e)
+        return res
 
     def convert_dhparams_to_Tdof2su(self, merged_params):
         """
@@ -311,7 +296,6 @@ class SeparateOptimizer(Optimizer):
         # size depends on what we're optimizing.
         params = np.zeros(self.n_param * 2)
         if self.target == 'Rotation':
-
             params[self.rotation_index] = merged_params[:self.n_param]
             params[self.position_index] = merged_params[self.n_param:]
         elif self.target == 'Translation':
