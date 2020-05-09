@@ -5,7 +5,8 @@ import unittest
 import numpy as np
 from pyquaternion import Quaternion
 from robotic_skin.calibration import utils
-from robotic_skin.calibration.utils import TransMat, ParameterManager
+from robotic_skin.calibration.parameter_manager import ParameterManager
+from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
 
 N_JOINT = 7
 INIT_POSE = np.zeros(N_JOINT)
@@ -40,7 +41,7 @@ SAWYER_DHPARAMS = {'joint1': [0, 0.317, 0, 0],
                    'joint7': [3.14159265, 0.13375, 0, 1.57079633]}
 
 
-class TransMatTest(unittest.TestCase):
+class TransformationMatrixTest(unittest.TestCase):
     """
     Transformation Matrix Test Class
     """
@@ -48,21 +49,21 @@ class TransMatTest(unittest.TestCase):
         """
         Test to create an identity matrix
         """
-        T = TransMat(np.zeros(4))
-        np.testing.assert_array_equal(T.mat, np.eye(4))
+        T = TM.from_numpy(np.zeros(4))
+        np.testing.assert_array_equal(T.matrix, np.eye(4))
 
     def test_n_params(self):
         """
         Test a constructor with different number of parameters
         """
-        T = TransMat(np.random.rand(1))
-        self.assertEqual(T.n_params, 1)
+        T = TM.from_numpy(np.random.rand(1), keys=['theta'])
+        self.assertEqual(T.key_index, 0)
 
-        T = TransMat(np.random.rand(2))
-        self.assertEqual(T.n_params, 2)
+        T = TM.from_numpy(np.random.rand(2), keys=['theta', 'd'])
+        np.testing.assert_array_equal(T.key_index, np.array([0, 1]))
 
-        T = TransMat(np.random.rand(4))
-        self.assertEqual(T.n_params, 4)
+        T = TM.from_numpy(np.random.rand(4))
+        np.testing.assert_array_equal(T.key_index, np.array([0, 1, 2, 3]))
 
     def test_bound(self):
         """
@@ -71,7 +72,7 @@ class TransMatTest(unittest.TestCase):
         iterations = 100
 
         for _ in range(iterations):
-            T = TransMat(bounds=BOUNDS)
+            T = TM.from_bounds(bounds=BOUNDS)
             for parameter, bound in zip(T.parameters, BOUNDS):
                 self.assertTrue(bound[0] <= parameter <= bound[1])
 
@@ -80,20 +81,20 @@ class TransMatTest(unittest.TestCase):
         Test if a constructor outputs error
         if other than 1, 2, 4 params are given
         """
-        self.assertRaises(ValueError, TransMat, np.random.rand(3))
+        self.assertRaises(ValueError, TM.from_numpy, np.random.rand(3))
 
     def test_R_shape(self):
         """
         Test the shape of the resulting rotation matrix
         """
-        T = TransMat(np.zeros(4))
+        T = TM.from_numpy(np.zeros(4))
         self.assertEqual(T.R.shape, np.zeros((3, 3)).shape)
 
     def test_position_shape(self):
         """
         Test the shape of the resulting positions
         """
-        T = TransMat(np.zeros(4))
+        T = TM.from_numpy(np.zeros(4))
         self.assertEqual(T.position.shape, np.zeros(3).shape)
 
     def test_sub_position_into_ndarray(self):
@@ -102,7 +103,7 @@ class TransMatTest(unittest.TestCase):
         """
         n_joint = 7
         positions = np.zeros((n_joint, 3))
-        T = TransMat(np.zeros(4))
+        T = TM.from_numpy(np.zeros(4))
 
         raised = False
         try:
@@ -117,7 +118,7 @@ class TransMatTest(unittest.TestCase):
         Test a tranformation matrix by rotating 90 degrees
         """
         # 90 Deg
-        T = TransMat(np.array([np.pi/2, 0, 0, 0]))
+        T = TM(theta=np.pi/2)
         expected_R = np.array([
             [0, -1, 0],
             [1, 0, 0],
@@ -126,7 +127,7 @@ class TransMatTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(T.R, expected_R)
 
         # -90 Deg
-        T = TransMat(np.array([-np.pi/2, 0, 0, 0]))
+        T = TM(theta=-np.pi/2)
         expected_R = np.array([
             [0, 1, 0],
             [-1, 0, 0],
@@ -135,7 +136,7 @@ class TransMatTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(T.R, expected_R)
 
         # 180 Deg
-        T = TransMat(np.array([np.pi, 0, 0, 0]))
+        T = TM(theta=np.pi)
         expected_R = np.array([
             [-1, 0, 0],
             [0, -1, 0],
@@ -148,7 +149,7 @@ class TransMatTest(unittest.TestCase):
         Test a tranformation matrix by rotating 90 degrees
         """
         # 90 Deg
-        T = TransMat(np.array([0, 0, 0, np.pi/2]))
+        T = TM(alpha=np.pi/2)
         expected_R = np.array([
             [1, 0, 0],
             [0, 0, -1],
@@ -157,7 +158,7 @@ class TransMatTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(T.R, expected_R)
 
         # -90 Deg
-        T = TransMat(np.array([0, 0, 0, -np.pi/2]))
+        T = TM(alpha=-np.pi/2)
         expected_R = np.array([
             [1, 0, 0],
             [0, 0, 1],
@@ -166,7 +167,7 @@ class TransMatTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(T.R, expected_R)
 
         # 180 Deg
-        T = TransMat(np.array([0, 0, 0, np.pi]))
+        T = TM(alpha=np.pi)
         expected_R = np.array([
             [1, 0, 0],
             [0, -1, 0],
@@ -178,7 +179,7 @@ class TransMatTest(unittest.TestCase):
         """
         Test the tranformation order.
         Checks whether it rotates T1 first and then T2.
-        This also checks whether each TransMat rotates X first and then Z
+        This also checks whether each TransformationMatrix rotates X first and then Z
         It should look like
             ^
             |    (2+sqrt(2), sqrt(2))
@@ -190,11 +191,11 @@ class TransMatTest(unittest.TestCase):
         """
         # 1. Translate x axis for 2
         # 2. Rotates 45 degrees + Translate z axis for 4
-        T1 = TransMat(np.array([np.pi/4, 4, 2, 0]))
+        T1 = TM.from_numpy(np.array([np.pi/4, 4, 2, 0]))
         # 1. Translate x axis for 2
         # 2. Rotates 90 degrees + Translate z axis for 4
-        T2 = TransMat(np.array([np.pi/2, 4, 2, 0]))
-        T3 = T1.dot(T2)
+        T2 = TM.from_numpy(np.array([np.pi/2, 4, 2, 0]))
+        T3 = T1*T2
 
         a = 1/np.sqrt(2)
         expected_R = np.array([
@@ -214,10 +215,10 @@ class TransMatTest(unittest.TestCase):
         """
         g_world = np.array([0, 0, 9.81])
 
-        Tworld2vdof = TransMat(np.array([np.pi/2, 0]))
-        Tvdof2su = TransMat(np.array([0, 0, 0, np.pi/2]))
+        Tworld2vdof = TM(theta=np.pi/2, d=0)
+        Tvdof2su = TM.from_numpy(np.array([0, 0, 0, np.pi/2]))
 
-        T = Tworld2vdof.dot(Tvdof2su)
+        T = Tworld2vdof * Tvdof2su
         Rworld2su = T.R.T
         g_su = np.dot(Rworld2su, g_world)
 
@@ -233,11 +234,11 @@ class TransMatTest(unittest.TestCase):
         """
         vec = np.array([1, 2, 3])
 
-        Tjoint = TransMat(np.array(np.pi/2))
-        Tjoint2vdof = TransMat(np.array([np.pi/2, 0]))
-        Tvdof2su = TransMat(np.array([0, 0, 0, np.pi/2]))
+        Tjoint = TM(theta=np.pi/2)
+        Tjoint2vdof = TM(theta=np.pi/2, d=0)
+        Tvdof2su = TM.from_numpy(np.array([0, 0, 0, np.pi/2]))
 
-        T = Tjoint.dot(Tjoint2vdof).dot(Tvdof2su)
+        T = Tjoint * Tjoint2vdof * Tvdof2su
         Rworld2su = T.R.T
         g_su = np.dot(Rworld2su, vec)
 
@@ -252,16 +253,16 @@ class TransMatTest(unittest.TestCase):
         """
         # DEG == 0
         joint_angles = [0, 0, 0, 0, 0, 0, 0]
-        Tdofs = [TransMat(PANDA_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
-        Tjoints = [TransMat(rad) for rad in joint_angles]
-        Tdof2vdof = TransMat(np.array([np.pi/4, 0.14]))
-        Tvdof2su = TransMat(np.array([0, 0.03, 0, np.pi/2]))
+        Tdofs = [TM.from_list(PANDA_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
+        Tjoints = [TM(theta=rad) for rad in joint_angles]
+        Tdof2vdof = TM(theta=np.pi/4, d=0.14)
+        Tvdof2su = TM.from_list([0, 0.03, 0, np.pi/2])
 
         # Tansform  from world to end-effector's IMU
-        T = TransMat(np.zeros(4))
+        T = TM.from_numpy(np.zeros(4))
         for Tdof, Tjoint in zip(Tdofs, Tjoints):
-            T = T.dot(Tdof).dot(Tjoint)
-        T = T.dot(Tdof2vdof).dot(Tvdof2su)
+            T = T * Tdof * Tjoint
+        T = T * Tdof2vdof * Tvdof2su
 
         # Given by TF: Just run `rosrun tf tf_echo /world /imu_link6`
         expected_position = [0.125, 0.020, 0.891]
@@ -269,16 +270,16 @@ class TransMatTest(unittest.TestCase):
 
         # DEG == 90
         joint_angles = [0, np.pi/2, 0, 0, 0, 0, 0]
-        Tdofs = [TransMat(PANDA_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
-        Tjoints = [TransMat(rad) for rad in joint_angles]
-        Tdof2vdof = TransMat(np.array([np.pi/4, 0.14]))
-        Tvdof2su = TransMat(np.array([0, 0.03, 0, np.pi/2]))
+        Tdofs = [TM.from_list(PANDA_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
+        Tjoints = [TM(theta=rad) for rad in joint_angles]
+        Tdof2vdof = TM(theta=np.pi/4, d=0.14)
+        Tvdof2su = TM.from_list([0, 0.03, 0, np.pi/2])
 
         # Tansform  from world to end-effector's IMU
-        T = TransMat(np.zeros(4))
+        T = TM.from_numpy(np.zeros(4))
         for Tdof, Tjoint in zip(Tdofs, Tjoints):
-            T = T.dot(Tdof).dot(Tjoint)
-        T = T.dot(Tdof2vdof).dot(Tvdof2su)
+            T = T * Tdof * Tjoint
+        T = T * Tdof2vdof * Tvdof2su
 
         # Given by TF: Just run `rosrun tf tf_echo /world /imu_link6`
         expected_position = [0.557, 0.020, 0.206]
@@ -291,16 +292,16 @@ class TransMatTest(unittest.TestCase):
         """
         # DEG == 0
         joint_angles = [0, 0, 0, 0, 0, 0, 0]
-        Tdofs = [TransMat(SAWYER_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
-        Tjoints = [TransMat(rad) for rad in joint_angles]
-        Tdof2vdof = TransMat(np.array([0, 0.1]))
-        Tvdof2su = TransMat(np.array([0, 0.03, 0, -np.pi/2]))
+        Tdofs = [TM.from_list(SAWYER_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
+        Tjoints = [TM(theta=rad) for rad in joint_angles]
+        Tdof2vdof = TM(theta=0, d=0.1)
+        Tvdof2su = TM.from_list([0, 0.03, 0, -np.pi/2])
 
         # Tansform  from world to end-effector's IMU
-        T = TransMat(np.zeros(4))
+        T = TM.from_numpy(np.zeros(4))
         for Tdof, Tjoint in zip(Tdofs, Tjoints):
-            T = T.dot(Tdof).dot(Tjoint)
-        T = T.dot(Tdof2vdof).dot(Tvdof2su)
+            T = T * Tdof * Tjoint
+        T = T * Tdof2vdof * Tvdof2su
 
         # Given by TF: Just run `rosrun tf tf_echo /world /imu_link6`
         expected_position = [1.084, 0.131, 0.195]
@@ -308,16 +309,16 @@ class TransMatTest(unittest.TestCase):
 
         # DEG == 90
         joint_angles = [0, -np.pi/2, 0, 0, 0, 0, 0]
-        Tdofs = [TransMat(SAWYER_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
-        Tjoints = [TransMat(rad) for rad in joint_angles]
-        Tdof2vdof = TransMat(np.array([0, 0.1]))
-        Tvdof2su = TransMat(np.array([0, 0.03, 0, -np.pi/2]))
+        Tdofs = [TM.from_list(SAWYER_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
+        Tjoints = [TM(theta=rad) for rad in joint_angles]
+        Tdof2vdof = TM(theta=0, d=0.1)
+        Tvdof2su = TM.from_list([0, 0.03, 0, -np.pi/2])
 
         # Tansform  from world to end-effector's IMU
-        T = TransMat(np.zeros(4))
+        T = TM.from_numpy(np.zeros(4))
         for Tdof, Tjoint in zip(Tdofs, Tjoints):
-            T = T.dot(Tdof).dot(Tjoint)
-        T = T.dot(Tdof2vdof).dot(Tvdof2su)
+            T = T * Tdof * Tjoint
+        T = T * Tdof2vdof * Tvdof2su
 
         # Given by TF: Just run `rosrun tf tf_echo /world /imu_link6`
         expected_position = [-0.043, 0.131, 1.319]
@@ -330,7 +331,7 @@ class ParameterManagerTest(unittest.TestCase):
     """
     def test_shapes(self):
         """
-        Test the shape of all lists of TransMat
+        Test the shape of all lists of TransformationMatrix
         """
         param_manager = ParameterManager(N_JOINT, BOUNDS, BOUNDS_SU)
 

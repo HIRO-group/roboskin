@@ -1,6 +1,14 @@
 robotic\_skin.calibration package
 =================================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   robotic_skin.calibration.utils
+
 Submodules
 ----------
 
@@ -36,6 +44,14 @@ robotic\_skin.calibration.optimizer module
    :undoc-members:
    :show-inheritance:
 
+robotic\_skin.calibration.parameter\_manager module
+---------------------------------------------------
+
+.. automodule:: robotic_skin.calibration.parameter_manager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 robotic\_skin.calibration.plot\_data module
 -------------------------------------------
 
@@ -44,10 +60,18 @@ robotic\_skin.calibration.plot\_data module
    :undoc-members:
    :show-inheritance:
 
-robotic\_skin.calibration.utils module
---------------------------------------
+robotic\_skin.calibration.stats\_generator module
+-------------------------------------------------
 
-.. automodule:: robotic_skin.calibration.utils
+.. automodule:: robotic_skin.calibration.stats_generator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+robotic\_skin.calibration.transformation\_matrix module
+-------------------------------------------------------
+
+.. automodule:: robotic_skin.calibration.transformation_matrix
    :members:
    :undoc-members:
    :show-inheritance:

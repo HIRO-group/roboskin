@@ -1,6 +1,6 @@
 import numpy as np
 import robotic_skin.const as C
-from robotic_skin.calibration.utils import TransMat  # , get_IMU_pose
+from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
 
 
 def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
@@ -9,13 +9,13 @@ def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
 
     Arguments
     ---------
-    `Tdofs`: List of `TransMat`
+    `Tdofs`: List of `TransformationMatrix`
         transformation matrices from dof to dof
 
-    `Tjoints`: List of `TransMat`
+    `Tjoints`: List of `TransformationMatrix`
         transformation matrices from joint to joint
 
-    `Tdofi2su`: `TransMat`
+    `Tdofi2su`: `TransformationMatrix`
         transformation matrix from the last dofi to skin unit
 
     `d`: `int`
@@ -29,21 +29,21 @@ def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
 
     """
     # Transformation Matrix from su to rs in rs frame
-    rs_T_su = TransMat(np.zeros(4))
+    rs_T_su = TM.from_numpy(np.zeros(4))
     # Transformation Matrix from the last DoFi to the excited DoFd
-    dofd_T_dofi = TransMat(np.zeros(4))
+    dofd_T_dofi = TM.from_numpy(np.zeros(4))
 
     for j in range(d+1):
         # print(j)
-        rs_T_su = rs_T_su.dot(Tdofs[j]).dot(Tjoints[j])
+        rs_T_su = rs_T_su * Tdofs[j] * Tjoints[j]
 
     for j in range(d+1, i+1):
         # print(j, d, i)
-        rs_T_su = rs_T_su.dot(Tdofs[j]).dot(Tjoints[j])
-        dofd_T_dofi = dofd_T_dofi.dot(Tdofs[j]).dot(Tjoints[j])
+        rs_T_su = rs_T_su * Tdofs[j] * Tjoints[j]
+        dofd_T_dofi = dofd_T_dofi * Tdofs[j] * Tjoints[j]
 
-    rs_T_su = rs_T_su.dot(Tdofi2su)
-    dof_T_su = dofd_T_dofi.dot(Tdofi2su)
+    rs_T_su = rs_T_su * Tdofi2su
+    dof_T_su = dofd_T_dofi * Tdofi2su
 
     dofd_r_su = dof_T_su.position
     # Every joint rotates along its own z axis
@@ -73,11 +73,11 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max
     ------------
     d: int
         dth excited joint
-    Tdof2su: TransMat
+    Tdof2su: TransformationMatrix
         Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
-    Tdofs: list of TransMat
+    Tdofs: list of TransformationMatrix
         Transformation Matrices between Dofs
-    Tjoints: list of TransMat
+    Tjoints: list of TransformationMatrix
         Transformation Matrices (Rotation Matrix)
     apply_normal_mittendorfer: bool
         determines if we resort to the normal method
@@ -89,17 +89,17 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max
         Acceleration computed from positions
     """  # noqa: W605
     # Compute Transformation Matrix from RS to SU
-    T = TransMat(np.zeros(4))
-    dofd_T_dofi = TransMat(np.zeros(4))
+    T = TM.from_numpy(np.zeros(4))
+    dofd_T_dofi = TM.from_numpy(np.zeros(4))
 
     for j in range(d+1, i+1):
-        dofd_T_dofi = dofd_T_dofi.dot(Tdofs[j]).dot(Tjoints[j])
+        dofd_T_dofi = dofd_T_dofi * Tdofs[j] * Tjoints[j]
 
     for Tdof, Tjoint in zip(Tdofs, Tjoints):
-        T = T.dot(Tdof).dot(Tjoint)
+        T = T * Tdof * Tjoint
 
-    T = T.dot(Tdof2su)
-    dof_T_su = dofd_T_dofi.dot(Tdof2su)
+    T = T * Tdof2su
+    dof_T_su = dofd_T_dofi * Tdof2su
 
     dofd_r_su = dof_T_su.position
 
@@ -146,9 +146,9 @@ def accelerometer_position(t, Tdofs, Tjoints, Tdof2su, d, curr_w, amplitude, joi
     ------------
     d: int
         dth excited joint
-    Tdof2su: TransMat
+    Tdof2su: TransformationMatrix
         Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
-    Tdofs: list of TransMat
+    Tdofs: list of TransformationMatrix
         Transformation Matrices between Dofs
     Tjoints: list of TransformationMatrix
         Tranformation Matrices of all joints in Pose p
@@ -159,16 +159,16 @@ def accelerometer_position(t, Tdofs, Tjoints, Tdof2su, d, curr_w, amplitude, joi
     position: np.array
         Position of the resulting transformation
     """  # noqa: W605
-    T = TransMat(np.zeros(4))
+    T = TM.from_numpy(np.zeros(4))
     for i_joint, (Tdof, Tjoint) in enumerate(zip(Tdofs, Tjoints)):
-        T = T.dot(Tdof).dot(Tjoint)
+        T = T * Tdof * Tjoint
         if i_joint == d:
             Tpattern = joint_angle_func(curr_w, amplitude, t)
             # print(Tpattern.parameters, curr_w, max_w, t, d)
             # adjust based on joint angle function applied to excited dof.
-            T = T.dot(Tpattern)
+            T = T * Tpattern
 
-    T = T.dot(Tdof2su)
+    T = T * Tdof2su
     # print(T.position)
     return T.position
 
@@ -182,7 +182,7 @@ def max_acceleration_joint_angle(curr_w, amplitude, t):
     # th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
     th_pattern = (amplitude / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
     # print('-'*20, th_pattern, curr_w, '-'*20)
-    return TransMat(th_pattern)
+    return TM(theta=th_pattern)
 
 
 def constant_velocity_joint_angle(curr_w, max_w, t):
@@ -190,7 +190,7 @@ def constant_velocity_joint_angle(curr_w, max_w, t):
     Returns transformation matrix given `t` and current
     angular velocity `curr_w`
     """
-    return TransMat(curr_w*t)
+    return TM(theta=curr_w*t)
 
 
 class ErrorFunction():
@@ -205,10 +205,14 @@ class ErrorFunction():
         self.data = data
         self.loss_func = loss_func
 
-        self.pose_names = list(data.dynamic.keys())
-        self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
-        self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
-        self.n_pose = len(self.pose_names)
+        self.pose_names = list(data.constant.keys())
+        print(self.pose_names)
+        self.joint_names = list(data.constant[self.pose_names[0]].keys())
+        self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
+        self.n_dynamic_pose = len(list(data.dynamic.keys()))
+        self.n_constant_pose = len(list(data.constant.keys()))
+        self.n_static_pose = len(list(data.static.keys()))
+
         self.n_joint = len(self.joint_names)
         self.n_sensor = self.n_joint
 
@@ -242,9 +246,9 @@ class StaticErrorFunction(ErrorFunction):
         ------------
         i: int
             ith sensor
-        Tdof2su: TransMat
+        Tdof2su: TransformationMatrix
             Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
-        Tdofs: list of TransMat
+        Tdofs: list of TransformationMatrix
             Transformation Matrices between Dofs
 
         Returns
@@ -253,19 +257,19 @@ class StaticErrorFunction(ErrorFunction):
             Static Error
 
         """  # noqa: W605
-        gravities = np.zeros((self.n_pose, 3))
-        gravity = np.array([[0, 0, 9.8], ] * self.n_pose, dtype=float)
+        gravities = np.zeros((self.n_static_pose, 3))
+        gravity = np.array([[0, 0, 9.8], ] * self.n_static_pose, dtype=float)
 
-        for p in range(self.n_pose):
+        for p in range(self.n_static_pose):
             joints = self.data.static[self.pose_names[p]][self.imu_names[i]][3:3+i+1]
-            Tjoints = [TransMat(joint) for joint in joints]
+            Tjoints = [TM(theta=joint) for joint in joints]
 
             # 1 Pose are consists for n_joint DoF
-            T = TransMat(np.zeros(4))   # equals to I Matrix
+            T = TM.from_numpy(np.zeros(4))   # equals to I Matrix
             for Tdof, Tjoint in zip(Tdofs, Tjoints):
-                T = T.dot(Tdof).dot(Tjoint)
+                T = T * Tdof * Tjoint
             # DoF to SU
-            T = T.dot(Tdof2su)
+            T = T * Tdof2su
 
             Rsu2rs = T.R
 
@@ -293,9 +297,9 @@ class ConstantRotationErrorFunction(ErrorFunction):
         ------------
         i: int
             ith sensor
-        Tdof2su: TransMat
+        Tdof2su: TransformationMatrix
             Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
-        Tdofs: list of TransMat
+        Tdofs: list of TransformationMatrix
             Transformation Matrices between Dofs
 
         Returns
@@ -305,7 +309,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
         """
         errors = 0.0
         n_data = 0
-        for p in range(self.n_pose):
+        for p in range(self.n_constant_pose):
             # for d in range(i+1):
             for d in range(max(0, i-2), i+1):
                 data = self.data.constant[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0]
@@ -323,7 +327,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
                     """
 
                     # Acceleration Error
-                    Tjoints = [TransMat(joint) for joint in joint[:i+1]]
+                    Tjoints = [TM(theta=joint) for joint in joint[:i+1]]
                     # model_accel = self.estimate_acceleration_numerically(
                     # Tdofs, Tjoints, Tdof2su, d, curr_w, None, constant_velocity_joint_angle)
                     model_accel = estimate_acceleration_analytically(Tdofs, Tjoints, Tdof2su, d, i, curr_w)
@@ -344,9 +348,9 @@ class MaxAccelerationErrorFunction(ErrorFunction):
     Compute errors between estimated and measured max acceleration for sensor i
 
     """
-    def __init__(self, data, loss_func, use_modified_mittendorfer=True):
+    def __init__(self, data, loss_func, apply_normal_mittendorfer=True):
         super().__init__(data, loss_func)
-        self.use_modified_mittendorfer = use_modified_mittendorfer
+        self.apply_normal_mittendorfer = apply_normal_mittendorfer
 
     def __call__(self, i, Tdofs, Tdof2su):
         """
@@ -358,9 +362,9 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         ------------
         i: int
             ith sensor
-        Tdof2su: TransMat
+        Tdof2su: TransformationMatrix
             Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
-        Tdofs: list of TransMat
+        Tdofs: list of TransformationMatrix
             Transformation Matrices between Dofs
 
         Returns
@@ -370,7 +374,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         """  # noqa: W605
         e2 = 0.0
         n_data = 0
-        for p in range(self.n_pose):
+        for p in range(self.n_dynamic_pose):
             for d in range(max(0, i-2), i+1):
                 # max acceleration (x,y,z) of the data
                 max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0][:3]
@@ -379,12 +383,12 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 # A is used as amplitude of pose pattern
                 A = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0][4]
                 joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0][7:7+i+1]
-                Tjoints = [TransMat(joint) for joint in joints]
+                Tjoints = [TM(theta=joint) for joint in joints]
                 # max_accel_model = self.estimate_acceleration_numerically(
                 # Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
                 # use mittendorfer's original or modified based on condition
                 max_accel_model = estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, A, max_acceleration_joint_angle,
-                                                                    self.use_modified_mittendorfer)
+                                                                    self.apply_normal_mittendorfer)
                 # if p == 0:
                 #     print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
                 error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
