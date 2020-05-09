@@ -1,5 +1,25 @@
 import numpy as np
-from .tmatrix import TransformationMatrix as TM
+from .transformation_matrix import TransformationMatrix as TM
+
+
+def get_IMU_pose(Tdofs, Tdof2su, joints=None):
+    """
+    gets the imu pose.
+
+    """
+    T = TM.from_numpy(np.zeros(4))
+    # Transformation Matrix until the joint
+    # where SU is attached
+    if joints is not None:
+        for Tdof, j in zip(Tdofs, joints):
+            T = T * Tdof * TM(theta=j)
+    else:
+        for Tdof in Tdofs:
+            T = T * Tdof
+    # Transformation Matrix until SU
+    T = T * Tdof2su
+
+    return T.position, T.q
 
 
 class ParameterManager():

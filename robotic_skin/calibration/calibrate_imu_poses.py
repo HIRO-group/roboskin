@@ -10,14 +10,10 @@ import pickle
 import numpy as np
 import rospkg
 
-from robotic_skin.calibration.utils import (
-    ParameterManager,
-    get_IMU_pose,
-    load_robot_configs
-)
+from robotic_skin.calibration.utils import load_robot_configs
+from robotic_skin.calibration.parameter_manager import ParameterManager, get_IMU_pose
 from robotic_skin.calibration import optimizer
 from robotic_skin.calibration import error_functions
-# from robotic_skin.calibration.loss import L1Loss
 from robotic_skin.calibration import loss
 
 # Sawyer IMU Position
@@ -186,9 +182,8 @@ class KinematicEstimator():
         """
         return get_IMU_pose(
             self.param_manager.Tdof2dof[:i_sensor+1],
-            self.param_manager.Tdof2vdof[i_sensor].dot(
-                self.param_manager.Tvdof2su[i_sensor]
-            )
+            self.param_manager.Tdof2vdof[i_sensor] *
+            self.param_manager.Tvdof2su[i_sensor]
         )
 
     def get_all_accelerometer_positions(self):

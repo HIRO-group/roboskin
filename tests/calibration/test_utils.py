@@ -5,8 +5,8 @@ import unittest
 import numpy as np
 from pyquaternion import Quaternion
 from robotic_skin.calibration import utils
-from robotic_skin.calibration.utils import ParameterManager
-from robotic_skin.calibration.utils import TransformationMatrix as TM
+from robotic_skin.calibration.parameter_manager import ParameterManager
+from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
 
 N_JOINT = 7
 INIT_POSE = np.zeros(N_JOINT)

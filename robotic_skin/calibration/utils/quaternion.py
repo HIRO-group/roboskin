@@ -1,13 +1,7 @@
-"""
-Utilities module for Robotic Skin.
-"""
-import os
-import yaml
-import numpy as np
 import math
+import numpy as np
 import pyquaternion as pyqt
 from geometry_msgs.msg import Quaternion
-from robotic_skin.calibration.utils import TransformationMatrix as TM
 
 
 def tfquat_to_pyquat(q):
@@ -99,56 +93,3 @@ def angle_between_quaternions(q_1: np.ndarray, q_2: np.ndarray, output_in_degree
         angle_in_degrees = (angle / np.pi) * 180
         return angle_in_degrees
     return angle
-
-
-def n2s(x, precision=2):
-    """
-    converts numpy array to string.
-
-    Arguments
-    ---------
-    `x`: `np.array`
-        The numpy array to convert to a string.
-
-    `precision`: `int`
-        The precision desired on each entry in the array.
-
-    """
-    return np.array2string(x, precision=precision, separator=',', suppress_small=True)
-
-
-def get_IMU_pose(Tdofs, Tdof2su, joints=None):
-    """
-    gets the imu pose.
-
-    """
-    T = TM.from_numpy(np.zeros(4))
-    # Transformation Matrix until the joint
-    # where SU is attached
-    if joints is not None:
-        for Tdof, j in zip(Tdofs, joints):
-            T = T * Tdof * TM(theta=j)
-    else:
-        for Tdof in Tdofs:
-            T = T * Tdof
-    # Transformation Matrix until SU
-    T = T * Tdof2su
-
-    return T.position, T.q
-
-
-def load_robot_configs(configdir, robot):
-    """
-    Loads robot's DH parameters, SUs' DH parameters and their poses
-
-    configdir: str
-        Path to the config directory where robot yaml files exist
-    robot: str
-        Name of the robot
-    """
-    filepath = os.path.join(configdir, robot + '.yaml')
-    try:
-        with open(filepath) as file:
-            return yaml.load(file, Loader=yaml.FullLoader)
-    except Exception:
-        raise ValueError('Please provide a valid config directory with robot yaml files')

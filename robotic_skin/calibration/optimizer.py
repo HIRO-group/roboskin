@@ -4,8 +4,8 @@ import nlopt
 
 # import robotic_skin
 import robotic_skin.const as C
-from robotic_skin.calibration.utils import get_IMU_pose
-from robotic_skin.calibration.utils import TransformationMatrix as TM
+from robotic_skin.calibration.parameter_manager import get_IMU_pose
+from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
 
 
 def convert_dhparams_to_Tdof2su(params):

@@ -1,6 +1,6 @@
 import numpy as np
 import robotic_skin.const as C
-from robotic_skin.calibration.utils import TransformationMatrix as TM
+from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
 
 
 def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):

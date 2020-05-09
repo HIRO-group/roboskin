@@ -1,6 +1,6 @@
 import numpy as np
 import pyquaternion as pyqt
-from robotic_skin.calibration.utils import pyquat_to_numpy
+from robotic_skin.calibration.utils.quaternion import pyquat_to_numpy
 
 
 class TransformationMatrix():
