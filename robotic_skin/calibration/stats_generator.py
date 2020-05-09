@@ -7,7 +7,9 @@ The stats generator file will output the following stats:
 """
 from robotic_skin.calibration.optimizer import (
     Optimizer,
-    SeparateOptimizer,
+    SeparateOptimizer
+)
+from robotic_skin.calibration.stop_conditions import (
     PassThroughStopCondition,
     DeltaXStopCondition
 )
