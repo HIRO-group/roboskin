@@ -227,6 +227,8 @@
 <span class="sd">        `params`</span>
 <span class="sd">            Predicted parameters from the model.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_poses</span> <span class="o">=</span> <span class="p">[]</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">i_imu</span> <span class="o">=</span> <span class="n">i_imu</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Tdofs</span> <span class="o">=</span> <span class="n">Tdofs</span>
 
@@ -357,6 +359,8 @@
 <span class="sd">            Boundaries (Min and Max) for each parameter</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">i_imu</span> <span class="o">=</span> <span class="n">i_imu</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_poses</span> <span class="o">=</span> <span class="p">[]</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">Tdofs</span> <span class="o">=</span> <span class="n">Tdofs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
         <span class="c1"># Tdofs = self.param_manager.get_tmat_until(i_imu)</span>
@@ -438,6 +442,7 @@
         <span class="n">pos</span><span class="p">,</span> <span class="n">quat</span> <span class="o">=</span> <span class="n">get_IMU_pose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">)</span>
         <span class="n">full_pose</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">pos</span><span class="p">,</span> <span class="n">quat</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_poses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">full_pose</span><span class="p">)</span>
+
         <span class="c1"># append pose</span>
         <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">i_imu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">)</span>
 
