@@ -166,6 +166,11 @@ class TransformationMatrix():
         new_matrix = np.dot(self.matrix, T.matrix)
         return TransformationMatrix.from_matrix(new_matrix)
 
+    def __call__(self, theta):
+        params = np.copy(self.params)
+        params[0] += theta
+        return TransformationMatrix(*params)
+
     @property
     def R(self):
         """
