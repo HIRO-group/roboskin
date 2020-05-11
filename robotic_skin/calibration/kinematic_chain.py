@@ -76,10 +76,9 @@ class KinematicChain():
         self.rs_T_dof = self.__compute_chains_from_rs(self.dof_T_dof)
 
         # Construct Transformation Matrices given poses
-        # Initialize with 0 rad which is equal to dof_T_dof, su_T_dof
-        self.poses = np.zeros(self.n_joint)
-        self.dof_Tp_dof = self.__apply_poses(self.dof_T_dof, self.poses)
-        self.rs_Tp_dof = self.__compute_chains_from_rs(self.dof_Tp_dof)
+        # Initialize with 0 rad
+        poses = np.zeros(self.n_joint)
+        self.set_n_poses(poses)
 
         # Construct Transformation Matrices
         self.dof_T_vdof = []
@@ -128,17 +127,38 @@ class KinematicChain():
             rs_T_dof[i] = copy.deepcopy(T)
         return rs_T_dof
 
-    def set_poses(self, poses: np.ndarray) -> None:
+    def set_n_poses(self, poses: np.ndarray) -> None:
         assert isinstance(poses, np.ndarray)
         assert poses.size == self.n_joint
         self.poses = poses
+        self.dof_Tp_dof = self.__apply_poses(self.dof_T_dof, self.poses)
+        self.rs_Tp_dof = self.__compute_chains_from_rs(self.dof_Tp_dof)
 
-    def get_origin_joint_pose(self, i_joint: int, start_joint: int = 0) -> dict:
-        T = self.get_origin_joint_TM(i_joint, start_joint)
-        return {'position': T.position,
-                'orientation': T.q}
+    def add_a_pose(self, i_joint: int, pose: float) -> None:
+        """
+        It adds a pose to the current poses dof_Tp_dof, rs_Tp_dof
 
-    def get_origin_joint_TM(self, i_joint: int, start_joint: int = 0) -> TM:
+        Use this function to add 1 pose only.
+        If you want to add multiple poses, use set_n_poses
+
+        i_joint: int
+            ith Joint starts from 1 to n
+        pose: float
+            Angle [rad]
+        to_origin: bool
+            Add theta to an origin joint if True else to a current joint
+        """
+        assert isinstance(i_joint, int)
+        assert isinstance(pose, float)
+        assert 1 <= i_joint <= self.n_joint, \
+            print(f'i_joint Should be in between 1 and {self.n_joint}')
+
+        i = i_joint - 1
+        self.dof_Tp_dof[i] = self.dof_Tp_dof[i](theta=pose)
+        self.rs_Tp_dof = self.__compute_chains_from_dof(i, self.dof_Tp_dof, self.rs_Tp_dof)
+
+    def __get_joint_TM(self, i_joint: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
+                       start_joint: int = 0) -> TM:
         """
         The joint number starts from 1 to n in our notation.
         Therefore, i_joint should also start from 1 to n.
@@ -149,87 +169,64 @@ class KinematicChain():
             print(f'i_joint={i_joint} should be larger than start_joint {start_joint}')
 
         if start_joint == 0:
-            return self.rs_T_dof[i_joint-1]
+            return rs_T_dof[i_joint-1]
 
-        T = self.dof_T_dof[start_joint]
+        T = dof_T_dof[start_joint]
         for i in range(start_joint+1, i_joint):
-            T = T * self.dof_T_dof[i]
+            T = T * dof_T_dof[i]
         return T
 
-    def get_origin_su_pose(self, i_su: int, start_joint: int = 0) -> dict:
-        T = self.get_origin_su_TM(i_su, start_joint)
-        return {'position': T.position,
-                'orientation': T.q}
+    def get_origin_joint_TM(self, i_joint: int, start_joint: int = 0) -> TM:
+        """
+        Get TransformationMatrix to the ith joint
+        at when all poses are 0.
+        """
+        return self.__get_joint_TM(i_joint, self.dof_T_dof, self.rs_T_dof, start_joint)
+
+    def get_current_joint_TM(self, i_joint: int, start_joint: int = 0) -> TM:
+        """
+        Get TransformationMatrix to the ith joint.
+        at when poses are given by self.poses.
+        """
+        return self.__get_joint_TM(i_joint, self.dof_Tp_dof, self.rs_Tp_dof, start_joint)
+
+    def __get_su_TM(self, i_su: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
+                    start_joint: int = 0) -> TM:
+        """
+        The SU number starts from 1 to m in our notation.
+        Therefore, i_su should also start from 1 to m.
+        """
+        assert 1 <= i_su <= self.n_su, \
+            print(f'i_su Should be in between 1 and {self.n_su}')
+
+        # Be careful that i_joint starts from 1 to n
+        i_joint = self.su_dict[i_su-1]
+
+        assert start_joint <= i_joint, \
+            print(f'i_joint {i_joint} which i_su {i_su} is attached to \
+                    should be larger than or equal to start_joint {start_joint}')
+
+        if start_joint == 0:
+            return rs_T_dof[i_joint-1] * self.dof_T_su[i_su-1]
+
+        T = dof_T_dof[start_joint]
+        for j in range(start_joint+1, i_joint):
+            T = T * dof_T_dof[j]
+        return T * self.dof_T_su[i_su-1]
 
     def get_origin_su_TM(self, i_su: int, start_joint: int = 0) -> TM:
         """
-        The SU number starts from 1 to m in our notation.
-        Therefore, i_su should also start from 1 to m.
+        Get TransformationMatrix to the ith su
+        at when all poses are 0.
         """
-        assert 1 <= i_su <= self.n_su, \
-            print(f'i_su Should be in between 1 and {self.n_su}')
-
-        # Be careful that i_joint starts from 1 to n
-        i_joint = self.su_dict[i_su-1]
-
-        assert start_joint <= i_joint, \
-            print(f'i_joint {i_joint} which i_su {i_su} is attached to \
-                    should be larger than or equal to start_joint {start_joint}')
-
-        if start_joint == 0:
-            return self.rs_T_dof[i_joint-1] * self.dof_T_su[i_su-1]
-
-        T = self.dof_T_dof[start_joint]
-        for j in range(start_joint+1, i_joint):
-            T = T * self.dof_T_dof[j]
-        return T * self.dof_T_su[i_su-1]
-
-    def get_current_joint_pose(self, i_joint: int, start_joint: int = 0) -> dict:
-        T = self.get_current_joint_TM(i_joint, start_joint)
-        return {'position': T.position,
-                'orientation': T.q}
-
-    def get_current_su_pose(self, i_su: int, start_joint: int = 0) -> dict:
-        T = self.get_current_su_TM(i_su, start_joint)
-        return {'position': T.position,
-                'orientation': T.q}
-
-    def get_current_joint_TM(self, i_joint: int, start_joint: int = 0) -> TM:
-        assert 1 <= i_joint <= self.n_joint, \
-            print(f'i_joint Should be in between 1 and {self.n_joint}')
-        assert start_joint < i_joint, \
-            print(f'i_joint={i_joint} should be larger than start_joint {start_joint}')
-
-        if start_joint == 0:
-            return self.rs_Tp_dof[i_joint-1]
-
-        T = self.dof_Tp_dof[start_joint]
-        for i in range(start_joint+1, i_joint):
-            T = T * self.dof_Tp_dof[i]
-        return T
+        return self.__get_su_TM(i_su, self.dof_T_dof, self.rs_T_dof, start_joint)
 
     def get_current_su_TM(self, i_su: int, start_joint: int = 0) -> TM:
         """
-        The SU number starts from 1 to m in our notation.
-        Therefore, i_su should also start from 1 to m.
+        Get TransformationMatrix to the ith su.
+        at when poses are given by self.poses.
         """
-        assert 1 <= i_su <= self.n_su, \
-            print(f'i_su Should be in between 1 and {self.n_su}')
-
-        # Be careful that i_joint starts from 1 to n
-        i_joint = self.su_dict[i_su-1]
-
-        assert start_joint <= i_joint, \
-            print(f'i_joint {i_joint} which i_su {i_su} is attached to \
-                    should be larger than or equal to start_joint {start_joint}')
-
-        if start_joint == 0:
-            return self.rs_Tp_dof[i_joint-1] * self.dof_T_su[i_su-1]
-
-        T = self.dof_Tp_dof[start_joint]
-        for j in range(start_joint+1, i_joint):
-            T = T * self.dof_Tp_dof[j]
-        return T * self.dof_T_su[i_su-1]
+        return self.__get_su_TM(i_su, self.dof_Tp_dof, self.rs_Tp_dof, start_joint)
 
     def set_su_dh(self, i_su: int, params: np.ndarray) -> None:
         """
