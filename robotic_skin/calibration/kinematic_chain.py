@@ -50,8 +50,8 @@ class KinematicChain():
         assert len(su_dict) != 0
         assert 'link' in list(bound_dict.keys())
         assert 'su' in list(bound_dict.keys())
-        assert su_dict['link'].shape == (4, 2)
-        assert su_dict['su'].shape == (6, 2)
+        assert bound_dict['link'].shape == (4, 2)
+        assert bound_dict['su'].shape == (6, 2)
         if linkdh_dict is not None:
             assert len(linkdh_dict) == n_joint
 
@@ -142,11 +142,9 @@ class KinematicChain():
         Therefore, i_joint should also start from 1 to n.
         """
         assert 1 <= i_joint <= self.n_joint, \
-               print('i_joint Should be in between {} and {}' \
-                   .format(1, self.n_joint))
+               print(f'i_joint Should be in between 1 and {self.n_joint}')
         assert start_joint < i_joint, \
-               print('i_joint={} should be larger than start_joint {}' \
-                   .format(i_joint, start_joint))
+               print(f'i_joint={i_joint} should be larger than start_joint {start_joint}')
 
         if start_joint == 0:
             return self.rs_T_dof[i_joint-1]
@@ -167,16 +165,14 @@ class KinematicChain():
         Therefore, i_su should also start from 1 to m.
         """
         assert 1 <= i_su <= self.n_su, \
-               print('i_su Should be in between {} and {}' \
-                   .format(1, self.n_su))
+               print(f'i_su Should be in between 1 and {self.n_su}')
 
         # Be careful that i_joint starts from 1 to n
         i_joint = self.su_dict[i_su-1]
 
         assert start_joint <= i_joint, \
-               print('i_joint {} which i_su {} is attached to \
-                     should be larger than or equal to start_joint {}' \
-                     .format(i_joint, i_su, start_joint))
+               print(f'i_joint {i_joint} which i_su {i_su} is attached to \
+                     should be larger than or equal to start_joint {start_joint}')
 
         if start_joint == 0:
             return self.rs_T_dof[i_joint-1] * self.dof_T_su[i_su-1]
@@ -198,11 +194,9 @@ class KinematicChain():
 
     def get_current_joint_TM(self, i_joint: int, start_joint: int=0) -> TM:
         assert 1 <= i_joint <= self.n_joint, \
-               print('i_joint Should be in between {} and {}' \
-                   .format(1, self.n_joint))
+               print(f'i_joint Should be in between 1 and {self.n_joint}')
         assert start_joint < i_joint, \
-               print('i_joint={} should be larger than start_joint {}' \
-                   .format(i_joint, start_joint))
+               print(f'i_joint={i_joint} should be larger than start_joint {start_joint}')
 
         if start_joint == 0:
             return self.rs_Tp_dof[i_joint-1]
@@ -218,16 +212,14 @@ class KinematicChain():
         Therefore, i_su should also start from 1 to m.
         """
         assert 1 <= i_su <= self.n_su, \
-               print('i_su Should be in between {} and {}' \
-                   .format(1, self.n_su))
+               print(f'i_su Should be in between 1 and {self.n_su}')
 
         # Be careful that i_joint starts from 1 to n
         i_joint = self.su_dict[i_su-1]
 
         assert start_joint <= i_joint, \
-               print('i_joint {} which i_su {} is attached to \
-                     should be larger than or equal to start_joint {}' \
-                     .format(i_joint, i_su, start_joint))
+               print(f'i_joint {i_joint} which i_su {i_su} is attached to \
+                     should be larger than or equal to start_joint {start_joint}')
 
         if start_joint == 0:
             return self.rs_Tp_dof[i_joint-1] * self.dof_T_su[i_su-1]
