@@ -2,9 +2,10 @@ import copy
 import numpy as np
 from .transformation_matrix import TransformationMatrix as TM
 
+
 class KinematicChain():
     def __init__(self, n_joint: int, su_dict: dict,
-                 bound_dict: dict, linkdh_dict: dict=None) -> None:
+                 bound_dict: dict, linkdh_dict: dict = None) -> None:
         """
         Defines a kinematic chain.
         This class enables users to easily retrieve
@@ -63,11 +64,11 @@ class KinematicChain():
         # Construct Transformation Matrices between each joint
         if self.linkdh_dict is None:
             # Initialize DH parameters randomly within the given bounds
-            self.dof_T_dof = [TM.from_bounds(bound_dict['link']) \
+            self.dof_T_dof = [TM.from_bounds(bound_dict['link'])
                               for i in range(n_joint)]
         else:
             # Specified DH Parameters
-            self.dof_T_dof = [TM.from_list(linkdh_dict['joint%i' % (i+1)]) \
+            self.dof_T_dof = [TM.from_list(linkdh_dict['joint%i' % (i+1)])
                               for i in range(n_joint)]
 
         # Construct Transformation Matrices from RS to each joint
@@ -119,7 +120,7 @@ class KinematicChain():
         assert i_joint < self.n_joint
 
         # Start from the previous dof (or base if i_joint==0)
-        T = TM.from_numpy(np.zeros(4)) if i_joint==0 else rs_T_dof[i_joint-1]
+        T = TM.from_numpy(np.zeros(4)) if i_joint == 0 else rs_T_dof[i_joint-1]
 
         for i in range(i_joint, self.n_joint):
             T = T * dof_T_dof[i]
@@ -131,20 +132,20 @@ class KinematicChain():
         assert poses.size == self.n_joint
         self.poses = poses
 
-    def get_origin_joint_pose(self, i_joint: int, start_joint: int=0) -> dict:
+    def get_origin_joint_pose(self, i_joint: int, start_joint: int = 0) -> dict:
         T = self.get_origin_joint_TM(i_joint, start_joint)
         return {'position': T.position,
                 'orientation': T.q}
 
-    def get_origin_joint_TM(self, i_joint: int, start_joint: int=0) -> TM:
+    def get_origin_joint_TM(self, i_joint: int, start_joint: int = 0) -> TM:
         """
         The joint number starts from 1 to n in our notation.
         Therefore, i_joint should also start from 1 to n.
         """
         assert 1 <= i_joint <= self.n_joint, \
-               print(f'i_joint Should be in between 1 and {self.n_joint}')
+            print(f'i_joint Should be in between 1 and {self.n_joint}')
         assert start_joint < i_joint, \
-               print(f'i_joint={i_joint} should be larger than start_joint {start_joint}')
+            print(f'i_joint={i_joint} should be larger than start_joint {start_joint}')
 
         if start_joint == 0:
             return self.rs_T_dof[i_joint-1]
@@ -154,25 +155,25 @@ class KinematicChain():
             T = T * self.dof_T_dof[i]
         return T
 
-    def get_origin_su_pose(self, i_su: int, start_joint: int=0) -> dict:
+    def get_origin_su_pose(self, i_su: int, start_joint: int = 0) -> dict:
         T = self.get_origin_su_TM(i_su, start_joint)
         return {'position': T.position,
                 'orientation': T.q}
 
-    def get_origin_su_TM(self, i_su: int, start_joint: int=0) -> TM:
+    def get_origin_su_TM(self, i_su: int, start_joint: int = 0) -> TM:
         """
         The SU number starts from 1 to m in our notation.
         Therefore, i_su should also start from 1 to m.
         """
         assert 1 <= i_su <= self.n_su, \
-               print(f'i_su Should be in between 1 and {self.n_su}')
+            print(f'i_su Should be in between 1 and {self.n_su}')
 
         # Be careful that i_joint starts from 1 to n
         i_joint = self.su_dict[i_su-1]
 
         assert start_joint <= i_joint, \
-               print(f'i_joint {i_joint} which i_su {i_su} is attached to \
-                     should be larger than or equal to start_joint {start_joint}')
+            print(f'i_joint {i_joint} which i_su {i_su} is attached to \
+                    should be larger than or equal to start_joint {start_joint}')
 
         if start_joint == 0:
             return self.rs_T_dof[i_joint-1] * self.dof_T_su[i_su-1]
@@ -182,21 +183,21 @@ class KinematicChain():
             T = T * self.dof_T_dof[j]
         return T * self.dof_T_su[i_su-1]
 
-    def get_current_joint_pose(self, i_joint: int, start_joint: int=0) -> dict:
+    def get_current_joint_pose(self, i_joint: int, start_joint: int = 0) -> dict:
         T = self.get_current_joint_TM(i_joint, start_joint)
         return {'position': T.position,
                 'orientation': T.q}
 
-    def get_current_su_pose(self, i_su: int, start_joint: int=0) -> dict:
+    def get_current_su_pose(self, i_su: int, start_joint: int = 0) -> dict:
         T = self.get_current_su_TM(i_su, start_joint)
         return {'position': T.position,
                 'orientation': T.q}
 
-    def get_current_joint_TM(self, i_joint: int, start_joint: int=0) -> TM:
+    def get_current_joint_TM(self, i_joint: int, start_joint: int = 0) -> TM:
         assert 1 <= i_joint <= self.n_joint, \
-               print(f'i_joint Should be in between 1 and {self.n_joint}')
+            print(f'i_joint Should be in between 1 and {self.n_joint}')
         assert start_joint < i_joint, \
-               print(f'i_joint={i_joint} should be larger than start_joint {start_joint}')
+            print(f'i_joint={i_joint} should be larger than start_joint {start_joint}')
 
         if start_joint == 0:
             return self.rs_Tp_dof[i_joint-1]
@@ -206,20 +207,20 @@ class KinematicChain():
             T = T * self.dof_Tp_dof[i]
         return T
 
-    def get_current_su_TM(self, i_su: int, start_joint: int=0) -> TM:
+    def get_current_su_TM(self, i_su: int, start_joint: int = 0) -> TM:
         """
         The SU number starts from 1 to m in our notation.
         Therefore, i_su should also start from 1 to m.
         """
         assert 1 <= i_su <= self.n_su, \
-               print(f'i_su Should be in between 1 and {self.n_su}')
+            print(f'i_su Should be in between 1 and {self.n_su}')
 
         # Be careful that i_joint starts from 1 to n
         i_joint = self.su_dict[i_su-1]
 
         assert start_joint <= i_joint, \
-               print(f'i_joint {i_joint} which i_su {i_su} is attached to \
-                     should be larger than or equal to start_joint {start_joint}')
+            print(f'i_joint {i_joint} which i_su {i_su} is attached to \
+                    should be larger than or equal to start_joint {start_joint}')
 
         if start_joint == 0:
             return self.rs_Tp_dof[i_joint-1] * self.dof_T_su[i_su-1]
