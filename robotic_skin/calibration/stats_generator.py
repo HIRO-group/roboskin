@@ -5,6 +5,11 @@ The stats generator file will output the following stats:
 2) A table comparing the dh params individually of our method and the others
 3) A table comparing the orientation differences between Mittendorfer's method and ours
 """
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from tabulate import tabulate
+
 from robotic_skin.calibration.optimizer import (
     Optimizer,
     SeparateOptimizer
@@ -23,10 +28,6 @@ from robotic_skin.calibration.calibrate_imu_poses import load_data
 from robotic_skin.calibration.calibrate_imu_poses import KinematicEstimator
 from robotic_skin.calibration.calibrate_imu_poses import parse_arguments
 from robotic_skin.calibration.utils import load_robot_configs
-import matplotlib.pyplot as plt
-import os
-from tabulate import tabulate
-import numpy as np
 from robotic_skin.calibration.utils import angle_between_quaternions
 
 

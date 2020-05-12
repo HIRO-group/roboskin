@@ -5,8 +5,8 @@ from .transformation_matrix import TransformationMatrix as TM
 
 
 class KinematicChain():
-    def __init__(self, n_joint: int, su_dict: dict,
-                 bound_dict: dict, linkdh_dict: dict = None) -> None:
+    def __init__(self, n_joint: int, su_joint_dict: dict, bound_dict: dict,
+                 linkdh_dict: dict = None, sudh_dict: dict = None) -> None:
         """
         Defines a kinematic chain.
         This class enables users to easily retrieve
@@ -15,7 +15,7 @@ class KinematicChain():
 
         Arguments
         -----------
-        su_dict: dict
+        su_joint_dict: dict
             Which SU is attached to which joint.
             The dict is {i_su: i_joint}.
             where
@@ -46,19 +46,22 @@ class KinematicChain():
             Current Pose :math:`\vec{\theta}`
         """
         assert isinstance(n_joint, int)
-        assert isinstance(su_dict, dict)
+        assert isinstance(su_joint_dict, dict)
         assert isinstance(bound_dict, dict)
-        assert isinstance(linkdh_dict, dict)
-        assert len(su_dict) != 0
+        assert len(su_joint_dict) != 0
         assert 'link' in list(bound_dict.keys())
         assert 'su' in list(bound_dict.keys())
         assert bound_dict['link'].shape == (4, 2)
         assert bound_dict['su'].shape == (6, 2)
         if linkdh_dict is not None:
+            assert isinstance(linkdh_dict, dict)
             assert len(linkdh_dict) == n_joint
+        if sudh_dict is not None:
+            assert isinstance(sudh_dict, dict)
+            assert len(sudh_dict) == len(su_joint_dict)
 
-        self.su_dict = su_dict
-        self.n_su = len(su_dict)
+        self.su_joint_dict = su_joint_dict
+        self.n_su = len(su_joint_dict)
         self.n_joint = n_joint
         self.linkdh_dict = linkdh_dict
 
@@ -69,7 +72,7 @@ class KinematicChain():
                               for i in range(n_joint)]
         else:
             # Specified DH Parameters
-            self.dof_T_dof = [TM.from_list(linkdh_dict['joint%i' % (i+1)])
+            self.dof_T_dof = [TM.from_list(linkdh_dict[f'joint{i+1}'])
                               for i in range(n_joint)]
 
         # Construct Transformation Matrices from RS to each joint
@@ -77,16 +80,21 @@ class KinematicChain():
 
         # Construct Transformation Matrices given poses
         # Initialize with 0 rad
-        poses = np.zeros(self.n_joint)
-        self.set_n_poses(poses)
+        self.poses = np.zeros(self.n_joint)
+        self.dof_Tp_dof = copy.deepcopy(self.dof_T_dof)
+        self.rs_Tp_dof = copy.deepcopy(self.dof_T_dof)
 
         # Construct Transformation Matrices
         self.dof_T_vdof = []
         self.vdof_T_su = []
         self.dof_T_su = []
         for i in range(self.n_su):
-            dof_T_vdof = TM.from_bounds(bound_dict['su'][:2, :], ['theta', 'd'])
-            vdof_T_su = TM.from_bounds(bound_dict['su'][2:, :])
+            if sudh_dict is None:
+                dof_T_vdof = TM.from_bounds(bound_dict['su'][:2, :], ['theta', 'd'])
+                vdof_T_su = TM.from_bounds(bound_dict['su'][2:, :])
+            else:
+                dof_T_vdof = TM.from_list(sudh_dict[f'su{i+1}'][:2], ['theta', 'd'])
+                vdof_T_su = TM.from_list(sudh_dict[f'su{i+1}'][2:])
             self.dof_T_vdof.append(dof_T_vdof)
             self.vdof_T_su.append(vdof_T_su)
             self.dof_T_su.append(dof_T_vdof * vdof_T_su)
@@ -98,9 +106,6 @@ class KinematicChain():
 
     def __compute_chains_from_rs(self, dof_T_dof: List[TM]) -> List[TM]:
         assert isinstance(dof_T_dof, list)
-
-        if len(dof_T_dof) == 1:
-            return dof_T_dof[0]
 
         rs_T_dof = []
         T = TM.from_numpy(np.zeros(4))
@@ -200,7 +205,7 @@ class KinematicChain():
             print(f'i_su Should be in between 1 and {self.n_su}')
 
         # Be careful that i_joint starts from 1 to n
-        i_joint = self.su_dict[i_su-1]
+        i_joint = self.su_joint_dict[i_su]
 
         assert start_joint <= i_joint, \
             print(f'i_joint {i_joint} which i_su {i_su} is attached to \
