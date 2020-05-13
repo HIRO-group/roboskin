@@ -1,43 +1,37 @@
 """
 Testing utils module
 """
+import os
 import unittest
 import numpy as np
 import pyquaternion as pyqt
-from robotic_skin.calibration.utils.quaternion import pyquat_to_numpy
+from robotic_skin.calibration.utils.io import load_robot_configs
+from robotic_skin.calibration.utils.quaternion import pyquat_to_numpy, quaternion_l2_distance
 from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
 
-N_JOINT = 7
-INIT_POSE = np.zeros(N_JOINT)
-SECOND_POSE = (np.pi/2)*np.ones(N_JOINT)
-BOUNDS = np.array([
+
+repodir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+robot_config = load_robot_configs(os.path.join(repodir, 'config'), 'panda')
+
+linkdh_dict = robot_config['dh_parameter']
+sudh_dict = robot_config['su_dh_parameter']
+su_pose = robot_config['su_pose']
+
+n_joint = len(linkdh_dict)
+
+bounds = np.array([
     [-np.pi, np.pi],    # th
     [0.0, 1.0],         # d
     [0.0, 1.0],         # a
     [-np.pi, np.pi]])   # alpha
-BOUNDS_SU = np.array([
+bounds_su = np.array([
     [-np.pi, np.pi],    # th
     [-1.0, 1.0],        # d
     [-np.pi, np.pi],    # th
     [0.0, 0.2],         # d
     [0.0, 0.0001],      # a     # 0 gives error
     [0, np.pi]])        # alpha
-
-PANDA_DHPARAMS = {'joint1': [0, 0.333, 0, 0],
-                  'joint2': [0, 0, 0, -1.57079633],
-                  'joint3': [0, 0.316, 0, 1.57079633],
-                  'joint4': [0, 0, 0.0825, 1.57079633],
-                  'joint5': [0, 0.384, -0.0825, -1.57079633],
-                  'joint6': [0, 0, 0, 1.57079633],
-                  'joint7': [0, 0, 0.088, 1.57079633]}
-
-SAWYER_DHPARAMS = {'joint1': [0, 0.317, 0, 0],
-                   'joint2': [1.57079633, 0.1925, 0.081, -1.57079633],
-                   'joint3': [0, 0.4, 0, 1.57079633],
-                   'joint4': [0, -0.1685, 0, -1.57079633],
-                   'joint5': [0, 0.4, 0, 1.57079633],
-                   'joint6': [0, 0.1363, 0, -1.57079633],
-                   'joint7': [3.14159265, 0.13375, 0, 1.57079633]}
+bound_dict = {'link': bounds, 'su': bounds_su}
 
 
 class TransformationMatrixTest(unittest.TestCase):
@@ -71,16 +65,15 @@ class TransformationMatrixTest(unittest.TestCase):
         iterations = 100
 
         for _ in range(iterations):
-            T = TM.from_bounds(bounds=BOUNDS)
-            for parameter, bound in zip(T.parameters, BOUNDS):
+            T = TM.from_bounds(bounds=bound_dict['link'])
+            for parameter, bound in zip(T.parameters, bound_dict['link']):
                 self.assertTrue(bound[0] <= parameter <= bound[1])
 
     def test_list(self):
         """
         Test bounds of transformation matrix
         """
-        l = [1, 2]
-        T = TM.from_list(l, keys=['theta', 'd'])
+        T = TM.from_list([1, 2], keys=['theta', 'd'])
         expected = np.array([1., 2., 0., 0.])
         np.testing.assert_array_almost_equal(T.params, expected, decimal=1)
 
@@ -109,7 +102,6 @@ class TransformationMatrixTest(unittest.TestCase):
         """
         Test to substitute an np.array to np.ndarray
         """
-        n_joint = 7
         positions = np.zeros((n_joint, 3))
         T = TM.from_numpy(np.zeros(4))
 
@@ -136,7 +128,7 @@ class TransformationMatrixTest(unittest.TestCase):
 
         q = pyqt.Quaternion(axis=[0, 0, 1], angle=np.pi/2)
         q = pyquat_to_numpy(q)
-        np.testing.assert_array_almost_equal(T.q, q)
+        np.testing.assert_array_almost_equal(T.quaternion, q)
 
         # -90 Deg
         T = TM(theta=-np.pi/2)
@@ -149,7 +141,7 @@ class TransformationMatrixTest(unittest.TestCase):
 
         q = pyqt.Quaternion(axis=[0, 0, 1], angle=-np.pi/2)
         q = pyquat_to_numpy(q)
-        np.testing.assert_array_almost_equal(T.q, q)
+        np.testing.assert_array_almost_equal(T.quaternion, q)
 
         # 180 Deg
         T = TM(theta=np.pi)
@@ -162,7 +154,7 @@ class TransformationMatrixTest(unittest.TestCase):
 
         q = pyqt.Quaternion(axis=[0, 0, 1], angle=np.pi)
         q = pyquat_to_numpy(q)
-        np.testing.assert_array_almost_equal(T.q, q)
+        np.testing.assert_array_almost_equal(T.quaternion, q)
 
     def test_rotation_around_x(self):
         """
@@ -179,7 +171,7 @@ class TransformationMatrixTest(unittest.TestCase):
 
         q = pyqt.Quaternion(axis=[1, 0, 0], angle=np.pi/2)
         q = pyquat_to_numpy(q)
-        np.testing.assert_array_almost_equal(T.q, q)
+        np.testing.assert_array_almost_equal(T.quaternion, q)
 
         # -90 Deg
         T = TM(alpha=-np.pi/2)
@@ -192,7 +184,7 @@ class TransformationMatrixTest(unittest.TestCase):
 
         q = pyqt.Quaternion(axis=[1, 0, 0], angle=-np.pi/2)
         q = pyquat_to_numpy(q)
-        np.testing.assert_array_almost_equal(T.q, q)
+        np.testing.assert_array_almost_equal(T.quaternion, q)
 
         # 180 Deg
         T = TM(alpha=np.pi)
@@ -205,7 +197,7 @@ class TransformationMatrixTest(unittest.TestCase):
 
         q = pyqt.Quaternion(axis=[1, 0, 0], angle=np.pi)
         q = pyquat_to_numpy(q)
-        np.testing.assert_array_almost_equal(T.q, q)
+        np.testing.assert_array_almost_equal(T.quaternion, q)
 
     def test_dot_product(self):
         """
@@ -227,7 +219,7 @@ class TransformationMatrixTest(unittest.TestCase):
         # 1. Translate x axis for 2
         # 2. Rotates 90 degrees + Translate z axis for 4
         T2 = TM.from_numpy(np.array([np.pi/2, 4, 2, 0]))
-        T3 = T1*T2
+        T3 = T1 * T2
 
         a = 1/np.sqrt(2)
         expected_R = np.array([
@@ -243,7 +235,7 @@ class TransformationMatrixTest(unittest.TestCase):
         q1 = pyqt.Quaternion(axis=[0, 0, 1], angle=np.pi/4)
         q2 = pyqt.Quaternion(axis=[0, 0, 1], angle=np.pi/2)
         q = pyquat_to_numpy(q1 * q2)
-        np.testing.assert_array_almost_equal(T3.q, q)
+        np.testing.assert_array_almost_equal(T3.quaternion, q)
 
     def test_gravity_vector(self):
         """
@@ -289,30 +281,37 @@ class TransformationMatrixTest(unittest.TestCase):
         Verifies if the transformation matches the expected IMU position
         """
         # DEG == 0
-        joint_angles = [0, 0, 0, 0, 0, 0, 0]
-        T_dofs = [TM.from_list(PANDA_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
-        T_joints = [TM(theta=rad) for rad in joint_angles]
-        dof_T_vdof = TM(theta=np.pi/2)
-        vdof_T_su = TM.from_list([-np.pi/2, 0.05, 0, np.pi/2])
+        joint_angles = [0, 0, 0, -0.0698, 0, 0, 0]
 
-        # Tansform  from world to end-effector's IMU
+        # Tansform  from world to each SU coordinate
+        # Verify if all the imus are in correct poses
         T = TM.from_numpy(np.zeros(4))
-        for T_dof, T_joint in zip(T_dofs, T_joints):
+        for i, rad in enumerate(joint_angles):
+            T_dof = TM.from_list(linkdh_dict['joint%i' % (i+1)])
+            T_joint = TM(theta=rad)
             T = T * T_dof * T_joint
 
-        print('=====')
-        print(T.position, T.q)
-        T = T * dof_T_vdof * vdof_T_su
+            su_str = f'su{i+1}'  # noqa: E999
+            dof_T_vdof = TM.from_list(sudh_dict[su_str][:2], keys=['theta', 'd'])
+            vdof_T_su = TM.from_list(sudh_dict[su_str][2:])
+            rs_T_su = T * dof_T_vdof * vdof_T_su
+            np.testing.assert_array_almost_equal(
+                x=rs_T_su.position,
+                y=su_pose[su_str]['position'],
+                decimal=2)
 
-        # Given by TF: Just run `rosrun tf tf_echo /world /imu_link6`
-        # expected_position = [0.125, 0.020, 0.891]
-        expected_position = [0.165, 0.000, 1.028]
-        print(T.position, expected_position)
-        np.testing.assert_array_almost_equal(T.position, expected_position, decimal=2)
+            q = su_pose[su_str]['rotation']
+            q = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+            # We evaluate distance because quaternions cannot be directly compared,
+            # since negation of the quaternion is equal to the original quaternion.
+            # This is because negative rotation around the flipped axis is
+            # basically equal to the original rotation.
+            d = pyqt.Quaternion.absolute_distance(rs_T_su.q, q)
+            self.assertTrue(d < 0.01)
 
         # DEG == 90
-        joint_angles = [0, np.pi/2, 0, 0, 0, 0, 0]
-        T_dofs = [TM.from_list(PANDA_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
+        joint_angles = [0, np.pi/2, 0, -0.0698, 0, 0, 0]
+        T_dofs = [TM.from_list(linkdh_dict['joint%i' % (i+1)]) for i in range(7)]
         T_joints = [TM(theta=rad) for rad in joint_angles]
         dof_T_vdof = TM(theta=np.pi/4, d=0.14)
         vdof_T_su = TM.from_list([0, 0.03, 0, np.pi/2])
@@ -325,45 +324,6 @@ class TransformationMatrixTest(unittest.TestCase):
 
         # Given by TF: Just run `rosrun tf tf_echo /world /imu_link6`
         expected_position = [0.557, 0.020, 0.206]
-        np.testing.assert_array_almost_equal(T.position, expected_position, decimal=2)
-
-    def test_sawyer_world_to_endeffector_su(self):
-        """
-        Uses Sawyer's DH Parameters to reach an IMU mounted on an end-effector
-        Verifies if the transformation matches the expected IMU position
-        """
-        # DEG == 0
-        joint_angles = [0, 0, 0, 0, 0, 0, 0]
-        T_dofs = [TM.from_list(SAWYER_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
-        T_joints = [TM(theta=rad) for rad in joint_angles]
-        dof_T_vdof = TM(theta=0, d=0.1)
-        vdof_T_su = TM.from_list([0, 0.03, 0, -np.pi/2])
-
-        # Tansform  from world to end-effector's IMU
-        T = TM.from_numpy(np.zeros(4))
-        for T_dof, T_joint in zip(T_dofs, T_joints):
-            T = T * T_dof * T_joint
-        T = T * dof_T_vdof * vdof_T_su
-
-        # Given by TF: Just run `rosrun tf tf_echo /world /imu_link6`
-        expected_position = [1.084, 0.131, 0.195]
-        np.testing.assert_array_almost_equal(T.position, expected_position, decimal=2)
-
-        # DEG == 90
-        joint_angles = [0, -np.pi/2, 0, 0, 0, 0, 0]
-        T_dofs = [TM.from_list(SAWYER_DHPARAMS['joint%i' % (i+1)]) for i in range(7)]
-        T_joints = [TM(theta=rad) for rad in joint_angles]
-        dof_T_vdof = TM(theta=0, d=0.1)
-        vdof_T_su = TM.from_list([0, 0.03, 0, -np.pi/2])
-
-        # Tansform  from world to end-effector's IMU
-        T = TM.from_numpy(np.zeros(4))
-        for T_dof, T_joint in zip(T_dofs, T_joints):
-            T = T * T_dof * T_joint
-        T = T * dof_T_vdof * vdof_T_su
-
-        # Given by TF: Just run `rosrun tf tf_echo /world /imu_link6`
-        expected_position = [-0.043, 0.131, 1.319]
         np.testing.assert_array_almost_equal(T.position, expected_position, decimal=2)
 
 
