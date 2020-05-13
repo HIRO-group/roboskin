@@ -171,7 +171,11 @@ class TransformationMatrix():
     def __call__(self, theta):
         params = np.copy(self.params)
         params[0] += theta
-        return TransformationMatrix(*params)
+        T = TransformationMatrix(*params)
+
+        q = pyqt.Quaternion(axis=[0, 0, 1], angle=theta)
+        T.q = self.q * q
+        return T
 
     @property
     def R(self):

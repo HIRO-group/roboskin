@@ -5,8 +5,9 @@ from .transformation_matrix import TransformationMatrix as TM
 
 
 class KinematicChain():
-    def __init__(self, n_joint: int, su_joint_dict: dict, bound_dict: dict,  # noqa: E999
-                 linkdh_dict: dict = None, sudh_dict: dict = None) -> None:
+    def __init__(self, n_joint: int, su_joint_dict: dict,    # noqa: E999
+                 bound_dict: dict, linkdh_dict: dict = None,     # noqa: E999
+                 sudh_dict: dict = None, init_poses: list = None) -> None:
         """
         Defines a kinematic chain.
         This class enables users to easily retrieve
@@ -59,7 +60,11 @@ class KinematicChain():
         if sudh_dict is not None:
             assert isinstance(sudh_dict, dict)
             assert len(sudh_dict) == len(su_joint_dict)
+        if init_poses is None:
+            init_poses = [0]*n_joint
+        assert isinstance(init_poses, list)
 
+        self.init_poses = np.array(init_poses)
         self.su_joint_dict = su_joint_dict
         self.n_su = len(su_joint_dict)
         self.n_joint = n_joint
@@ -80,9 +85,9 @@ class KinematicChain():
 
         # Construct Transformation Matrices given poses
         # Initialize with 0 rad
-        self.poses = np.zeros(self.n_joint)
-        self.dof_Tp_dof = copy.deepcopy(self.dof_T_dof)
-        self.rs_Tp_dof = copy.deepcopy(self.dof_T_dof)
+        self.poses = np.copy(init_poses)
+        self.dof_Tp_dof = self.__apply_poses(self.dof_T_dof, self.poses)
+        self.rs_Tp_dof = self.__compute_chains_from_rs(self.dof_Tp_dof)
 
         # Construct Transformation Matrices
         self.dof_T_vdof = []
@@ -131,6 +136,9 @@ class KinematicChain():
             T = T * dof_T_dof[i]
             rs_T_dof[i] = copy.deepcopy(T)
         return rs_T_dof
+
+    def reset_poses(self):
+        self.poses = np.copy(self.init_poses)
 
     def set_n_poses(self, poses: np.ndarray) -> None:
         assert isinstance(poses, np.ndarray)
