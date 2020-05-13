@@ -80,8 +80,8 @@ class KinematicChainTest(unittest.TestCase):
 
         for i in range(n_joint):
             T = kinematic_chain.get_origin_su_TM(i+1)
-            expected_position = su_pose[f'su{i+1}']['position']
-            expected_rotation = su_pose[f'su{i+1}']['rotation']
+            expected_position = su_pose[f'su{i+1}']['position']  # noqa: E999
+            expected_rotation = su_pose[f'su{i+1}']['rotation']  # noqa: E999
             # print(n2s(T.position, 3), n2s(T.q, 3))
 
             """

@@ -153,7 +153,7 @@ class KinematicEstimator():
         self.all_orientations = np.array(self.all_orientations)
         # once done, save to file.
         ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
-        save_path = os.path.join(ros_robotic_skin_path, 'data', f'{self.method_name}_data.pkl')
+        save_path = os.path.join(ros_robotic_skin_path, 'data', f'{self.method_name}_data.pkl')  # noqa: E999
         pickle.dump(self.cumulative_data, open(save_path, "wb"), protocol=2)
         print("Average Euclidean distance = ", sum(self.all_euclidean_distances) / len(self.all_euclidean_distances))
 
@@ -171,7 +171,7 @@ class KinematicEstimator():
         `T.position`: `np.array`
             position of the imu
 
-        `T.q`: `np.array`
+        `T.quaternion`: `np.array`
             orientation of the imu
 
         """

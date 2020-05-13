@@ -5,7 +5,7 @@ from .transformation_matrix import TransformationMatrix as TM
 
 
 class KinematicChain():
-    def __init__(self, n_joint: int, su_joint_dict: dict, bound_dict: dict,
+    def __init__(self, n_joint: int, su_joint_dict: dict, bound_dict: dict,  # noqa: E999
                  linkdh_dict: dict = None, sudh_dict: dict = None) -> None:
         """
         Defines a kinematic chain.
