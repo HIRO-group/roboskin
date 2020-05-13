@@ -31,7 +31,7 @@ from robotic_skin.calibration.utils import load_robot_configs
 from robotic_skin.calibration.utils import angle_between_quaternions
 
 
-def array_to_table_string(dh_params_array: np.ndarray) -> list:
+def array_to_table_string(dh_params_array: np.ndarray) -> list:  # noqa: E999
     return_list = []
     # Round off DH params to two decimals
     dh_params_array = np.around(dh_params_array, decimals=2)

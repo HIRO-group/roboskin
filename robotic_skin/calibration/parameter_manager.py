@@ -19,7 +19,7 @@ def get_IMU_pose(Tdofs, Tdof2su, joints=None):
     # Transformation Matrix until SU
     T = T * Tdof2su
 
-    return T.position, T.q
+    return T.position, T.quaternion
 
 
 class ParameterManager():
