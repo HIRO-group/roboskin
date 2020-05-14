@@ -16,7 +16,7 @@ sudh_dict = robot_config['su_dh_parameter']
 su_pose = robot_config['su_pose']
 
 n_joint = len(linkdh_dict)
-su_joint_dict = {i+1: i+1 for i in range(n_joint)}
+su_joint_dict = {i: i for i in range(n_joint)}
 
 bounds = np.array([
     [-np.pi, np.pi],    # th
@@ -135,7 +135,7 @@ class KinematicChainTest(unittest.TestCase):
             x=kinematic_chain.current_poses,
             y=np.zeros(7))
 
-        kinematic_chain.add_a_pose(4, -0.0698)
+        kinematic_chain.add_a_pose(3, -0.0698)
 
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
@@ -180,7 +180,7 @@ class KinematicChainTest(unittest.TestCase):
         ])
 
         for i in range(n_joint):
-            T = kinematic_chain.get_origin_joint_TM(i+1)
+            T = kinematic_chain.get_origin_joint_TM(i)
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
@@ -210,7 +210,7 @@ class KinematicChainTest(unittest.TestCase):
             sudh_dict=sudh_dict)
 
         for i in range(n_joint):
-            T = kinematic_chain.get_origin_su_TM(i+1)
+            T = kinematic_chain.get_origin_su_TM(i)
             expected_position = su_pose[f'su{i+1}']['position']  # noqa: E999
             q = su_pose[f'su{i+1}']['rotation']  # noqa: E999
             expected_rotation = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
@@ -268,7 +268,7 @@ class KinematicChainTest(unittest.TestCase):
         ])
 
         for i in range(n_joint):
-            T = kinematic_chain.get_current_joint_TM(i+1)
+            T = kinematic_chain.get_current_joint_TM(i)
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
@@ -333,7 +333,7 @@ class KinematicChainTest(unittest.TestCase):
         ])
 
         for i in range(n_joint):
-            T = kinematic_chain.get_current_su_TM(i+1)
+            T = kinematic_chain.get_current_su_TM(i)
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
@@ -389,7 +389,7 @@ class KinematicChainTest(unittest.TestCase):
         ])
 
         for i in range(n_joint):
-            T = kinematic_chain.get_origin_joint_TM(i+1)
+            T = kinematic_chain.get_origin_joint_TM(i)
             # First check if the DH Parameter Estimation is not correct
             np.testing.assert_raises(
                 AssertionError,
@@ -403,9 +403,9 @@ class KinematicChainTest(unittest.TestCase):
             self.assertFalse(d < 0.01)
 
             # Set Link DH Parameters
-            kinematic_chain.set_linkdh(i+1, np.array(linkdh_dict[f'joint{i+1}']))
+            kinematic_chain.set_linkdh(i, np.array(linkdh_dict[f'joint{i+1}']))
 
-            T = kinematic_chain.get_origin_joint_TM(i+1)
+            T = kinematic_chain.get_origin_joint_TM(i)
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
@@ -455,7 +455,7 @@ class KinematicChainTest(unittest.TestCase):
         ])
 
         for i in range(n_joint):
-            T = kinematic_chain.get_origin_su_TM(i+1)
+            T = kinematic_chain.get_origin_su_TM(i)
             expected_position = su_pose[f'su{i+1}']['position']  # noqa: E999
             expected_orientation = su_pose[f'su{i+1}']['rotation']  # noqa: E999
 
@@ -472,9 +472,9 @@ class KinematicChainTest(unittest.TestCase):
             self.assertFalse(d < 0.01)
 
             # Set Link DH Parameters
-            kinematic_chain.set_sudh(i+1, np.array(sudh_dict[f'su{i+1}']))
+            kinematic_chain.set_sudh(i, np.array(sudh_dict[f'su{i+1}']))
 
-            T = kinematic_chain.get_origin_joint_TM(i+1)
+            T = kinematic_chain.get_origin_joint_TM(i)
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],

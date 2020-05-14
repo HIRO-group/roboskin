@@ -21,8 +21,8 @@ class KinematicChain():
             The dict is {i_su: i_joint}.
             where
             ..math::
-                i_su = 1, ..., n_su
-                i_joint = 1, ..., n_joint
+                i_su = 0, ..., n_su-1
+                i_joint = 0, ..., n_joint-1
         n_joint: int
             number of joints
         bound_dict: dict
@@ -156,7 +156,7 @@ class KinematicChain():
         If you want to add multiple poses, use set_n_poses
 
         i_joint: int
-            ith Joint starts from 1 to n
+            ith Joint starts from 0 to n-1
         pose: float
             Angle [rad]
         to_origin: bool
@@ -164,30 +164,28 @@ class KinematicChain():
         """
         assert isinstance(i_joint, int)
         assert isinstance(pose, float)
-        assert 1 <= i_joint <= self.n_joint, \
-            print(f'i_joint Should be in between 1 and {self.n_joint}')
+        assert 0 <= i_joint <= self.n_joint-1, \
+            print(f'i_joint Should be in between 0 and {self.n_joint-1}')
 
-        i = i_joint - 1
-        self.current_poses[i] += pose
-        self.dof_Tp_dof[i] = self.dof_Tp_dof[i](theta=pose)
-        self.rs_Tp_dof = self.__compute_chains_from_dof(i, self.dof_Tp_dof, self.rs_Tp_dof)
+        self.current_poses[i_joint] += pose
+        self.dof_Tp_dof[i_joint] = self.dof_Tp_dof[i_joint](theta=pose)
+        self.rs_Tp_dof = self.__compute_chains_from_dof(i_joint, self.dof_Tp_dof, self.rs_Tp_dof)
 
     def __get_joint_TM(self, i_joint: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
                        start_joint: int = 0) -> TM:
         """
-        The joint number starts from 1 to n in our notation.
-        Therefore, i_joint should also start from 1 to n.
+        i_joint should also start from 0 to n-1.
         """
-        assert 1 <= i_joint <= self.n_joint, \
-            print(f'i_joint Should be in between 1 and {self.n_joint}')
-        assert start_joint < i_joint, \
-            print(f'i_joint={i_joint} should be larger than start_joint {start_joint}')
+        assert 0 <= i_joint <= self.n_joint-1, \
+            print(f'i_joint Should be in between 0 and {self.n_joint-1}')
+        assert start_joint <= i_joint, \
+            print(f'i_joint={i_joint} should be >= than start_joint {start_joint}')
 
         if start_joint == 0:
-            return rs_T_dof[i_joint-1]
+            return rs_T_dof[i_joint]
 
         T = dof_T_dof[start_joint]
-        for i in range(start_joint+1, i_joint):
+        for i in range(start_joint+1, i_joint+1):
             T = T * dof_T_dof[i]
         return T
 
@@ -208,13 +206,12 @@ class KinematicChain():
     def __get_su_TM(self, i_su: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
                     start_joint: int = 0) -> TM:
         """
-        The SU number starts from 1 to m in our notation.
-        Therefore, i_su should also start from 1 to m.
+        i_su should also start from 0 to m-1.
         """
-        assert 1 <= i_su <= self.n_su, \
-            print(f'i_su Should be in between 1 and {self.n_su}')
+        assert 0 <= i_su <= self.n_su-1, \
+            print(f'i_su Should be in between 0 and {self.n_su-1}')
 
-        # Be careful that i_joint starts from 1 to n
+        # Get corresponding joint number
         i_joint = self.su_joint_dict[i_su]
 
         assert start_joint <= i_joint, \
@@ -222,12 +219,12 @@ class KinematicChain():
                     should be larger than or equal to start_joint {start_joint}')
 
         if start_joint == 0:
-            return rs_T_dof[i_joint-1] * self.dof_T_su[i_su-1]
+            return rs_T_dof[i_joint] * self.dof_T_su[i_su]
 
         T = dof_T_dof[start_joint]
-        for j in range(start_joint+1, i_joint):
+        for j in range(start_joint+1, i_joint+1):
             T = T * dof_T_dof[j]
-        return T * self.dof_T_su[i_su-1]
+        return T * self.dof_T_su[i_su]
 
     def get_origin_su_TM(self, i_su: int, start_joint: int = 0) -> TM:
         """
@@ -250,16 +247,16 @@ class KinematicChain():
         Parameters
         -----------
         i_su: int
-            i_su th SU. i_su starts from 1 to m.
+            i_su th SU. i_su starts from 0 to m-1.
         params: np.ndarray
             DH Parameters of the i_su th SU (from its previous DoF)
         """
-        assert 1 <= i_su <= self.n_su
+        assert 0 <= i_su <= self.n_su-1
         assert params.size == 6
-        i = i_su - 1
+
         dof_T_vdof = TM.from_numpy(params[:2], ['theta', 'd'])
         vdof_T_su = TM.from_numpy(params[2:])
-        self.dof_T_su[i] = dof_T_vdof * vdof_T_su
+        self.dof_T_su[i_su] = dof_T_vdof * vdof_T_su
 
     def set_linkdh(self, i_joint: int, params: np.ndarray) -> None:
         """
@@ -268,15 +265,14 @@ class KinematicChain():
         Parameters
         -----------
         i_joint: int
-            i_joint th joint. i_joint starts from 1 to n.
+            i_joint th joint. i_joint starts from 0 to n-1.
         params: np.ndarray
             DH Parameters of the i_joint th joint (from its previous joint)
         """
-        assert 1 <= i_joint <= self.n_joint
+        assert 0 <= i_joint <= self.n_joint-1
         assert params.size == 4
-        i = i_joint - 1
 
-        self.dof_T_dof[i] = TM.from_numpy(params)(self.origin_poses[i])
-        self.rs_T_dof = self.__compute_chains_from_dof(i, self.dof_T_dof, self.rs_T_dof)
-        self.dof_Tp_dof[i] = TM.from_numpy(params)(self.current_poses[i])
-        self.rs_Tp_dof = self.__compute_chains_from_dof(i, self.dof_Tp_dof, self.rs_Tp_dof)
+        self.dof_T_dof[i_joint] = TM.from_numpy(params)(self.origin_poses[i_joint])
+        self.rs_T_dof = self.__compute_chains_from_dof(i_joint, self.dof_T_dof, self.rs_T_dof)
+        self.dof_Tp_dof[i_joint] = TM.from_numpy(params)(self.current_poses[i_joint])
+        self.rs_Tp_dof = self.__compute_chains_from_dof(i_joint, self.dof_Tp_dof, self.rs_Tp_dof)
