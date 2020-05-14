@@ -54,10 +54,10 @@ class KinematicChainTest(unittest.TestCase):
             linkdh_dict=linkdh_dict,
             sudh_dict=sudh_dict)
 
-    def test_origin_poses(self):
+    def test_eval_poses(self):
         """
         You can set an origin poses by either by,
-        1. Pass an argument origin_poses
+        1. Pass an argument eval_poses
         2. Call kinematic_chain.set_n_poses(poses)
 
         You can add a pose to just 1 joint by calling
@@ -70,7 +70,7 @@ class KinematicChainTest(unittest.TestCase):
         On the other hand, set_n_poses() and add_a_pose() are only
         effective until reset_pose() is called.
         """
-        origin_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
+        eval_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
 
         kinematic_chain = KinematicChain(
             n_joint=n_joint,
@@ -78,20 +78,26 @@ class KinematicChainTest(unittest.TestCase):
             bound_dict=bound_dict,
             linkdh_dict=linkdh_dict,
             sudh_dict=sudh_dict,
-            origin_poses=origin_poses)
+            eval_poses=eval_poses)
 
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
-            y=origin_poses)
+            y=np.zeros(7))
+        np.testing.assert_array_equal(
+            x=kinematic_chain.eval_poses,
+            y=eval_poses)
 
         kinematic_chain.reset_poses()
 
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
-            y=origin_poses)
+            y=np.zeros(7))
+        np.testing.assert_array_equal(
+            x=kinematic_chain.eval_poses,
+            y=eval_poses)
 
     def test_add_n_poses(self):
-        origin_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
+        poses = np.random.rand(7)
 
         kinematic_chain = KinematicChain(
             n_joint=n_joint,
@@ -100,27 +106,27 @@ class KinematicChainTest(unittest.TestCase):
             linkdh_dict=linkdh_dict,
             sudh_dict=sudh_dict)
 
-        # Since origin_poses were not passed in the constructor
+        # Since eval_poses were not passed in the constructor
         # The reset poses would be all 0s.
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
             y=np.zeros(7))
 
-        kinematic_chain.set_n_poses(np.array(origin_poses))
+        kinematic_chain.set_poses(poses)
 
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
-            y=origin_poses)
+            y=poses)
 
         kinematic_chain.reset_poses()
-        # Since origin_poses were not passed in the constructor
+        # Since eval_poses were not passed in the constructor
         # The reset poses would be all 0s.
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
             y=np.zeros(7))
 
     def test_add_a_pose(self):
-        origin_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
+        eval_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
 
         kinematic_chain = KinematicChain(
             n_joint=n_joint,
@@ -129,30 +135,30 @@ class KinematicChainTest(unittest.TestCase):
             linkdh_dict=linkdh_dict,
             sudh_dict=sudh_dict)
 
-        # Since origin_poses were not passed in the constructor
+        # Since eval_poses were not passed in the constructor
         # The reset poses would be all 0s.
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
             y=np.zeros(7))
 
-        kinematic_chain.add_a_pose(3, -0.0698)
+        kinematic_chain.add_a_pose_at(i_joint=3, pose=-0.0698, pose_type='both')
 
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
-            y=origin_poses)
+            y=eval_poses)
 
         kinematic_chain.reset_poses()
-        # Since origin_poses were not passed in the constructor
+        # Since eval_poses were not passed in the constructor
         # The reset poses would be all 0s.
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
             y=np.zeros(7))
 
-    def test_get_origin_joint_TM(self):
-        origin_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
+    def test_get_eval_joint_TM(self):
+        eval_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
 
         kinematic_chain = KinematicChain(
-            origin_poses=origin_poses,
+            eval_poses=eval_poses,
             n_joint=n_joint,
             su_joint_dict=su_joint_dict,
             bound_dict=bound_dict,
@@ -180,7 +186,7 @@ class KinematicChainTest(unittest.TestCase):
         ])
 
         for i in range(n_joint):
-            T = kinematic_chain.get_origin_joint_TM(i)
+            T = kinematic_chain.get_joint_TM(i, pose_type='eval')
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
@@ -198,11 +204,11 @@ class KinematicChainTest(unittest.TestCase):
                                 \n expected: {expected_orientations[i]} \
                                 \n but got:  {T.quaternion}")
 
-    def test_get_origin_su_TM(self):
-        origin_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
+    def test_get_eval_su_TM(self):
+        eval_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
 
         kinematic_chain = KinematicChain(
-            origin_poses=origin_poses,
+            eval_poses=eval_poses,
             n_joint=n_joint,
             su_joint_dict=su_joint_dict,
             bound_dict=bound_dict,
@@ -210,7 +216,7 @@ class KinematicChainTest(unittest.TestCase):
             sudh_dict=sudh_dict)
 
         for i in range(n_joint):
-            T = kinematic_chain.get_origin_su_TM(i)
+            T = kinematic_chain.get_su_TM(i, pose_type='eval')
             expected_position = su_pose[f'su{i+1}']['position']  # noqa: E999
             q = su_pose[f'su{i+1}']['rotation']  # noqa: E999
             expected_rotation = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
@@ -241,7 +247,7 @@ class KinematicChainTest(unittest.TestCase):
             x=kinematic_chain.current_poses,
             y=np.zeros(7))
 
-        kinematic_chain.set_n_poses(current_poses)
+        kinematic_chain.set_poses(current_poses)
 
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
@@ -268,7 +274,7 @@ class KinematicChainTest(unittest.TestCase):
         ])
 
         for i in range(n_joint):
-            T = kinematic_chain.get_current_joint_TM(i)
+            T = kinematic_chain.get_joint_TM(i, pose_type='current')
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
@@ -306,7 +312,7 @@ class KinematicChainTest(unittest.TestCase):
             x=kinematic_chain.current_poses,
             y=np.zeros(7))
 
-        kinematic_chain.set_n_poses(current_poses)
+        kinematic_chain.set_poses(current_poses)
 
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
@@ -333,7 +339,7 @@ class KinematicChainTest(unittest.TestCase):
         ])
 
         for i in range(n_joint):
-            T = kinematic_chain.get_current_su_TM(i)
+            T = kinematic_chain.get_su_TM(i, pose_type='current')
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
@@ -358,11 +364,11 @@ class KinematicChainTest(unittest.TestCase):
             y=np.zeros(7))
 
     def test_set_linkdh(self):
-        origin_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
+        eval_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
 
         # Removed linkdh_dict
         kinematic_chain = KinematicChain(
-            origin_poses=origin_poses,
+            eval_poses=eval_poses,
             n_joint=n_joint,
             su_joint_dict=su_joint_dict,
             bound_dict=bound_dict,
@@ -389,7 +395,7 @@ class KinematicChainTest(unittest.TestCase):
         ])
 
         for i in range(n_joint):
-            T = kinematic_chain.get_origin_joint_TM(i)
+            T = kinematic_chain.get_joint_TM(i, pose_type='eval')
             # First check if the DH Parameter Estimation is not correct
             np.testing.assert_raises(
                 AssertionError,
@@ -405,7 +411,7 @@ class KinematicChainTest(unittest.TestCase):
             # Set Link DH Parameters
             kinematic_chain.set_linkdh(i, np.array(linkdh_dict[f'joint{i+1}']))
 
-            T = kinematic_chain.get_origin_joint_TM(i)
+            T = kinematic_chain.get_joint_TM(i, pose_type='eval')
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
@@ -424,11 +430,11 @@ class KinematicChainTest(unittest.TestCase):
                                 \n but got:  {T.quaternion}")
 
     def test_set_sudh(self):
-        origin_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
+        eval_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
 
         # Removed linkdh_dict
         kinematic_chain = KinematicChain(
-            origin_poses=origin_poses,
+            eval_poses=eval_poses,
             n_joint=n_joint,
             su_joint_dict=su_joint_dict,
             bound_dict=bound_dict,
@@ -455,7 +461,7 @@ class KinematicChainTest(unittest.TestCase):
         ])
 
         for i in range(n_joint):
-            T = kinematic_chain.get_origin_su_TM(i)
+            T = kinematic_chain.get_su_TM(i, pose_type='eval')
             expected_position = su_pose[f'su{i+1}']['position']  # noqa: E999
             expected_orientation = su_pose[f'su{i+1}']['rotation']  # noqa: E999
 
@@ -474,7 +480,7 @@ class KinematicChainTest(unittest.TestCase):
             # Set Link DH Parameters
             kinematic_chain.set_sudh(i, np.array(sudh_dict[f'su{i+1}']))
 
-            T = kinematic_chain.get_origin_joint_TM(i)
+            T = kinematic_chain.get_joint_TM(i, pose_type='eval')
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
