@@ -6,7 +6,7 @@ import unittest
 import numpy as np
 import pyquaternion as pyqt
 from robotic_skin.calibration.utils.io import load_robot_configs
-from robotic_skin.calibration.utils.quaternion import pyquat_to_numpy, quaternion_l2_distance
+from robotic_skin.calibration.utils.quaternion import pyquat_to_numpy
 from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
 
 

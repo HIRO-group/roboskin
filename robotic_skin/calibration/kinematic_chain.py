@@ -7,7 +7,7 @@ from .transformation_matrix import TransformationMatrix as TM
 class KinematicChain():
     def __init__(self, n_joint: int, su_joint_dict: dict,    # noqa: E999
                  bound_dict: dict, linkdh_dict: dict = None,     # noqa: E999
-                 sudh_dict: dict = None, init_poses: list = None) -> None:
+                 sudh_dict: dict = None, origin_poses: np.ndarray = None) -> None:
         """
         Defines a kinematic chain.
         This class enables users to easily retrieve
@@ -60,39 +60,41 @@ class KinematicChain():
         if sudh_dict is not None:
             assert isinstance(sudh_dict, dict)
             assert len(sudh_dict) == len(su_joint_dict)
-        if init_poses is None:
-            init_poses = [0]*n_joint
-        assert isinstance(init_poses, list)
-
-        self.init_poses = np.array(init_poses)
         self.su_joint_dict = su_joint_dict
         self.n_su = len(su_joint_dict)
         self.n_joint = n_joint
         self.linkdh_dict = linkdh_dict
+        self.origin_poses = np.zeros(n_joint) if origin_poses is None else origin_poses
 
         # Construct Transformation Matrices between each joint
-        if self.linkdh_dict is None:
-            # Initialize DH parameters randomly within the given bounds
-            self.dof_T_dof = [TM.from_bounds(bound_dict['link'])
-                              for i in range(n_joint)]
-        else:
-            # Specified DH Parameters
-            self.dof_T_dof = [TM.from_list(linkdh_dict[f'joint{i+1}'])
-                              for i in range(n_joint)]
-
+        self.dof_T_dof = self.__predefined_or_rand_dofs(linkdh_dict, bound_dict)
+        self.dof_T_dof = self.__apply_poses(self.dof_T_dof, self.origin_poses)
         # Construct Transformation Matrices from RS to each joint
         self.rs_T_dof = self.__compute_chains_from_rs(self.dof_T_dof)
 
+        self.origin_poses = np.zeros(n_joint) if origin_poses is None else origin_poses
+        self.current_poses = np.copy(self.origin_poses)
+
         # Construct Transformation Matrices given poses
         # Initialize with 0 rad
-        self.poses = np.copy(init_poses)
-        self.dof_Tp_dof = self.__apply_poses(self.dof_T_dof, self.poses)
-        self.rs_Tp_dof = self.__compute_chains_from_rs(self.dof_Tp_dof)
+        self.dof_Tp_dof = copy.deepcopy(self.dof_T_dof)
+        self.rs_Tp_dof = copy.deepcopy(self.rs_T_dof)
 
-        # Construct Transformation Matrices
-        self.dof_T_vdof = []
-        self.vdof_T_su = []
-        self.dof_T_su = []
+        # Construct Transformation Matrices for each SU from its previous joint
+        self.dof_T_su = self.__predefined_or_rand_sus(sudh_dict, bound_dict)
+
+    def __predefined_or_rand_dofs(self, linkdh_dict: dict, bound_dict: dict) -> List[TM]:
+        if linkdh_dict is None:
+            # Initialize DH parameters randomly within the given bounds
+            return [TM.from_bounds(bound_dict['link'])
+                    for i in range(self.n_joint)]
+        else:
+            # Specified DH Parameters
+            return [TM.from_list(linkdh_dict[f'joint{i+1}'])
+                    for i in range(self.n_joint)]
+
+    def __predefined_or_rand_sus(self, sudh_dict: dict, bound_dict: dict) -> List[TM]:
+        dof_T_su = []
         for i in range(self.n_su):
             if sudh_dict is None:
                 dof_T_vdof = TM.from_bounds(bound_dict['su'][:2, :], ['theta', 'd'])
@@ -100,14 +102,8 @@ class KinematicChain():
             else:
                 dof_T_vdof = TM.from_list(sudh_dict[f'su{i+1}'][:2], ['theta', 'd'])
                 vdof_T_su = TM.from_list(sudh_dict[f'su{i+1}'][2:])
-            self.dof_T_vdof.append(dof_T_vdof)
-            self.vdof_T_su.append(vdof_T_su)
-            self.dof_T_su.append(dof_T_vdof * vdof_T_su)
-
-    def __apply_poses(self, Ts: List[TM], poses: np.ndarray) -> List[TM]:
-        assert isinstance(poses, np.ndarray)
-        assert len(Ts) == poses.size
-        return [T(pose) for T, pose in zip(Ts, poses)]
+            dof_T_su.append(dof_T_vdof * vdof_T_su)
+        return dof_T_su
 
     def __compute_chains_from_rs(self, dof_T_dof: List[TM]) -> List[TM]:
         assert isinstance(dof_T_dof, list)
@@ -137,14 +133,19 @@ class KinematicChain():
             rs_T_dof[i] = copy.deepcopy(T)
         return rs_T_dof
 
+    def __apply_poses(self, Ts: List[TM], poses: np.ndarray) -> List[TM]:
+        assert isinstance(poses, np.ndarray)
+        assert len(Ts) == poses.size
+        return [T(pose) for T, pose in zip(Ts, poses)]
+
     def reset_poses(self):
-        self.poses = np.copy(self.init_poses)
+        self.current_poses = np.copy(self.origin_poses)
 
     def set_n_poses(self, poses: np.ndarray) -> None:
         assert isinstance(poses, np.ndarray)
         assert poses.size == self.n_joint
-        self.poses = poses
-        self.dof_Tp_dof = self.__apply_poses(self.dof_T_dof, self.poses)
+        self.current_poses = poses
+        self.dof_Tp_dof = self.__apply_poses(self.dof_T_dof, self.current_poses)
         self.rs_Tp_dof = self.__compute_chains_from_rs(self.dof_Tp_dof)
 
     def add_a_pose(self, i_joint: int, pose: float) -> None:
@@ -167,6 +168,7 @@ class KinematicChain():
             print(f'i_joint Should be in between 1 and {self.n_joint}')
 
         i = i_joint - 1
+        self.current_poses[i] += pose
         self.dof_Tp_dof[i] = self.dof_Tp_dof[i](theta=pose)
         self.rs_Tp_dof = self.__compute_chains_from_dof(i, self.dof_Tp_dof, self.rs_Tp_dof)
 
@@ -241,7 +243,7 @@ class KinematicChain():
         """
         return self.__get_su_TM(i_su, self.dof_Tp_dof, self.rs_Tp_dof, start_joint)
 
-    def set_su_dh(self, i_su: int, params: np.ndarray) -> None:
+    def set_sudh(self, i_su: int, params: np.ndarray) -> None:
         """
         Sets i_su th SU DH Parameters
 
@@ -255,16 +257,26 @@ class KinematicChain():
         assert 1 <= i_su <= self.n_su
         assert params.size == 6
         i = i_su - 1
-        self.dof_T_vdof[i] = TM.from_numpy(params[:2, :], ['theta', 'd'])
-        self.vdof_T_su[i] = TM.from_numpy(params[2:, :])
-        self.dof_T_su.append(self.dof_T_vdof[i] * self.vdof_T_su[i])
+        dof_T_vdof = TM.from_numpy(params[:2], ['theta', 'd'])
+        vdof_T_su = TM.from_numpy(params[2:])
+        self.dof_T_su[i] = dof_T_vdof * vdof_T_su
 
-    def set_link_dh(self, i_joint: int, params: np.ndarray) -> None:
+    def set_linkdh(self, i_joint: int, params: np.ndarray) -> None:
+        """
+        Sets i_su th SU DH Parameters
+
+        Parameters
+        -----------
+        i_joint: int
+            i_joint th joint. i_joint starts from 1 to n.
+        params: np.ndarray
+            DH Parameters of the i_joint th joint (from its previous joint)
+        """
         assert 1 <= i_joint <= self.n_joint
         assert params.size == 4
         i = i_joint - 1
 
-        self.dof_T_dof[i] = TM.from_numpy(params)
+        self.dof_T_dof[i] = TM.from_numpy(params)(self.origin_poses[i])
         self.rs_T_dof = self.__compute_chains_from_dof(i, self.dof_T_dof, self.rs_T_dof)
-        self.dof_Tp_dof[i] = TM.from_numpy(params)(self.poses[i])
+        self.dof_Tp_dof[i] = TM.from_numpy(params)(self.current_poses[i])
         self.rs_Tp_dof = self.__compute_chains_from_dof(i, self.dof_Tp_dof, self.rs_Tp_dof)
