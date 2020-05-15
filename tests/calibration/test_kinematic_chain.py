@@ -106,12 +106,6 @@ class KinematicChainTest(unittest.TestCase):
             linkdh_dict=linkdh_dict,
             sudh_dict=sudh_dict)
 
-        # Since eval_poses were not passed in the constructor
-        # The reset poses would be all 0s.
-        np.testing.assert_array_equal(
-            x=kinematic_chain.current_poses,
-            y=np.zeros(7))
-
         kinematic_chain.set_poses(poses)
 
         np.testing.assert_array_equal(
@@ -126,7 +120,7 @@ class KinematicChainTest(unittest.TestCase):
             y=np.zeros(7))
 
     def test_add_a_pose(self):
-        eval_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
+        poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
 
         kinematic_chain = KinematicChain(
             n_joint=n_joint,
@@ -135,21 +129,16 @@ class KinematicChainTest(unittest.TestCase):
             linkdh_dict=linkdh_dict,
             sudh_dict=sudh_dict)
 
-        # Since eval_poses were not passed in the constructor
-        # The reset poses would be all 0s.
-        np.testing.assert_array_equal(
-            x=kinematic_chain.current_poses,
-            y=np.zeros(7))
-
         kinematic_chain.add_a_pose_at(i_joint=3, pose=-0.0698, pose_type='both')
 
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
-            y=eval_poses)
+            y=poses)
 
         kinematic_chain.reset_poses()
-        # Since eval_poses were not passed in the constructor
-        # The reset poses would be all 0s.
+
+        # The current poses should be
+        # reset to origin poses
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
             y=np.zeros(7))
@@ -219,7 +208,7 @@ class KinematicChainTest(unittest.TestCase):
             T = kinematic_chain.get_su_TM(i, pose_type='eval')
             expected_position = su_pose[f'su{i+1}']['position']  # noqa: E999
             q = su_pose[f'su{i+1}']['rotation']  # noqa: E999
-            expected_rotation = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+            expected_orientation = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
 
             np.testing.assert_array_almost_equal(
                 x=T.position,
@@ -227,10 +216,10 @@ class KinematicChainTest(unittest.TestCase):
                 decimal=2,
                 err_msg=f'{i+1}th SU Position supposed to be {expected_position}')
 
-            d = pyqt.Quaternion.absolute_distance(T.q, expected_rotation)
+            d = pyqt.Quaternion.absolute_distance(T.q, expected_orientation)
             self.assertTrue(
                 expr=d < 0.01,
-                msg=f'{i+1}th SU Rotation supposed to be {expected_rotation} \
+                msg=f'{i+1}th SU Orientation supposed to be {expected_orientation} \
                     but got {T.q}')
 
     def test_get_current_joint_TM(self):
@@ -243,12 +232,10 @@ class KinematicChainTest(unittest.TestCase):
             linkdh_dict=linkdh_dict,
             sudh_dict=sudh_dict)
 
-        np.testing.assert_array_equal(
-            x=kinematic_chain.current_poses,
-            y=np.zeros(7))
-
+        # Apply joint poses
         kinematic_chain.set_poses(current_poses)
 
+        # Curren Poses should be set correctly
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
             y=current_poses)
@@ -273,8 +260,11 @@ class KinematicChainTest(unittest.TestCase):
             [0.500, 0.500, -0.500, 0.500],
         ])
 
+        # set_poses should affect the current
+        # Joint TransformationMatrix
         for i in range(n_joint):
             T = kinematic_chain.get_joint_TM(i, pose_type='current')
+            # Test Joint Positions
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
@@ -283,7 +273,7 @@ class KinematicChainTest(unittest.TestCase):
                     \n expected: {expected_positions[i]} \
                     \n but got:  {T.position}"
             )
-
+            # Test Joint Orientations
             q = expected_orientations[i]
             q = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
             d = pyqt.Quaternion.absolute_distance(T.q, q)
@@ -292,8 +282,9 @@ class KinematicChainTest(unittest.TestCase):
                                 \n expected: {expected_orientations[i]} \
                                 \n but got:  {T.quaternion}")
 
+        # Reset current poses
         kinematic_chain.reset_poses()
-
+        # Current poses should be reset to origin poses
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
             y=np.zeros(7))
@@ -308,12 +299,10 @@ class KinematicChainTest(unittest.TestCase):
             linkdh_dict=linkdh_dict,
             sudh_dict=sudh_dict)
 
-        np.testing.assert_array_equal(
-            x=kinematic_chain.current_poses,
-            y=np.zeros(7))
-
+        # Apply joint poses
         kinematic_chain.set_poses(current_poses)
 
+        # Curren Poses should be set correctly
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
             y=current_poses)
@@ -338,8 +327,11 @@ class KinematicChainTest(unittest.TestCase):
             [0.707, 0.707, 0.000, -0.000],
         ])
 
+        # set_poses should affect the current
+        # Joint TransformationMatrix
         for i in range(n_joint):
             T = kinematic_chain.get_su_TM(i, pose_type='current')
+            # Test SU Positions
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
@@ -348,7 +340,7 @@ class KinematicChainTest(unittest.TestCase):
                     \n expected: {expected_positions[i]} \
                     \n but got:  {T.position}"
             )
-
+            # Test SU Orientations
             q = expected_orientations[i]
             q = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
             d = pyqt.Quaternion.absolute_distance(T.q, q)
@@ -357,8 +349,9 @@ class KinematicChainTest(unittest.TestCase):
                                 \n expected: {expected_orientations[i]} \
                                 \n but got:  {T.quaternion}")
 
+        # Reset current poses
         kinematic_chain.reset_poses()
-
+        # Current poses should be reset to origin poses
         np.testing.assert_array_equal(
             x=kinematic_chain.current_poses,
             y=np.zeros(7))
@@ -395,14 +388,16 @@ class KinematicChainTest(unittest.TestCase):
         ])
 
         for i in range(n_joint):
-            T = kinematic_chain.get_joint_TM(i, pose_type='eval')
             # First check if the DH Parameter Estimation is not correct
+            T = kinematic_chain.get_joint_TM(i, pose_type='eval')
+
+            # Test Joint Positions
             np.testing.assert_raises(
                 AssertionError,
                 np.testing.assert_array_almost_equal,
                 T.position,
                 expected_positions[i])
-
+            # Test Joint Orientations
             q = expected_orientations[i]
             q = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
             d = pyqt.Quaternion.absolute_distance(T.q, q)
@@ -411,7 +406,9 @@ class KinematicChainTest(unittest.TestCase):
             # Set Link DH Parameters
             kinematic_chain.set_linkdh(i, np.array(linkdh_dict[f'joint{i+1}']))
 
+            # Now DH Parameter Estimation should be correct
             T = kinematic_chain.get_joint_TM(i, pose_type='eval')
+            # Test Joint Positions
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
@@ -420,7 +417,7 @@ class KinematicChainTest(unittest.TestCase):
                     \n expected: {expected_positions[i]} \
                     \n but got:  {T.position}"
             )
-
+            # Test Joint Orientations
             q = expected_orientations[i]
             q = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
             d = pyqt.Quaternion.absolute_distance(T.q, q)
@@ -440,47 +437,86 @@ class KinematicChainTest(unittest.TestCase):
             bound_dict=bound_dict,
             linkdh_dict=linkdh_dict)
 
-        expected_positions = np.array([
-            [0.000, 0.000, 0.333],
-            [0.000, 0.000, 0.333],
-            [0.000, -0.000, 0.649],
-            [0.083, -0.000, 0.649],
-            [0.027, -0.000, 1.038],
-            [0.027, -0.000, 1.038],
-            [0.115, -0.000, 1.032]
-        ])
-
-        expected_orientations = np.array([
-            [0.000, 0.000, -0.000, 1.000],
-            [-0.707, 0.000, 0.000, 0.707],
-            [0.000, 0.000, -0.000, 1.000],
-            [0.707, 0.025, -0.025, 0.707],
-            [-0.000, 0.035, -0.000, 0.999],
-            [0.707, 0.025, -0.025, 0.707],
-            [0.999, -0.000, -0.035, 0.000]
-        ])
-
         for i in range(n_joint):
+            # First check if the DH Parameter Estimation is not correct
             T = kinematic_chain.get_su_TM(i, pose_type='eval')
             expected_position = su_pose[f'su{i+1}']['position']  # noqa: E999
             expected_orientation = su_pose[f'su{i+1}']['rotation']  # noqa: E999
 
-            # First check if the DH Parameter Estimation is not correct
+            # Test SU Positions
             np.testing.assert_raises(
                 AssertionError,
                 np.testing.assert_array_almost_equal,
                 T.position,
                 expected_position)
-
+            # Test SU Orientations
             q = expected_orientation
             q = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
             d = pyqt.Quaternion.absolute_distance(T.q, q)
             self.assertFalse(d < 0.01)
 
-            # Set Link DH Parameters
+            # Set SU DH Parameters
             kinematic_chain.set_sudh(i, np.array(sudh_dict[f'su{i+1}']))
 
-            T = kinematic_chain.get_joint_TM(i, pose_type='eval')
+            # Now DH Parameter Estimation should be correct
+            T = kinematic_chain.get_su_TM(i, pose_type='eval')
+            # Test SU Positions
+            np.testing.assert_array_almost_equal(
+                x=T.position,
+                y=expected_position,
+                decimal=2,
+                err_msg=f"Joint {i+1}: \
+                    \n expected: {expected_position} \
+                    \n but got:  {T.position}"
+            )
+            # Test SU Orientations
+            q = expected_orientation
+            q = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+            d = pyqt.Quaternion.absolute_distance(T.q, q)
+            self.assertTrue(d < 0.01,
+                            msg=f"Joint {i+1}: \
+                                \n expected: {expected_orientation} \
+                                \n but got:  {T.quaternion}")
+
+    def test_add_a_pose_at(self):
+        current_poses = np.array([1.5708, 0.0, 1.5708, -1.5708, 1.5689, 1.5707, 1.5708])
+
+        kinematic_chain = KinematicChain(
+            n_joint=n_joint,
+            su_joint_dict=su_joint_dict,
+            bound_dict=bound_dict,
+            linkdh_dict=linkdh_dict,
+            sudh_dict=sudh_dict)
+
+        expected_positions = np.array([
+            [-0.000, 0.050, 0.183],
+            [-0.060, 0.060, 0.333],
+            [-0.000, 0.050, 0.569],
+            [-0.083, 0.080, 0.709],
+            [-0.367, -0.000, 0.831],
+            [-0.417, 0.000, 0.701],
+            [-0.554, 0.000, 0.681],
+        ])
+
+        expected_orientations = np.array([
+            [-0.500, 0.500, 0.500, 0.500],
+            [-0.707, -0.000, 0.000, 0.707],
+            [-0.000, 0.707, 0.707, -0.000],
+            [-0.000, 0.000, 0.707, 0.707],
+            [0.001, 0.000, -0.707, 0.707],
+            [0.001, 0.707, 0.001, 0.707],
+            [0.707, 0.707, 0.000, -0.000],
+        ])
+
+        # set_poses should affect the current
+        # Joint TransformationMatrix
+        for i in range(n_joint):
+            # Add pose to each joint
+            kinematic_chain.add_a_pose_at(i, current_poses[i], pose_type='both')
+
+            # Get CURRENT SU Position
+            T = kinematic_chain.get_su_TM(i, pose_type='current')
+            # Test SU Positions
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_positions[i],
@@ -489,7 +525,7 @@ class KinematicChainTest(unittest.TestCase):
                     \n expected: {expected_positions[i]} \
                     \n but got:  {T.position}"
             )
-
+            # Test SU Orientations
             q = expected_orientations[i]
             q = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
             d = pyqt.Quaternion.absolute_distance(T.q, q)
@@ -498,6 +534,183 @@ class KinematicChainTest(unittest.TestCase):
                                 \n expected: {expected_orientations[i]} \
                                 \n but got:  {T.quaternion}")
 
+            # Get TEMP SU Position
+            T = kinematic_chain.get_su_TM(i, pose_type='temp')
+            # Test SU Positions
+            np.testing.assert_array_almost_equal(
+                x=T.position,
+                y=expected_positions[i],
+                decimal=2,
+                err_msg=f"Joint {i+1}: \
+                    \n expected: {expected_positions[i]} \
+                    \n but got:  {T.position}"
+            )
+            # Test SU Orientations
+            q = expected_orientations[i]
+            q = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+            d = pyqt.Quaternion.absolute_distance(T.q, q)
+            self.assertTrue(d < 0.01,
+                            msg=f"Joint {i+1}: \
+                                \n expected: {expected_orientations[i]} \
+                                \n but got:  {T.quaternion}")
+
+        # Reset current poses
+        kinematic_chain.reset_poses()
+        # Current poses should be reset to origin poses
+        np.testing.assert_array_equal(
+            x=kinematic_chain.current_poses,
+            y=np.zeros(7))
+
+    def test_add_a_pose_at_temp(self):
+        eval_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
+        current_poses = np.array([1.5708, 0.0, 1.5708, -1.5708, 1.5689, 1.5707, 1.5708])
+
+        kinematic_chain = KinematicChain(
+            n_joint=n_joint,
+            su_joint_dict=su_joint_dict,
+            bound_dict=bound_dict,
+            linkdh_dict=linkdh_dict,
+            sudh_dict=sudh_dict,
+            eval_poses=eval_poses)
+
+        expected_current_positions = np.array([
+            [-0.000, 0.050, 0.183],
+            [-0.060, 0.060, 0.333],
+            [-0.000, 0.050, 0.569],
+            [-0.083, 0.080, 0.709],
+            [-0.367, -0.000, 0.831],
+            [-0.417, 0.000, 0.701],
+            [-0.554, 0.000, 0.681],
+        ])
+
+        expected_current_orientations = np.array([
+            [-0.500, 0.500, 0.500, 0.500],
+            [-0.707, -0.000, 0.000, 0.707],
+            [-0.000, 0.707, 0.707, -0.000],
+            [-0.000, 0.000, 0.707, 0.707],
+            [0.001, 0.000, -0.707, 0.707],
+            [0.001, 0.707, 0.001, 0.707],
+            [0.707, 0.707, 0.000, -0.000],
+        ])
+
+        # set_poses should affect the current
+        # Joint TransformationMatrix
+        for i in range(n_joint):
+            # Add pose to each joint
+            kinematic_chain.add_a_pose_at(i, current_poses[i], pose_type='temp')
+
+            # Get TEMP SU Position
+            T = kinematic_chain.get_su_TM(i, pose_type='temp')
+            # Test SU Positions
+            np.testing.assert_array_almost_equal(
+                x=T.position,
+                y=expected_current_positions[i],
+                decimal=2,
+                err_msg=f"Joint {i+1}: \
+                    \n expected: {expected_current_positions[i]} \
+                    \n but got:  {T.position}"
+            )
+            # Test SU Orientations
+            q = expected_current_orientations[i]
+            q = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+            d = pyqt.Quaternion.absolute_distance(T.q, q)
+            self.assertTrue(d < 0.01,
+                            msg=f"Joint {i+1}: \
+                                \n expected: {expected_current_orientations[i]} \
+                                \n but got:  {T.quaternion}")
+
+            # Be aware that the temp poses are only updated
+            # and not current_poses
+            np.testing.assert_array_equal(
+                x=kinematic_chain.current_poses,
+                y=np.zeros(7))
+
+            # Get eval SU position
+            expected_eval_position = su_pose[f'su{i+1}']['position']  # noqa: E999
+            q = su_pose[f'su{i+1}']['rotation']  # noqa: E999
+            q = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+
+            # Get Eval SU Position
+            T = kinematic_chain.get_su_TM(i, pose_type='eval')
+            # Test SU Positions
+            np.testing.assert_array_almost_equal(
+                x=T.position,
+                y=expected_eval_position,
+                decimal=2,
+                err_msg=f"Joint {i+1}: \
+                    \n expected: {expected_eval_position} \
+                    \n but got:  {T.position}"
+            )
+
+            d = pyqt.Quaternion.absolute_distance(T.q, q)
+            # Test SU Orientations
+            self.assertTrue(d < 0.01,
+                            msg=f"Joint {i+1}: \
+                                \n expected: {q} \
+                                \n but got:  {T.quaternion}")
+
+
+        # Reset current poses
+        kinematic_chain.reset_poses()
+        # Current poses should be reset to origin poses
+        np.testing.assert_array_equal(
+            x=kinematic_chain.current_poses,
+            y=np.zeros(7))
+
+    def test_get_params_at(self):
+        eval_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
+
+        # Removed linkdh_dict
+        kinematic_chain = KinematicChain(
+            n_joint=n_joint,
+            su_joint_dict=su_joint_dict,
+            bound_dict=bound_dict,
+            eval_poses=eval_poses)
+
+        for i in range(n_joint):
+            # Set the DH parameters
+            params, bounds = kinematic_chain.get_params_at(i)
+            for parameter, bound in zip(params, bounds):
+                self.assertTrue(bound[0] <= parameter <= bound[1])
+
+    def test_set_params_at(self):
+        eval_poses = np.array([0, 0, 0, -0.0698, 0, 0, 0])
+
+        # Removed linkdh_dict
+        kinematic_chain = KinematicChain(
+            n_joint=n_joint,
+            su_joint_dict=su_joint_dict,
+            bound_dict=bound_dict,
+            eval_poses=eval_poses)
+
+        for i in range(n_joint):
+            # Get the correct DH parameters
+            params = linkdh_dict[f'joint{i+1}'] + sudh_dict[f'su{i+1}']
+            # Set the DH parameters
+            kinematic_chain.set_params_at(i, np.array(params))
+
+            expected_position = su_pose[f'su{i+1}']['position']  # noqa: E999
+            expected_orientation = su_pose[f'su{i+1}']['rotation']  # noqa: E999
+
+            # Now DH Parameter Estimation should be correct
+            T = kinematic_chain.get_su_TM(i, pose_type='eval')
+            # Test SU Positions
+            np.testing.assert_array_almost_equal(
+                x=T.position,
+                y=expected_position,
+                decimal=2,
+                err_msg=f"Joint {i+1}: \
+                    \n expected: {expected_position} \
+                    \n but got:  {T.position}"
+            )
+            # Test SU Orientations
+            q = expected_orientation
+            q = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+            d = pyqt.Quaternion.absolute_distance(T.q, q)
+            self.assertTrue(d < 0.01,
+                            msg=f"Joint {i+1}: \
+                                \n expected: {expected_orientation} \
+                                \n but got:  {T.quaternion}")
 
 if __name__ == '__main__':
     unittest.main()

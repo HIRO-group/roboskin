@@ -220,7 +220,7 @@ class KinematicChain():
             self.rs_Tt_dof = copy.deepcopy(self.rs_Tc_dof)
         elif pose_type == 'temp':
             # Override and update temporary poses
-            self.dof_Tt_dof[i_joint] = self.dof_Tc_dof[i_joint](theta=pose)
+            self.dof_Tt_dof[i_joint] = self.dof_Tt_dof[i_joint](theta=pose)
             self.rs_Tt_dof = self.__compute_chains_from_dof(i_joint, self.dof_Tt_dof, self.rs_Tt_dof)
         else:
             raise ValueError("Cannot add a pose other than to 'both' or 'temp'")
@@ -356,7 +356,7 @@ class KinematicChain():
 
         if self.linkdh_dict is None:
             # optimizing all dh parameters
-            params = np.r_[self.dof_T0_dof[i_joint].parameters,    # 4
+            params = np.r_[self.dof_T0_dof[i_joint].parameters, # 4
                            self.dof_T_vdof[i_su].parameters,    # 2
                            self.vdof_T_su[i_su].parameters]     # 4
             bounds = np.vstack((self.bound_dict['link'],
@@ -365,7 +365,7 @@ class KinematicChain():
             assert bounds.shape == (10, 2)
         else:
             # optimizing just su dh params.
-            params = np.r_[self.dof_T_vdof[i_su].parameters,     # 2
+            params = np.r_[self.dof_T_vdof[i_su].parameters,    # 2
                            self.vdof_T_su[i_su].parameters]     # 4
             bounds = self.bound_dict['su']
             assert params.size == 6
