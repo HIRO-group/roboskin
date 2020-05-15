@@ -356,9 +356,9 @@ class KinematicChain():
 
         if self.linkdh_dict is None:
             # optimizing all dh parameters
-            params = np.r_[self.dof_T0_dof[i_joint].parameters, # 4
-                           self.dof_T_vdof[i_su].parameters,    # 2
-                           self.vdof_T_su[i_su].parameters]     # 4
+            params = np.r_[self.dof_T0_dof[i_joint].parameters,     # 4
+                           self.dof_T_vdof[i_su].parameters,        # 2
+                           self.vdof_T_su[i_su].parameters]         # 4
             bounds = np.vstack((self.bound_dict['link'],
                                 self.bound_dict['su']))
             assert params.size == 10
