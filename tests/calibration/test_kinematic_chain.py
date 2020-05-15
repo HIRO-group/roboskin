@@ -649,7 +649,6 @@ class KinematicChainTest(unittest.TestCase):
                                 \n expected: {q} \
                                 \n but got:  {T.quaternion}")
 
-
         # Reset current poses
         kinematic_chain.reset_poses()
         # Current poses should be reset to origin poses
@@ -711,6 +710,7 @@ class KinematicChainTest(unittest.TestCase):
                             msg=f"Joint {i+1}: \
                                 \n expected: {expected_orientation} \
                                 \n but got:  {T.quaternion}")
+
 
 if __name__ == '__main__':
     unittest.main()
