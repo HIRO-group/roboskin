@@ -3,55 +3,31 @@ import nlopt
 
 # import robotic_skin
 import robotic_skin.const as C
-from robotic_skin.calibration.parameter_manager import get_IMU_pose
-from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
 from robotic_skin.calibration.stop_conditions import PassThroughStopCondition
-
-
-def convert_dhparams_to_Tdof2su(params):
-    """
-    For the 1st IMU, we do not need to think of DoF-to-DoF transformation.
-    Thus, 6 Params (2+4 for each IMU).
-    Otherwise 10 = 4 (DoF to DoF) + 6 (IMU)
-    This condition also checks whether DH params are passed or not
-    If given, only the parameters for IMU should be estimated.
-    """
-    if params.shape[0] == 6:
-        #     (2)     (4)
-        # dof -> vdof -> su
-        Tdof2vdof = TM.from_numpy(params[:2], keys=['theta', 'd'])
-        Tvdof2su = TM.from_numpy(params[2:])
-    else:
-        #     (4)    (2)     (4)
-        # dof -> dof -> vdof -> su
-        Tdof2vdof = TM.from_numpy(params[4:6], keys=['theta', 'd'])
-        Tvdof2su = TM.from_numpy(params[6:])
-
-    return Tdof2vdof * Tvdof2su
 
 
 class Optimizer():
     """
     Optimizer class to evaluate the data.
     """
-    def __init__(self, error_functions, stop_conditions=None, su_dhparams=None,
-                 optimize_all=False):
+    def __init__(self, kinematic_chain, error_functions,
+                 stop_conditions=None, optimize_all=False):
         """
         Initializes the optimize with the following arguments:
 
         Arguments
         ---------
-        `error_functions`:
+        error_functions:
             List of error functions to use during runtime
 
-        `stop_condition`:
+        stop_condition:
             When to stop optimizing the model
 
-        `su_dhparams`:
+        su_dhparams:
             The DH parameters of the skin units on the robotic arm
         """
+        self.kinematic_chain = kinematic_chain
         self.error_functions = error_functions
-        self.su_dhparams = su_dhparams
         self.optimize_all = optimize_all
         self.error_types = list(error_functions.keys())
         self.stop_conditions = stop_conditions
@@ -60,30 +36,24 @@ class Optimizer():
         if stop_conditions is None:
             self.stop_conditions = {'both': PassThroughStopCondition()}
 
-    def optimize(self, i_imu, Tdofs, params, bounds):
+    def optimize(self, i_su):
         """
         Sets up the optimizer and runs the model.
 
         Arguments
         ---------
-        `i_imu`
-            Imu `i`
-
-        `Tdofs`
-            Transformation matrices from dof to dof
-
-        `params`
-            DH Parameters
+        i_su: int
+            i_su th Su
 
         Returns
         -------
-        `params`
+        params
             Predicted parameters from the model.
         """
-        self.all_poses = []
+        params, bounds = self.kinematic_chain.get_params_at(i_su=i_su)
 
-        self.i_imu = i_imu
-        self.Tdofs = Tdofs
+        self.all_poses = []
+        self.i_su = i_su
 
         self.n_param = params.shape[0]
         # Construct an global optimizer
@@ -120,45 +90,27 @@ class Optimizer():
         `grad`
             Gradient
         """
-        Tdof2su = self.choose_true_or_estimated_Tdof2su(params)
-        # self.Tdofs needs to be changed if we are optimizing all params.
-        if self.optimize_all:
-            self.Tdofs[-1] = TM.from_numpy(params[:4])
+        self.kinematic_chain.reset_poses()
+        self.kinematic_chain.set_params_at(self.i_su, params)
+        T = self.kinematic_chain.get_su_TM(self.i_su, pose_type='eval')
 
-        pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
-        full_pose = np.r_[pos, quat]
-        self.all_poses.append(full_pose)
+        self.all_poses.append(np.r_[T.position, T.quaternion])
         e = 0.0
 
-        for error_type, error_function in self.error_functions.items():
-            e += error_function(self.i_imu, self.Tdofs, Tdof2su)
+        for _, error_function in self.error_functions.items():
+            e += error_function(self.kinematic_chain, self.i_su)
         res = self.stop_conditions[self.target].update(params, None, e)
         return res
-
-    def choose_true_or_estimated_Tdof2su(self, params):
-        """
-        Based on `self.dhparams`, determines
-        if we want to use `convert_dhparams_to_Tdof2su`
-        on `self.su_dhparams` or `params`.
-
-        Arguments
-        ---------
-        `params`
-            Currently estimated dh parameters.
-        """
-        if self.su_dhparams is not None:
-            params = self.su_dhparams['su%i' % (self.i_imu+1)]
-
-        return convert_dhparams_to_Tdof2su(params)
 
 
 class SeparateOptimizer(Optimizer):
     """
     Separate Optimizer class
     """
-    def __init__(self, error_functions, stop_conditions, su_dhparams=None,
-                 optimize_all=False):
-        super().__init__(error_functions, su_dhparams=su_dhparams, optimize_all=optimize_all)
+    def __init__(self, kinematic_chain, error_functions,
+                 stop_conditions=None, optimize_all=False):
+        super().__init__(kinematic_chain, error_functions,
+                         optimize_all=optimize_all)
         """
         Initializes optimizer with selected error functions,
         certain stop conditions, and skin unit dh parameters.
@@ -167,7 +119,6 @@ class SeparateOptimizer(Optimizer):
         if self.optimize_all:
             self.rotation_index = [0, 3, 4, 6, 9]
             self.position_index = [1, 2, 5, 7, 8]
-
         else:
             self.rotation_index = [0, 2, 5]
             self.position_index = [1, 3, 4]
@@ -175,42 +126,28 @@ class SeparateOptimizer(Optimizer):
         self.error_functions = error_functions
         self.stop_conditions = stop_conditions
 
-    def optimize(self, i_imu, Tdofs, params, bounds):
+    def optimize(self, i_su):
         """
         This function will optimize the given parameters in two steps.
         First it optimizes for rotational parameters and then
         optimizes for translational parameters. Hence, the name
         "Separate"Optimizer.
 
-        i_imu: int
+        Arguments
+        ---------
+        i_su: int
             ith IMU to be optimized
-
-        Tdofs: list of TransformationMatrix
-            List of Transformation Matrices from 0th to ith Joint (Not to SU)
-
-        params: list of float
-            DH parameters to be optimized.
-            This will be converted to Tdof2su which is a transformation
-            matrix from ith Joint to ith SU (6 parameters)
-            If the number of parameters were 10, it also includes
-            4 DH parameter for i-1th to the ith Joint.
-
-        bounds: np.ndarray
-            Boundaries (Min and Max) for each parameter
         """
-        self.i_imu = i_imu
-        self.all_poses = []
+        params, bounds = self.kinematic_chain.get_params_at(i_su=i_su)
 
-        self.Tdofs = Tdofs
-        self.params = params
-        # Tdofs = self.param_manager.get_tmat_until(i_imu)
+        self.i_su = i_su
+        self.all_poses = []
 
         n_param = params.shape[0]
         # optimizing half of them at each time
         self.n_param = int(n_param/2)
 
         # ################### First Optimize Rotations ####################
-        # this takes care of 3 or 5 parameters at a time
         self.target = 'Rotation'
         self.stop_conditions['Rotation'].initialize()
         self.constant_params = params[self.position_index]
@@ -250,44 +187,30 @@ class SeparateOptimizer(Optimizer):
         ----------
         target_params: list of floats
             Target parameters to be estimated
-
-        constant_params: list of floats
-            Parameters that are not to be optimized but used
-
-        i: int
-            ith sensor
-        Tdofs: list of TransformationMatrix
-            Transformation Matrices between Dofs
-
         grad: np.ndarray
             Gradient, but we do not use any gradient information
             (We could in the future)
+
         Returns
         ----------
         error: float
             Error between measured values and estimated model outputs
         """
         # update self.Tdofs
-        Tdof2su = self.choose_true_or_estimated_Tdof2su(
-            np.r_[target_params, self.constant_params])
+        params = self.__merge_params(target_params, self.constant_params)
 
-        # tdof is based on
-        if self.optimize_all:
-            self.Tdofs[-1] = TM.from_numpy(self.current_params[:4])
-
-        # target params from optimization thus far:
-        # doesn't yet account for robot position, needed for later in 0's pose.
-        pos, quat = get_IMU_pose(self.Tdofs, Tdof2su)
-        full_pose = np.r_[pos, quat]
-        self.all_poses.append(full_pose)
+        self.kinematic_chain.reset_poses()
+        self.kinematic_chain.set_params_at(self.i_su, params)
+        T = self.kinematic_chain.get_su_TM(self.i_su, pose_type='eval')
 
         # append pose
-        e = self.error_functions[self.target](self.i_imu, self.Tdofs, Tdof2su)
+        self.all_poses.append(np.r_[T.position, T.quaternion])
 
+        e = self.error_functions[self.target](self.kinematic_chain, self.i_su)
         res = self.stop_conditions[self.target].update(target_params, None, e)
         return res
 
-    def convert_dhparams_to_Tdof2su(self, merged_params):
+    def __merge_params(self, target_params, constant_params):
         """
         converts current dh parameters to a
         transformation matrix from dof to skin unit.
@@ -295,10 +218,10 @@ class SeparateOptimizer(Optimizer):
         # size depends on what we're optimizing.
         params = np.zeros(self.n_param * 2)
         if self.target == 'Rotation':
-            params[self.rotation_index] = merged_params[:self.n_param]
-            params[self.position_index] = merged_params[self.n_param:]
+            params[self.rotation_index] = target_params
+            params[self.position_index] = constant_params
         elif self.target == 'Translation':
-            params[self.rotation_index] = merged_params[self.n_param:]
-            params[self.position_index] = merged_params[:self.n_param]
-        self.current_params = params
-        return convert_dhparams_to_Tdof2su(params)
+            params[self.rotation_index] = constant_params
+            params[self.position_index] = target_params
+
+        return params

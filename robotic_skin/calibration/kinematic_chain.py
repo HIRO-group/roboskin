@@ -173,16 +173,20 @@ class KinematicChain():
         assert len(Ts) == poses.size
         return [T(pose) for T, pose in zip(Ts, poses)]
 
-    def reset_poses(self):
+    def reset_poses(self, to='origin'):
         """
         Resets current and temporary poses to 0s.
         Origin and Evaluation Poses will never be changed.
         """
-        self.current_poses = np.zeros(self.n_joint)
-        self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
-        self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
-        self.dof_Tt_dof = copy.deepcopy(self.dof_T0_dof)
-        self.rs_Tt_dof = copy.deepcopy(self.rs_T0_dof)
+        if to == 'origin':
+            self.current_poses = np.zeros(self.n_joint)
+            self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
+            self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
+            self.dof_Tt_dof = copy.deepcopy(self.dof_T0_dof)
+            self.rs_Tt_dof = copy.deepcopy(self.rs_T0_dof)
+        if to == 'current':
+            self.dof_Tt_dof = copy.deepcopy(self.dof_Tc_dof)
+            self.rs_Tt_dof = copy.deepcopy(self.rs_Tc_dof)
 
     def set_poses(self, poses: np.ndarray) -> None:
         assert isinstance(poses, np.ndarray)
