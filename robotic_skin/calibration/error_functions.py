@@ -247,31 +247,25 @@ class ConstantRotationErrorFunction(ErrorFunction):
                 joints = data[:, 7:14]
                 angular_velocities = data[:, 14]
 
-                n_eval = 5
+                # for meas_accel, poses, curr_w in zip(meas_accels, joints, angular_velocities):
+                n_eval = 10
                 for i in range(n_eval):
                     n_data = meas_accels.shape[0]
                     if n_data <= i:
                         break
 
-                    idx = np.floor(i*n_data/n_eval)
+                    idx = i*int(n_data/n_eval)
                     meas_accel = meas_accels[idx, :]
-                    joint = joints[idx, :]
+                    poses = joints[idx, :]
                     curr_w = angular_velocities[idx]
 
-                    kinematic_chain.set_poses(joint)
+                    end_joint = kinematic_chain.su_joint_dict[i_su]
+                    kinematic_chain.set_poses(poses, start_joint=d, end_joint=end_joint)
                     model_accel = estimate_acceleration_analytically(kinematic_chain, d, i_su, curr_w)
                     error2 = self.loss_func(model_accel, meas_accel)
 
                     errors += error2
                     n_data += 1
-
-                # for meas_accel, joint, curr_w in zip(meas_accels, joints, angular_velocities):
-                #     kinematic_chain.set_poses(joint)
-                #     model_accel = estimate_acceleration_analytically(kinematic_chain, d, i_su, curr_w)
-                #     error2 = self.loss_func(model_accel, meas_accel)
-
-                #     errors += error2
-                #     n_data += 1
 
         return errors/n_data
 

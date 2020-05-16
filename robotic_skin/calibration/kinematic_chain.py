@@ -84,7 +84,10 @@ class KinematicChain():
 
         # At Original Poses (joints == 0 rad)
         self.dof_T0_dof = self.__predefined_or_rand_dofs(linkdh_dict, bound_dict)
-        self.rs_T0_dof = self.__compute_chains_from_rs(self.dof_T0_dof)
+        self.rs_T0_dof = self.__initialize_chains(self.dof_T0_dof)
+
+        self.rs_Te_dof = copy.deepcopy(self.rs_T0_dof)
+        self.dof_Te_dof = self.__apply_poses(self.eval_poses, self.dof_T0_dof, self.rs_Te_dof)
 
         # At CURRENT pose (joints == current_poses)
         self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
@@ -120,17 +123,14 @@ class KinematicChain():
             dof_T_su.append(_dof_T_vdof * _vdof_T_su)
         return dof_T_vdof, vdof_T_su, dof_T_su
 
-    def __compute_chains_from_rs(self, dof_T_dof: List[TM]) -> List[TM]:
-        assert isinstance(dof_T_dof, list)
-
-        rs_T_dof = []
-        T = TM.from_numpy(np.zeros(4))
-        for t in dof_T_dof:
-            T = T * t
-            rs_T_dof.append(copy.deepcopy(T))
+    def __initialize_chains(self, dof_T_dof: List[TM]) -> List[TM]:
+        start_joint = 0
+        rs_T_dof = [None]*self.n_joint
+        self.__update_chains(dof_T_dof, rs_T_dof, start_joint)
         return rs_T_dof
 
-    def __compute_chains_from_dof(self, i_joint: int, dof_T_dof: List[TM], rs_T_dof: List[TM]) -> List[TM]:
+    def __update_chains(self, dof_T_dof: List[TM], rs_T_dof: List[TM],
+                        start_joint: int = 0, end_joint: int = None):
         """
         Unlike other functions, since this is a private function ,
         i_joint should start from 0 to n-1
@@ -138,20 +138,32 @@ class KinematicChain():
         assert isinstance(dof_T_dof, list)
         assert isinstance(rs_T_dof, list)
         assert len(dof_T_dof) == len(rs_T_dof)
-        assert i_joint < self.n_joint
+        if end_joint is None:
+            end_joint = self.n_joint - 1
 
-        # Start from the previous dof (or base if i_joint==0)
-        T = TM.from_numpy(np.zeros(4)) if i_joint == 0 else rs_T_dof[i_joint-1]
+        # Start from the previous DoF (or base if i_joint==0)
+        T = TM.from_numpy(np.zeros(4)) if start_joint == 0 else rs_T_dof[start_joint-1]
 
-        for i in range(i_joint, self.n_joint):
+        for i in range(start_joint, end_joint+1):
             T = T * dof_T_dof[i]
-            rs_T_dof[i] = copy.deepcopy(T)
-        return rs_T_dof
+            rs_T_dof[i] = T
 
-    def __apply_poses(self, Ts: List[TM], poses: np.ndarray) -> List[TM]:
+    def __apply_poses(self, poses: np.ndarray, dof_T_dof: List[TM], rs_T_dof: List[TM],
+                      start_joint: int = 0, end_joint: int = None) -> List[TM]:
         assert isinstance(poses, np.ndarray)
-        assert len(Ts) == poses.size
-        return [T(pose) for T, pose in zip(Ts, poses)]
+        assert len(dof_T_dof) == poses.size
+        if end_joint is None:
+            end_joint = self.n_joint - 1
+
+        # Start from the previous DoF (or base if i_joint==0)
+        T = TM.from_numpy(np.zeros(4)) if start_joint == 0 else rs_T_dof[start_joint-1]
+
+        dof_Tc_dof = copy.deepcopy(dof_T_dof)
+        for i in range(start_joint, end_joint+1):
+            dof_Tc_dof[i] = dof_T_dof[i](poses[i])
+            T = T * dof_Tc_dof[i]
+            rs_T_dof[i] = T
+        return dof_Tc_dof
 
     def reset_poses(self):
         """
@@ -162,12 +174,17 @@ class KinematicChain():
         self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
         self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
 
-    def set_poses(self, poses: np.ndarray) -> None:
+    def set_poses(self, poses: np.ndarray,
+                  start_joint: int = 0, end_joint: int = None) -> None:
         assert isinstance(poses, np.ndarray)
         assert poses.size == self.n_joint
-        self.current_poses = poses
-        self.dof_Tc_dof = self.__apply_poses(self.dof_T0_dof, self.current_poses)
-        self.rs_Tc_dof = self.__compute_chains_from_rs(self.dof_Tc_dof)
+        if end_joint is None:
+            end_joint = self.n_joint - 1
+        # Set current pose
+        self.current_poses[start_joint:end_joint+1] = poses[start_joint:end_joint+1]
+        # Compute dof_Tc_dof and update rs_Tc_dof
+        self.dof_Tc_dof = self.__apply_poses(
+            self.current_poses, self.dof_T0_dof, self.rs_Tc_dof, start_joint, end_joint)
 
     def add_a_pose(self, i_joint: int, pose: float,
                    dof_T_dof: List[TM], rs_T_dof: List[TM]) -> None:
@@ -189,7 +206,7 @@ class KinematicChain():
 
         # Update current poses and copy them to temporary poses
         dof_T_dof[i_joint] = dof_T_dof[i_joint](theta=pose)
-        rs_T_dof = self.__compute_chains_from_dof(i_joint, dof_T_dof, rs_T_dof)
+        self.__update_chains(dof_T_dof, rs_T_dof, start_joint=i_joint)
 
     def get_current_TMs(self):
         return copy.deepcopy(self.dof_Tc_dof), copy.deepcopy(self.rs_Tc_dof)
@@ -219,9 +236,7 @@ class KinematicChain():
         if pose_type == 'orgin':
             return self._compute_joint_TM(i_joint, self.dof_T0_dof, self.rs_T0_dof, start_joint)
         if pose_type == 'eval':
-            dof_Te_dof = self.__apply_poses(self.dof_T0_dof, self.eval_poses)
-            rs_Te_dof = self.__compute_chains_from_rs(dof_Te_dof)
-            return self._compute_joint_TM(i_joint, dof_Te_dof, rs_Te_dof, start_joint)
+            return self._compute_joint_TM(i_joint, self.dof_Te_dof, self.rs_Te_dof, start_joint)
         if pose_type == 'current':
             return self._compute_joint_TM(i_joint, self.dof_Tc_dof, self.rs_Tc_dof, start_joint)
         else:
@@ -257,9 +272,7 @@ class KinematicChain():
         if pose_type == 'origin':
             return self._compute_su_TM(i_su, self.dof_T0_dof, self.rs_T0_dof, start_joint)
         if pose_type == 'eval':
-            dof_Te_dof = self.__apply_poses(self.dof_T0_dof, self.eval_poses)
-            rs_Te_dof = self.__compute_chains_from_rs(dof_Te_dof)
-            return self._compute_su_TM(i_su, dof_Te_dof, rs_Te_dof, start_joint)
+            return self._compute_su_TM(i_su, self.dof_Te_dof, self.rs_Te_dof, start_joint)
         if pose_type == 'current':
             return self._compute_su_TM(i_su, self.dof_Tc_dof, self.rs_Tc_dof, start_joint)
         else:
@@ -298,11 +311,11 @@ class KinematicChain():
         assert params.size == 4
 
         self.dof_T0_dof[i_joint] = TM.from_numpy(params)
-        self.rs_T0_dof = self.__compute_chains_from_dof(i_joint, self.dof_T0_dof, self.rs_T0_dof)
-        # self.dof_Tc_dof[i_joint] = TM.from_numpy(params)(self.current_poses[i_joint])
-        # self.rs_Tc_dof = self.__compute_chains_from_dof(i_joint, self.dof_Tc_dof, self.rs_Tc_dof)
+        self.__update_chains(self.dof_T0_dof, self.rs_T0_dof, start_joint=i_joint)
         self.dof_Tc_dof[i_joint] = TM.from_numpy(params)
         self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
+        self.rs_Te_dof = copy.deepcopy(self.rs_T0_dof)
+        self.dof_Te_dof = self.__apply_poses(self.eval_poses, self.dof_T0_dof, self.rs_Te_dof)
 
     def get_params_at(self, i_su: int):
         """
