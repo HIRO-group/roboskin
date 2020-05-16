@@ -207,10 +207,11 @@ class SeparateOptimizer(Optimizer):
         # append pose
         self.all_poses.append(np.r_[T.position, T.quaternion])
 
+        params, _ = self.kinematic_chain.get_params_at(self.i_su)
         e = self.error_functions[self.target](self.kinematic_chain, self.i_su)
-        res = self.stop_conditions[self.target].update(target_params, None, e)
+        res = self.stop_conditions[self.target].update(params, None, e)
 
-        logging.info(f'e={res}, P:{T.position}, Q:{T.quaternion}')
+        logging.info(f'e={res}, {target_params}, P:{T.position}, Q:{T.quaternion}')
         return res
 
     def __merge_params(self, target_params, constant_params):
