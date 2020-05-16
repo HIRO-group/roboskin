@@ -4,6 +4,7 @@ Module for Kinematics Estimation.
 """
 import os
 import sys
+import logging
 import argparse
 from collections import namedtuple
 import pickle
@@ -117,7 +118,6 @@ class KinematicEstimator():
             print("Optimizing %ith SU ..." % (i_su))
 
             # optimize parameters wrt data
-            self.kinematic_chain.reset_poses()
             params = self.optimizer.optimize(i_su)
 
             # Compute necessary data
@@ -219,6 +219,8 @@ def parse_arguments():
                         help="Please provide an optimizer function for each key provided")
     parser.add_argument('-oa', '--optimizeall', action='store_true',
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
+    parser.add_argument('--log', type=str, default='WARNING',
+                        help="Please provide a log level")
     return parser.parse_args()
 
 
@@ -245,6 +247,12 @@ if __name__ == '__main__':
         gen_error_functions_dict[key] = error_function(measured_data, loss_function())
         gen_stop_conditions_dict[key] = stop_function()
     optimizer = getattr(optimizer, args.optimizer)
+
+    # log
+    numeric_level = getattr(logging, args.log.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % args.log)
+    logging.basicConfig(level=numeric_level)
 
     # Initialize a Kinematic Estimator
     estimator = KinematicEstimator(measured_data, robot_configs, optimizer,

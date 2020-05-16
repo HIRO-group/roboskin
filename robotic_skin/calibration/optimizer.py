@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import nlopt
 
@@ -100,7 +101,7 @@ class Optimizer():
             e += error_function(self.kinematic_chain, self.i_su)
         res = self.stop_conditions[self.target].update(params, None, e)
 
-        print(f'e={res}, P:{T.position}, Q:{T.quaternion}')  # noqa: E999
+        logging.info(f'e={res}, P:{T.position}, Q:{T.quaternion}')  # noqa: E999
         return res
 
 
@@ -209,7 +210,7 @@ class SeparateOptimizer(Optimizer):
         e = self.error_functions[self.target](self.kinematic_chain, self.i_su)
         res = self.stop_conditions[self.target].update(target_params, None, e)
 
-        # print(f'e={res}, P:{T.position}, Q:{T.quaternion}')
+        logging.info(f'e={res}, P:{T.position}, Q:{T.quaternion}')
         return res
 
     def __merge_params(self, target_params, constant_params):
