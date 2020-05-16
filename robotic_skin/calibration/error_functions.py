@@ -17,10 +17,10 @@ def estimate_acceleration_analytically(kinemaic_chain, d_joint, i_su, curr_w):
     `curr_w`: `int`
         Angular velocity
     """
-    rs_T_su = kinemaic_chain.get_su_TM(
+    rs_T_su = kinemaic_chain.compute_su_TM(
         i_su=i_su, pose_type='current')
 
-    dof_T_su = kinemaic_chain.get_su_TM(
+    dof_T_su = kinemaic_chain.compute_su_TM(
         start_joint=d_joint,
         i_su=i_su,
         pose_type='current')
@@ -36,7 +36,7 @@ def estimate_acceleration_analytically(kinemaic_chain, d_joint, i_su, curr_w):
     return a_su
 
 
-def estimate_acceleration_numerically(kinemaic_chain, d_joint, i_su, curr_w, max_w, joint_angle_func,
+def estimate_acceleration_numerically(kinematic_chain, d_joint, i_su, curr_w, max_w, joint_angle_func,
                                       apply_normal_mittendorder=False):
     """
     Compute an acceleration value from positions.
@@ -67,10 +67,10 @@ def estimate_acceleration_numerically(kinemaic_chain, d_joint, i_su, curr_w, max
     acceleration: np.array
         Acceleration computed from positions
     """  # noqa: W605
-    rs_T_su = kinemaic_chain.get_su_TM(
+    rs_T_su = kinematic_chain.compute_su_TM(
         i_su=i_su, pose_type='current')
 
-    dof_T_su = kinemaic_chain.get_su_TM(
+    dof_T_su = kinematic_chain.compute_su_TM(
         start_joint=d_joint,
         i_su=i_su,
         pose_type='current')
@@ -85,9 +85,13 @@ def estimate_acceleration_numerically(kinemaic_chain, d_joint, i_su, curr_w, max
     positions = []
     for t in [dt, -dt, 0]:
         angle = joint_angle_func(curr_w, max_w, t)
-        kinemaic_chain.reset_poses(to='current')
-        kinemaic_chain.add_a_pose_at(d_joint, angle, pose_type='temp')
-        T = kinemaic_chain.get_su_TM(i_su, pose_type='temp')
+        dof_T_dof, rs_T_dof = kinematic_chain.get_current_TMs()
+        kinematic_chain.add_a_pose(
+            i_joint=d_joint,
+            pose=angle,
+            dof_T_dof=dof_T_dof,
+            rs_T_dof=rs_T_dof)
+        T = kinematic_chain._compute_su_TM(i_su, dof_T_dof, rs_T_dof)
         positions.append(T.position)
 
     # get acceleration and include gravity
@@ -142,7 +146,6 @@ class ErrorFunction():
         self.loss_func = loss_func
 
         self.pose_names = list(data.constant.keys())
-        print(self.pose_names)
         self.joint_names = list(data.constant[self.pose_names[0]].keys())
         self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
         self.n_dynamic_pose = len(list(data.dynamic.keys()))
@@ -195,9 +198,9 @@ class StaticErrorFunction(ErrorFunction):
         gravity = np.array([[0, 0, 9.8], ] * self.n_static_pose, dtype=float)
 
         for p in range(self.n_static_pose):
-            joints = self.data.static[self.pose_names[p]][self.imu_names[i_su]][3:3+i_su+1]
+            joints = self.data.static[self.pose_names[p]][self.imu_names[i_su]][3:10]
             kinematic_chain.set_poses(joints)
-            T = kinematic_chain.get_su_TM(i_su, pose_type='current')
+            T = kinematic_chain.compute_su_TM(i_su, pose_type='current')
 
             rs_R_su = T.R
 
@@ -244,13 +247,31 @@ class ConstantRotationErrorFunction(ErrorFunction):
                 joints = data[:, 7:14]
                 angular_velocities = data[:, 14]
 
-                for meas_accel, joint, curr_w in zip(meas_accels, joints, angular_velocities):
+                n_eval = 5
+                for i in range(n_eval):
+                    n_data = meas_accels.shape[0]
+                    if n_data <= i:
+                        break
+
+                    idx = np.floor(i*n_data/n_eval)
+                    meas_accel = meas_accels[idx, :]
+                    joint = joints[idx, :]
+                    curr_w = angular_velocities[idx]
+
                     kinematic_chain.set_poses(joint)
                     model_accel = estimate_acceleration_analytically(kinematic_chain, d, i_su, curr_w)
                     error2 = self.loss_func(model_accel, meas_accel)
 
                     errors += error2
                     n_data += 1
+
+                # for meas_accel, joint, curr_w in zip(meas_accels, joints, angular_velocities):
+                #     kinematic_chain.set_poses(joint)
+                #     model_accel = estimate_acceleration_analytically(kinematic_chain, d, i_su, curr_w)
+                #     error2 = self.loss_func(model_accel, meas_accel)
+
+                #     errors += error2
+                #     n_data += 1
 
         return errors/n_data
 

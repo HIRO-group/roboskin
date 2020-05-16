@@ -90,9 +90,8 @@ class Optimizer():
         `grad`
             Gradient
         """
-        self.kinematic_chain.reset_poses()
         self.kinematic_chain.set_params_at(self.i_su, params)
-        T = self.kinematic_chain.get_su_TM(self.i_su, pose_type='eval')
+        T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
 
         self.all_poses.append(np.r_[T.position, T.quaternion])
         e = 0.0
@@ -100,6 +99,8 @@ class Optimizer():
         for _, error_function in self.error_functions.items():
             e += error_function(self.kinematic_chain, self.i_su)
         res = self.stop_conditions[self.target].update(params, None, e)
+
+        print(f'e={res}, P:{T.position}, Q:{T.quaternion}')  # noqa: E999
         return res
 
 
@@ -199,15 +200,16 @@ class SeparateOptimizer(Optimizer):
         # update self.Tdofs
         params = self.__merge_params(target_params, self.constant_params)
 
-        self.kinematic_chain.reset_poses()
         self.kinematic_chain.set_params_at(self.i_su, params)
-        T = self.kinematic_chain.get_su_TM(self.i_su, pose_type='eval')
+        T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
 
         # append pose
         self.all_poses.append(np.r_[T.position, T.quaternion])
 
         e = self.error_functions[self.target](self.kinematic_chain, self.i_su)
         res = self.stop_conditions[self.target].update(target_params, None, e)
+
+        # print(f'e={res}, P:{T.position}, Q:{T.quaternion}')
         return res
 
     def __merge_params(self, target_params, constant_params):

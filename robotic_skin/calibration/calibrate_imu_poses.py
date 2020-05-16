@@ -12,11 +12,12 @@ import rospkg
 
 from robotic_skin.calibration.utils import load_robot_configs
 from robotic_skin.calibration.kinematic_chain import KinematicChain
-from robotic_skin.calibration.parameter_manager import ParameterManager, get_IMU_pose
-from robotic_skin.calibration import optimizer
-from robotic_skin.calibration import error_functions
-from robotic_skin.calibration import stop_conditions
-from robotic_skin.calibration import loss
+from robotic_skin.calibration import (
+    optimizer,
+    error_functions,
+    stop_conditions,
+    loss
+)
 
 
 class KinematicEstimator():
@@ -71,7 +72,7 @@ class KinematicEstimator():
 
         linkdh_dict = robot_configs['dh_parameter'] if not optimize_all else None
         sudh_dict = None
-        eval_poses = robot_configs['eval_poses']
+        eval_poses = np.array(robot_configs['eval_poses'])
 
         self.kinematic_chain = KinematicChain(
             n_joint=self.n_joint,
@@ -112,7 +113,7 @@ class KinematicEstimator():
         # Optimize each joint (& sensor) at a time from the root
         # currently starting from 6th skin unit
         print('Skipping 0th IMU')
-        for i_su in range(self.n_sensor):
+        for i_su in range(1, self.n_sensor):
             print("Optimizing %ith SU ..." % (i_su))
 
             # optimize parameters wrt data
@@ -120,9 +121,8 @@ class KinematicEstimator():
             params = self.optimizer.optimize(i_su)
 
             # Compute necessary data
-            self.kinematic_chain.reset_poses()
             self.kinematic_chain.set_params_at(i_su, params)
-            T = self.kinematic_chain.get_su_TM(i_su, pose_type='eval')
+            T = self.kinematic_chain.compute_su_TM(i_su, pose_type='eval')
 
             euclidean_distance = np.linalg.norm(
                 T.position - self.robot_configs['su_pose'][f'su{i_su+1}']['position'])  # noqa: E999
@@ -148,6 +148,14 @@ class KinematicEstimator():
         pickle.dump(self.cumulative_data, open(save_path, "wb"), protocol=2)
 
         print("Average Euclidean distance = ", np.mean(self.all_euclidean_distances))
+
+    def get_all_accelerometer_positions(self):
+        positions = []
+        for i_su in range(self.n_sensor):
+            T = self.kinematic_chain.compute_su_TM(i_su, pose_type='eval')
+            positions.append(T.position)
+
+        return positions
 
 
 def load_data(robot):
