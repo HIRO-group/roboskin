@@ -72,7 +72,7 @@ class KinematicEstimator():
             optimize_all = False
 
         linkdh_dict = robot_configs['dh_parameter'] if not optimize_all else None
-        sudh_dict = None
+        sudh_dict = robot_configs['su_dh_parameter']
         eval_poses = np.array(robot_configs['eval_poses'])
 
         self.kinematic_chain = KinematicChain(

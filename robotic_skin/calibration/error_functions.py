@@ -1,5 +1,7 @@
+import logging
 import numpy as np
 import robotic_skin.const as C
+from robotic_skin.calibration.utils.io import n2s
 
 
 def estimate_acceleration_analytically(kinemaic_chain, d_joint, i_su, curr_w):
@@ -198,8 +200,8 @@ class StaticErrorFunction(ErrorFunction):
         gravity = np.array([[0, 0, 9.8], ] * self.n_static_pose, dtype=float)
 
         for p in range(self.n_static_pose):
-            joints = self.data.static[self.pose_names[p]][self.imu_names[i_su]][3:10]
-            kinematic_chain.set_poses(joints)
+            poses = self.data.static[self.pose_names[p]][self.imu_names[i_su]][3:10]
+            kinematic_chain.set_poses(poses)
             T = kinematic_chain.compute_su_TM(i_su, pose_type='current')
 
             rs_R_su = T.R
@@ -259,9 +261,14 @@ class ConstantRotationErrorFunction(ErrorFunction):
                     poses = joints[idx, :]
                     curr_w = angular_velocities[idx]
 
+                    if idx == 0:
+                        break
+
                     end_joint = kinematic_chain.su_joint_dict[i_su]
                     kinematic_chain.set_poses(poses, start_joint=d, end_joint=end_joint)
                     model_accel = estimate_acceleration_analytically(kinematic_chain, d, i_su, curr_w)
+                    logging.debug(f'[Pose{p}, Joint{d}, SU{i_su}, Data{idx}] \
+                        Model: {n2s(model_accel, 4)} \tMeasured: {n2s(meas_accel, 4)}')
                     error2 = self.loss_func(model_accel, meas_accel)
 
                     errors += error2
