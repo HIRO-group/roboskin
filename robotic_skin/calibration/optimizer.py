@@ -97,6 +97,7 @@ class Optimizer():
         self.all_poses.append(np.r_[T.position, T.quaternion])
         e = 0.0
 
+        params, _ = self.kinematic_chain.get_params_at(self.i_su)
         for _, error_function in self.error_functions.items():
             e += error_function(self.kinematic_chain, self.i_su)
         res = self.stop_conditions[self.target].update(params, None, e)
@@ -151,8 +152,10 @@ class SeparateOptimizer(Optimizer):
 
         # ################### First Optimize Rotations ####################
         self.target = 'Rotation'
+        self.target_index = self.rotation_index
+        self.constant_index = self.position_index
         self.stop_conditions['Rotation'].initialize()
-        self.constant_params = params[self.position_index]
+        self.constant_params = params[self.target_index]
 
         opt = nlopt.opt(C.GLOBAL_OPTIMIZER, self.n_param)
         opt.set_min_objective(self.objective)
@@ -165,8 +168,10 @@ class SeparateOptimizer(Optimizer):
 
         # ################### Then Optimize for Translations ####################
         self.target = 'Translation'
+        self.target_index = self.position_index
+        self.constant_index = self.rotation_index
         self.stop_conditions['Translation'].initialize()
-        self.constant_params = param_rot
+        self.constant_params = params[self.target_index]
 
         opt = nlopt.opt(C.GLOBAL_OPTIMIZER, self.n_param)
         opt.set_min_objective(self.objective)
@@ -199,7 +204,9 @@ class SeparateOptimizer(Optimizer):
             Error between measured values and estimated model outputs
         """
         # update self.Tdofs
-        params = self.__merge_params(target_params, self.constant_params)
+        params = np.zeros(self.n_param * 2)
+        params[self.target_index] = target_params
+        params[self.constant_index] = self.constant_params
 
         self.kinematic_chain.set_params_at(self.i_su, params)
         T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
@@ -209,23 +216,7 @@ class SeparateOptimizer(Optimizer):
 
         params, _ = self.kinematic_chain.get_params_at(self.i_su)
         e = self.error_functions[self.target](self.kinematic_chain, self.i_su)
-        res = self.stop_conditions[self.target].update(params, None, e)
+        res = self.stop_conditions[self.target].update(params[self.target_index], None, e)
 
-        logging.info(f'e={res}, {target_params}, P:{T.position}, Q:{T.quaternion}')
+        logging.info(f'e={res}, {params[self.target_index]}, P:{T.position}, Q:{T.quaternion}')
         return res
-
-    def __merge_params(self, target_params, constant_params):
-        """
-        converts current dh parameters to a
-        transformation matrix from dof to skin unit.
-        """
-        # size depends on what we're optimizing.
-        params = np.zeros(self.n_param * 2)
-        if self.target == 'Rotation':
-            params[self.rotation_index] = target_params
-            params[self.position_index] = constant_params
-        elif self.target == 'Translation':
-            params[self.rotation_index] = constant_params
-            params[self.position_index] = target_params
-
-        return params
