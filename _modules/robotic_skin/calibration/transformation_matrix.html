@@ -174,6 +174,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">key_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">params</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformation_matrix</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">qx</span> <span class="o">=</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">angle</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">qz</span> <span class="o">=</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">angle</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">qx</span> <span class="o">*</span> <span class="n">qz</span>
 
 <div class="viewcode-block" id="TransformationMatrix.transformation_matrix"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.transformation_matrix.TransformationMatrix.transformation_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">transformation_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">th</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">al</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -289,12 +292,6 @@
         <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">params</span><span class="p">)}</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="TransformationMatrix.from_matrix"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.transformation_matrix.TransformationMatrix.from_matrix">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_matrix</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">matrix</span><span class="p">):</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
-        <span class="n">T</span><span class="o">.</span><span class="n">matrix</span> <span class="o">=</span> <span class="n">matrix</span>
-        <span class="k">return</span> <span class="n">T</span></div>
-
     <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        In our implementation, we use * for dot product</span>
@@ -311,7 +308,21 @@
 <span class="sd">            of two transformation matrices</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">matrix</span><span class="p">,</span> <span class="n">T</span><span class="o">.</span><span class="n">matrix</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">TransformationMatrix</span><span class="o">.</span><span class="n">from_matrix</span><span class="p">(</span><span class="n">new_matrix</span><span class="p">)</span>
+        <span class="n">new_q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">*</span> <span class="n">T</span><span class="o">.</span><span class="n">q</span>
+
+        <span class="n">T</span> <span class="o">=</span> <span class="n">TransformationMatrix</span><span class="p">()</span>
+        <span class="n">T</span><span class="o">.</span><span class="n">matrix</span> <span class="o">=</span> <span class="n">new_matrix</span>
+        <span class="n">T</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">new_q</span>
+        <span class="k">return</span> <span class="n">T</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">theta</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">TransformationMatrix</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="n">q</span> <span class="o">=</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">angle</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">T</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">*</span> <span class="n">q</span>
+        <span class="k">return</span> <span class="n">T</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">R</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -326,12 +337,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matrix</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">q</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">quaternion</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Quaternion as a result of the transformation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">matrix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pyquat_to_numpy</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pyquat_to_numpy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

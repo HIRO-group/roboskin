@@ -145,66 +145,49 @@
            <div itemprop="articleBody">
             
   <h1>Source code for robotic_skin.calibration.error_functions</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">robotic_skin.const</span> <span class="k">as</span> <span class="nn">C</span>
-<span class="kn">from</span> <span class="nn">robotic_skin.calibration.transformation_matrix</span> <span class="kn">import</span> <span class="n">TransformationMatrix</span> <span class="k">as</span> <span class="n">TM</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils.io</span> <span class="kn">import</span> <span class="n">n2s</span>
 
 
-<div class="viewcode-block" id="estimate_acceleration_analytically"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.estimate_acceleration_analytically">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration_analytically</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdofi2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">):</span>
+<div class="viewcode-block" id="estimate_acceleration_analytically"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.estimate_acceleration_analytically">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration_analytically</span><span class="p">(</span><span class="n">kinemaic_chain</span><span class="p">,</span> <span class="n">d_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Estimates the acceleration analytically.</span>
 
 <span class="sd">    Arguments</span>
 <span class="sd">    ---------</span>
-<span class="sd">    `Tdofs`: List of `TransformationMatrix`</span>
-<span class="sd">        transformation matrices from dof to dof</span>
-
-<span class="sd">    `Tjoints`: List of `TransformationMatrix`</span>
-<span class="sd">        transformation matrices from joint to joint</span>
-
-<span class="sd">    `Tdofi2su`: `TransformationMatrix`</span>
-<span class="sd">        transformation matrix from the last dofi to skin unit</span>
-
-<span class="sd">    `d`: `int`</span>
+<span class="sd">    `kinematic_chain`: `robotic_skin.calibration.kinematic_chain.KinematicChain`</span>
+<span class="sd">        Robot&#39;s Kinematic Chain</span>
+<span class="sd">    `d_joint`: `int`</span>
 <span class="sd">        dof `d`</span>
-
 <span class="sd">    `i`: `int`</span>
 <span class="sd">        imu `i`</span>
-
 <span class="sd">    `curr_w`: `int`</span>
 <span class="sd">        Angular velocity</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Transformation Matrix from su to rs in rs frame</span>
-    <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-    <span class="c1"># Transformation Matrix from the last DoFi to the excited DoFd</span>
-    <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">kinemaic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span>
+        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-        <span class="c1"># print(j)</span>
-        <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">rs_T_su</span> <span class="o">*</span> <span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+    <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">kinemaic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span>
+        <span class="n">start_joint</span><span class="o">=</span><span class="n">d_joint</span><span class="p">,</span>
+        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
+        <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-        <span class="c1"># print(j, d, i)</span>
-        <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">rs_T_su</span> <span class="o">*</span> <span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-        <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span> <span class="o">*</span> <span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-
-    <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">rs_T_su</span> <span class="o">*</span> <span class="n">Tdofi2su</span>
-    <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span> <span class="o">*</span> <span class="n">Tdofi2su</span>
-
-    <span class="n">dofd_r_su</span> <span class="o">=</span> <span class="n">dof_T_su</span><span class="o">.</span><span class="n">position</span>
     <span class="c1"># Every joint rotates along its own z axis</span>
     <span class="n">w_dofd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">])</span>
-    <span class="n">a_dofd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">dofd_r_su</span><span class="p">))</span>
+    <span class="n">a_dofd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">dof_T_su</span><span class="o">.</span><span class="n">position</span><span class="p">))</span>
 
     <span class="n">g_rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.81</span><span class="p">])</span>
+    <span class="n">g_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rs_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">g_rs</span><span class="p">)</span>
+    <span class="n">a_centic_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dof_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">a_dofd</span><span class="p">)</span>
 
-    <span class="n">a_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dof_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">a_dofd</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rs_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">g_rs</span><span class="p">)</span>
+    <span class="n">a_su</span> <span class="o">=</span> <span class="n">a_centic_su</span> <span class="o">+</span> <span class="n">g_su</span>
 
     <span class="k">return</span> <span class="n">a_su</span></div>
 
 
-<div class="viewcode-block" id="estimate_acceleration_numerically"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.estimate_acceleration_numerically">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration_numerically</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">joint_angle_func</span><span class="p">,</span>
+<div class="viewcode-block" id="estimate_acceleration_numerically"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.estimate_acceleration_numerically">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration_numerically</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">d_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">joint_angle_func</span><span class="p">,</span>
                                       <span class="n">apply_normal_mittendorder</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute an acceleration value from positions.</span>
@@ -218,14 +201,14 @@
 
 <span class="sd">    Arguments</span>
 <span class="sd">    ------------</span>
-<span class="sd">    d: int</span>
-<span class="sd">        dth excited joint</span>
-<span class="sd">    Tdof2su: TransformationMatrix</span>
-<span class="sd">        Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">    Tdofs: list of TransformationMatrix</span>
-<span class="sd">        Transformation Matrices between Dofs</span>
-<span class="sd">    Tjoints: list of TransformationMatrix</span>
-<span class="sd">        Transformation Matrices (Rotation Matrix)</span>
+<span class="sd">    `kinematic_chain`: `robotic_skin.calibration.kinematic_chain.KinematicChain`</span>
+<span class="sd">        Robot&#39;s Kinematic Chain</span>
+<span class="sd">    `d_joint`: `int`</span>
+<span class="sd">        dof `d`</span>
+<span class="sd">    `i`: `int`</span>
+<span class="sd">        imu `i`</span>
+<span class="sd">    `curr_w`: `int`</span>
+<span class="sd">        Angular velocity</span>
 <span class="sd">    apply_normal_mittendorfer: bool</span>
 <span class="sd">        determines if we resort to the normal method</span>
 <span class="sd">        mittendorfer uses (which we modified due to some possible missing terms</span>
@@ -235,89 +218,50 @@
 <span class="sd">    acceleration: np.array</span>
 <span class="sd">        Acceleration computed from positions</span>
 <span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
-    <span class="c1"># Compute Transformation Matrix from RS to SU</span>
-    <span class="n">T</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-    <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span>
+        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-        <span class="n">dofd_T_dofi</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span> <span class="o">*</span> <span class="n">Tdofs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">Tjoints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-
-    <span class="k">for</span> <span class="n">Tdof</span><span class="p">,</span> <span class="n">Tjoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">):</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tdof</span> <span class="o">*</span> <span class="n">Tjoint</span>
-
-    <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tdof2su</span>
-    <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">dofd_T_dofi</span> <span class="o">*</span> <span class="n">Tdof2su</span>
-
-    <span class="n">dofd_r_su</span> <span class="o">=</span> <span class="n">dof_T_su</span><span class="o">.</span><span class="n">position</span>
+    <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span>
+        <span class="n">start_joint</span><span class="o">=</span><span class="n">d_joint</span><span class="p">,</span>
+        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
+        <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
 
     <span class="c1"># rotation matrix of reference segment to skin unit</span>
-    <span class="n">Rrs2su</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">su_R_rs</span> <span class="o">=</span> <span class="n">rs_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span>
 
     <span class="c1"># Compute Acceleration at RS frame</span>
     <span class="c1"># dt should be a small value, recommended to use 1/(1000 * freq)</span>
     <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="mf">1000.0</span>
-    <span class="n">pos</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">dt</span><span class="p">:</span> <span class="n">accelerometer_position</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">joint_angle_func</span><span class="p">)</span>  <span class="c1"># noqa: E731</span>
+
+    <span class="n">positions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="n">dt</span><span class="p">,</span> <span class="o">-</span><span class="n">dt</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+        <span class="n">angle</span> <span class="o">=</span> <span class="n">joint_angle_func</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">dof_T_dof</span><span class="p">,</span> <span class="n">rs_T_dof</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">get_current_TMs</span><span class="p">()</span>
+        <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">add_a_pose</span><span class="p">(</span>
+            <span class="n">i_joint</span><span class="o">=</span><span class="n">d_joint</span><span class="p">,</span>
+            <span class="n">pose</span><span class="o">=</span><span class="n">angle</span><span class="p">,</span>
+            <span class="n">dof_T_dof</span><span class="o">=</span><span class="n">dof_T_dof</span><span class="p">,</span>
+            <span class="n">rs_T_dof</span><span class="o">=</span><span class="n">rs_T_dof</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">_compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="n">dof_T_dof</span><span class="p">,</span> <span class="n">rs_T_dof</span><span class="p">)</span>
+        <span class="n">positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+
+    <span class="c1"># get acceleration and include gravity</span>
+    <span class="n">accel_rs</span> <span class="o">=</span> <span class="p">((</span><span class="n">positions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">positions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">positions</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">dt</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">apply_normal_mittendorder</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">su_R_rs</span><span class="p">,</span> <span class="n">accel_rs</span><span class="p">)</span>
+
     <span class="n">gravity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.81</span><span class="p">])</span>
+    <span class="n">accel_rs</span> <span class="o">+=</span> <span class="n">gravity</span>
 
     <span class="c1"># we need centripetal acceleration here.</span>
     <span class="n">w_dofd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">])</span>
-    <span class="n">a_dofd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">dofd_r_su</span><span class="p">))</span>
+    <span class="n">a_dofd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">dof_T_su</span><span class="o">.</span><span class="n">position</span><span class="p">))</span>
 
-    <span class="c1"># get acceleration and include gravity</span>
-    <span class="n">accel_rs</span> <span class="o">=</span> <span class="p">((</span><span class="n">pos</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span> <span class="o">+</span> <span class="n">pos</span><span class="p">(</span><span class="o">-</span><span class="n">dt</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">pos</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">dt</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">apply_normal_mittendorder</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Rrs2su</span><span class="p">,</span> <span class="n">accel_rs</span><span class="p">)</span>
-
-    <span class="n">accel_rs</span> <span class="o">+=</span> <span class="n">gravity</span>
     <span class="c1"># Every joint rotates along its own z axis, one joint moves at a time</span>
     <span class="c1"># rotate into su frame</span>
-    <span class="n">accel_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dof_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">a_dofd</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Rrs2su</span><span class="p">,</span> <span class="n">accel_rs</span><span class="p">)</span>
+    <span class="n">accel_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dof_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">a_dofd</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">su_R_rs</span><span class="p">,</span> <span class="n">accel_rs</span><span class="p">)</span>
     <span class="c1"># estimate acceleration of skin unit</span>
     <span class="k">return</span> <span class="n">accel_su</span></div>
-
-
-<div class="viewcode-block" id="accelerometer_position"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.accelerometer_position">[docs]</a><span class="k">def</span> <span class="nf">accelerometer_position</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="n">joint_angle_func</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute ith accelerometer position excited by joint d in pose p at time t</span>
-
-<span class="sd">    At pose p, let o be a joint and x be a sensor unit, then it looks like</span>
-<span class="sd">            d       i                     dth joint and ith accelerometer</span>
-
-<span class="sd">    |o-x-o      -x-o      -x-o      -x-</span>
-<span class="sd">        \-x-o/    \-x-o/    \-x-o/</span>
-
-<span class="sd">    1   2    3    4    5    6    7         th joint</span>
-<span class="sd">    1    2    3    4    5    6    7      th sensor</span>
-
-<span class="sd">    Arguments</span>
-<span class="sd">    ------------</span>
-<span class="sd">    d: int</span>
-<span class="sd">        dth excited joint</span>
-<span class="sd">    Tdof2su: TransformationMatrix</span>
-<span class="sd">        Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">    Tdofs: list of TransformationMatrix</span>
-<span class="sd">        Transformation Matrices between Dofs</span>
-<span class="sd">    Tjoints: list of TransformationMatrix</span>
-<span class="sd">        Tranformation Matrices of all joints in Pose p</span>
-<span class="sd">        Tjoint = [T(th_1), T(th_2), ..., T(th_n)] for n joints</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    ---------</span>
-<span class="sd">    position: np.array</span>
-<span class="sd">        Position of the resulting transformation</span>
-<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
-    <span class="n">T</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-    <span class="k">for</span> <span class="n">i_joint</span><span class="p">,</span> <span class="p">(</span><span class="n">Tdof</span><span class="p">,</span> <span class="n">Tjoint</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">)):</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tdof</span> <span class="o">*</span> <span class="n">Tjoint</span>
-        <span class="k">if</span> <span class="n">i_joint</span> <span class="o">==</span> <span class="n">d</span><span class="p">:</span>
-            <span class="n">Tpattern</span> <span class="o">=</span> <span class="n">joint_angle_func</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
-            <span class="c1"># print(Tpattern.parameters, curr_w, max_w, t, d)</span>
-            <span class="c1"># adjust based on joint angle function applied to excited dof.</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tpattern</span>
-
-    <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tdof2su</span>
-    <span class="c1"># print(T.position)</span>
-    <span class="k">return</span> <span class="n">T</span><span class="o">.</span><span class="n">position</span></div>
 
 
 <div class="viewcode-block" id="max_acceleration_joint_angle"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.max_acceleration_joint_angle">[docs]</a><span class="k">def</span> <span class="nf">max_acceleration_joint_angle</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
@@ -329,7 +273,7 @@
     <span class="c1"># th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))</span>
     <span class="n">th_pattern</span> <span class="o">=</span> <span class="p">(</span><span class="n">amplitude</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">C</span><span class="o">.</span><span class="n">PATTERN_FREQ</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">C</span><span class="o">.</span><span class="n">PATTERN_FREQ</span><span class="o">*</span><span class="n">t</span><span class="p">))</span>
     <span class="c1"># print(&#39;-&#39;*20, th_pattern, curr_w, &#39;-&#39;*20)</span>
-    <span class="k">return</span> <span class="n">TM</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">th_pattern</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">th_pattern</span></div>
 
 
 <div class="viewcode-block" id="constant_velocity_joint_angle"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.constant_velocity_joint_angle">[docs]</a><span class="k">def</span> <span class="nf">constant_velocity_joint_angle</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
@@ -337,7 +281,7 @@
 <span class="sd">    Returns transformation matrix given `t` and current</span>
 <span class="sd">    angular velocity `curr_w`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">TM</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">curr_w</span><span class="o">*</span><span class="n">t</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">curr_w</span><span class="o">*</span><span class="n">t</span></div>
 
 
 <div class="viewcode-block" id="ErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.ErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">ErrorFunction</span><span class="p">():</span>
@@ -353,7 +297,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">loss_func</span> <span class="o">=</span> <span class="n">loss_func</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_dynamic_pose</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
@@ -363,7 +306,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_sensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        __call__ is to be used on returning an error value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -378,7 +321,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Computes static error for ith accelerometer.</span>
 <span class="sd">        Static error is an deviation of the gravity vector for p positions.</span>
@@ -391,12 +334,10 @@
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ------------</span>
-<span class="sd">        i: int</span>
-<span class="sd">            ith sensor</span>
-<span class="sd">        Tdof2su: TransformationMatrix</span>
-<span class="sd">            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">        Tdofs: list of TransformationMatrix</span>
-<span class="sd">            Transformation Matrices between Dofs</span>
+<span class="sd">        kinemaic_chain:</span>
+<span class="sd">            A Kinematic Chain of the robot</span>
+<span class="sd">        i_su: int</span>
+<span class="sd">            i_su th sensor</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        --------</span>
@@ -408,20 +349,14 @@
         <span class="n">gravity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.8</span><span class="p">],</span> <span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">):</span>
-            <span class="n">joints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">3</span><span class="p">:</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">Tjoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">TM</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">joint</span><span class="p">)</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joints</span><span class="p">]</span>
+            <span class="n">poses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][</span><span class="mi">3</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+            <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_poses</span><span class="p">(</span><span class="n">poses</span><span class="p">)</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
 
-            <span class="c1"># 1 Pose are consists for n_joint DoF</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>   <span class="c1"># equals to I Matrix</span>
-            <span class="k">for</span> <span class="n">Tdof</span><span class="p">,</span> <span class="n">Tjoint</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">):</span>
-                <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tdof</span> <span class="o">*</span> <span class="n">Tjoint</span>
-            <span class="c1"># DoF to SU</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">Tdof2su</span>
+            <span class="n">rs_R_su</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">R</span>
 
-            <span class="n">Rsu2rs</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">R</span>
-
-            <span class="n">accel_su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][:</span><span class="mi">3</span><span class="p">]</span>
-            <span class="n">accel_rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Rsu2rs</span><span class="p">,</span> <span class="n">accel_su</span><span class="p">)</span>
+            <span class="n">accel_su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][:</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">accel_rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rs_R_su</span><span class="p">,</span> <span class="n">accel_su</span><span class="p">)</span>
             <span class="n">gravities</span><span class="p">[</span><span class="n">p</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">accel_rs</span>
 
         <span class="c1"># return np.sum(np.linalg.norm(gravities - np.mean(gravities, 0), axis=1))</span>
@@ -438,52 +373,54 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments</span>
 <span class="sd">        ------------</span>
-<span class="sd">        i: int</span>
-<span class="sd">            ith sensor</span>
-<span class="sd">        Tdof2su: TransformationMatrix</span>
-<span class="sd">            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">        Tdofs: list of TransformationMatrix</span>
-<span class="sd">            Transformation Matrices between Dofs</span>
+<span class="sd">        i_su: int</span>
+<span class="sd">            i_suth sensor</span>
+<span class="sd">        kinemaic_chain:</span>
+<span class="sd">            A Kinematic Chain of the robot</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        --------</span>
 <span class="sd">        e1: float</span>
 <span class="sd">            Static Error</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">i_joint</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">su_joint_dict</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span>
+
         <span class="n">errors</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="n">n_data</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_constant_pose</span><span class="p">):</span>
             <span class="c1"># for d in range(i+1):</span>
-            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">meas_qs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">d_joint</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i_joint</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="n">i_joint</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d_joint</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="c1"># meas_qs = data[:, :4]</span>
                 <span class="n">meas_accels</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span>
                 <span class="n">joints</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">7</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span>
                 <span class="n">angular_velocities</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">14</span><span class="p">]</span>
 
-                <span class="k">for</span> <span class="n">meas_q</span><span class="p">,</span> <span class="n">meas_accel</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span> <span class="n">curr_w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">meas_qs</span><span class="p">,</span> <span class="n">meas_accels</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">angular_velocities</span><span class="p">):</span>
-                    <span class="c1"># Orientation Error</span>
-                    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">                    model_q = get_IMU_pose(Tdofs, Tdof2su, joint[:i+1])</span>
-<span class="sd">                    meas_q = tfquat_to_pyquat(meas_q)</span>
-<span class="sd">                    error1 = pyqt.Quaternion.absolute_distance(model_q, meas_q)</span>
-<span class="sd">                    &quot;&quot;&quot;</span>
+                <span class="c1"># for meas_accel, poses, curr_w in zip(meas_accels, joints, angular_velocities):</span>
+                <span class="n">n_eval</span> <span class="o">=</span> <span class="mi">10</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_eval</span><span class="p">):</span>
+                    <span class="n">n_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">n_data</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="p">:</span>
+                        <span class="k">break</span>
 
-                    <span class="c1"># Acceleration Error</span>
-                    <span class="n">Tjoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">TM</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">joint</span><span class="p">)</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joint</span><span class="p">[:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
-                    <span class="c1"># model_accel = self.estimate_acceleration_numerically(</span>
-                    <span class="c1"># Tdofs, Tjoints, Tdof2su, d, curr_w, None, constant_velocity_joint_angle)</span>
-                    <span class="n">model_accel</span> <span class="o">=</span> <span class="n">estimate_acceleration_analytically</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">)</span>
-                    <span class="c1"># error2 = np.sum(np.abs(model_accel - meas_accel))</span>
+                    <span class="n">idx</span> <span class="o">=</span> <span class="n">i</span><span class="o">*</span><span class="nb">int</span><span class="p">(</span><span class="n">n_data</span><span class="o">/</span><span class="n">n_eval</span><span class="p">)</span>
+                    <span class="n">meas_accel</span> <span class="o">=</span> <span class="n">meas_accels</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span>
+                    <span class="n">poses</span> <span class="o">=</span> <span class="n">joints</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span>
+                    <span class="n">curr_w</span> <span class="o">=</span> <span class="n">angular_velocities</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+                    <span class="c1"># TODO: parse start_joint. Currently, there is a bug</span>
+                    <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_poses</span><span class="p">(</span><span class="n">poses</span><span class="p">,</span> <span class="n">end_joint</span><span class="o">=</span><span class="n">i_joint</span><span class="p">)</span>
+                    <span class="n">model_accel</span> <span class="o">=</span> <span class="n">estimate_acceleration_analytically</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">d_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">)</span>
+
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[Pose</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s1">, Joint</span><span class="si">{</span><span class="n">d_joint</span><span class="si">}</span><span class="s1">, SU</span><span class="si">{</span><span class="n">i_su</span><span class="si">}</span><span class="s1">@Joint</span><span class="si">{</span><span class="n">i_joint</span><span class="si">}</span><span class="s1">, Data</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s1">]</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span>
+                                  <span class="sa">f</span><span class="s1">&#39;Model: </span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">model_accel</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s1"> SU: </span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">meas_accel</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
                     <span class="n">error2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_func</span><span class="p">(</span><span class="n">model_accel</span><span class="p">,</span> <span class="n">meas_accel</span><span class="p">)</span>
-                    <span class="c1"># print(i, d, joint[d], curr_w, n2s(model_accel), n2s(meas_accel))</span>
-                    <span class="c1"># print(n2s(joint))</span>
 
-                    <span class="c1"># errors += error1 + error2</span>
                     <span class="n">errors</span> <span class="o">+=</span> <span class="n">error2</span>
                     <span class="n">n_data</span> <span class="o">+=</span> <span class="mi">1</span>
 
@@ -499,7 +436,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">apply_normal_mittendorfer</span> <span class="o">=</span> <span class="n">apply_normal_mittendorfer</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute errors between estimated and measured max acceleration for sensor i</span>
 
@@ -507,12 +444,10 @@
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ------------</span>
-<span class="sd">        i: int</span>
-<span class="sd">            ith sensor</span>
-<span class="sd">        Tdof2su: TransformationMatrix</span>
-<span class="sd">            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit</span>
-<span class="sd">        Tdofs: list of TransformationMatrix</span>
-<span class="sd">            Transformation Matrices between Dofs</span>
+<span class="sd">        i_su: int</span>
+<span class="sd">            i_su th sensor</span>
+<span class="sd">        kinemaic_chain:</span>
+<span class="sd">            A Kinematic Chain of the robot</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        --------</span>
@@ -522,35 +457,24 @@
         <span class="n">e2</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="n">n_data</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_dynamic_pose</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i_su</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="n">i_su</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
                 <span class="c1"># max acceleration (x,y,z) of the data</span>
-                <span class="n">max_accel_train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">0</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">max_accel_train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][</span><span class="mi">0</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span>
 
-                <span class="n">curr_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">0</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span>
+                <span class="n">curr_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][</span><span class="mi">0</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span>
                 <span class="c1"># A is used as amplitude of pose pattern</span>
-                <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">0</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
-                <span class="n">joints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">:</span><span class="mi">7</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
-                <span class="n">Tjoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">TM</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">joint</span><span class="p">)</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joints</span><span class="p">]</span>
-                <span class="c1"># max_accel_model = self.estimate_acceleration_numerically(</span>
-                <span class="c1"># Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)</span>
+                <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][</span><span class="mi">0</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
+                <span class="n">joints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">d</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span>
+
+                <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_poses</span><span class="p">(</span><span class="n">joints</span><span class="p">)</span>
                 <span class="c1"># use mittendorfer&#39;s original or modified based on condition</span>
-                <span class="n">max_accel_model</span> <span class="o">=</span> <span class="n">estimate_acceleration_numerically</span><span class="p">(</span><span class="n">Tdofs</span><span class="p">,</span> <span class="n">Tjoints</span><span class="p">,</span> <span class="n">Tdof2su</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">max_acceleration_joint_angle</span><span class="p">,</span>
+                <span class="n">max_accel_model</span> <span class="o">=</span> <span class="n">estimate_acceleration_numerically</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">max_acceleration_joint_angle</span><span class="p">,</span>
                                                                     <span class="bp">self</span><span class="o">.</span><span class="n">apply_normal_mittendorfer</span><span class="p">)</span>
-                <span class="c1"># if p == 0:</span>
-                <span class="c1">#     print(&#39;[Dynamic Max Accel, %ith Joint]&#39;%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)</span>
                 <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">max_accel_train</span> <span class="o">-</span> <span class="n">max_accel_model</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
                 <span class="n">e2</span> <span class="o">+=</span> <span class="n">error</span>
                 <span class="n">n_data</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="k">return</span> <span class="n">e2</span><span class="o">/</span><span class="n">n_data</span></div>
-
-
-<div class="viewcode-block" id="ErrorFunctions"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.ErrorFunctions">[docs]</a><span class="k">class</span> <span class="nc">ErrorFunctions</span><span class="p">():</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 </pre></div>
 
            </div>
