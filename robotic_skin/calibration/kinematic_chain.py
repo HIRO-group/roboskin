@@ -376,3 +376,7 @@ class KinematicChain():
         else:
             if self.sudh_dict is None:
                 self.set_sudh(i_su, params)
+
+
+class KinematicChainTorch():
+    pass

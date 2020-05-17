@@ -4,7 +4,7 @@ import robotic_skin.const as C
 from robotic_skin.calibration.utils.io import n2s
 
 
-def estimate_acceleration_analytically(kinemaic_chain, d_joint, i_su, curr_w):
+def estimate_acceleration_analytically(kinematic_chain, d_joint, i_su, curr_w):
     """
     Estimates the acceleration analytically.
 
@@ -19,10 +19,10 @@ def estimate_acceleration_analytically(kinemaic_chain, d_joint, i_su, curr_w):
     `curr_w`: `int`
         Angular velocity
     """
-    rs_T_su = kinemaic_chain.compute_su_TM(
+    rs_T_su = kinematic_chain.compute_su_TM(
         i_su=i_su, pose_type='current')
 
-    dof_T_su = kinemaic_chain.compute_su_TM(
+    dof_T_su = kinematic_chain.compute_su_TM(
         start_joint=d_joint,
         i_su=i_su,
         pose_type='current')

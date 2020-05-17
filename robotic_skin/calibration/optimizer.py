@@ -135,7 +135,8 @@ class SeparateOptimizer(Optimizer):
         This function will optimize the given parameters in two steps.
         First it optimizes for rotational parameters and then
         optimizes for translational parameters. Hence, the name
-        "Separate"Optimizer.
+        "Separate" Optimizer. We don't combine losses into one function,
+        like a traditional optimizer (and neural network) will do.
 
         Arguments
         ---------
@@ -223,3 +224,4 @@ class SeparateOptimizer(Optimizer):
 
         logging.info(f'e={e}, res={res}, {params[self.target_index]}, P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
         return res
+
