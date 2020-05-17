@@ -215,10 +215,10 @@ def parse_arguments():
                         help="Please provide error function for each key provided")
     parser.add_argument('-l', '--all_loss_functions', nargs='+', default=['L2Loss', 'L1Loss'],
                         help="Please provide a loss function for each key provided")
-    parser.add_argument('-s', '--stop_conditions', nargs='+', default=['PassThroughStopCondition',
+    parser.add_argument('-s', '--stop_conditions', nargs='+', default=['DeltaXStopCondition',
                                                                        'DeltaXStopCondition'],
                         help="Please provide a stop function for each key provided")
-    parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer',
+    parser.add_argument('-0', '--optimizer', type=str, default='Optimizer',
                         help="Please provide an optimizer function for each key provided")
     parser.add_argument('-oa', '--optimizeall', action='store_true',
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
