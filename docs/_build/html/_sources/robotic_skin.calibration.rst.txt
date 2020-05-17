@@ -28,6 +28,14 @@ robotic\_skin.calibration.error\_functions module
    :undoc-members:
    :show-inheritance:
 
+robotic\_skin.calibration.kinematic\_chain module
+-------------------------------------------------
+
+.. automodule:: robotic_skin.calibration.kinematic_chain
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 robotic\_skin.calibration.loss module
 -------------------------------------
 
@@ -44,14 +52,6 @@ robotic\_skin.calibration.optimizer module
    :undoc-members:
    :show-inheritance:
 
-robotic\_skin.calibration.parameter\_manager module
----------------------------------------------------
-
-.. automodule:: robotic_skin.calibration.parameter_manager
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 robotic\_skin.calibration.plot\_data module
 -------------------------------------------
 
@@ -64,6 +64,14 @@ robotic\_skin.calibration.stats\_generator module
 -------------------------------------------------
 
 .. automodule:: robotic_skin.calibration.stats_generator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+robotic\_skin.calibration.stop\_conditions module
+-------------------------------------------------
+
+.. automodule:: robotic_skin.calibration.stop_conditions
    :members:
    :undoc-members:
    :show-inheritance:
