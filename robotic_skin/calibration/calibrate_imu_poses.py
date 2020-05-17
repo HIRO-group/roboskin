@@ -4,6 +4,7 @@ Module for Kinematics Estimation.
 """
 import os
 import sys
+import logging
 import argparse
 from collections import namedtuple
 import pickle
@@ -11,31 +12,13 @@ import numpy as np
 import rospkg
 
 from robotic_skin.calibration.utils import load_robot_configs
-from robotic_skin.calibration.parameter_manager import ParameterManager, get_IMU_pose
-from robotic_skin.calibration import optimizer
-from robotic_skin.calibration import error_functions
-from robotic_skin.calibration import loss
-
-# Sawyer IMU Position
-# THESE ARE THE TRUE VALUES of THE IMU POSITIONS
-# IMUi: [DH parameters] [XYZ Position] [Quaternion]
-# IMU0: [1.57,  -0.157,  -1.57, 0.07, 0,  1.57] [0.070, -0.000, 0.16], [-0.000, 0.707, 0.000, 0.707]
-# IMU1: [-1.57, -0.0925, 1.57,  0.07, 0,  1.57] [0.086, 0.100, 0.387], [0.024, 0.025, 0.707, 0.707]
-# IMU2: [-1.57, -0.16,   1.57,  0.05, 0,  1.57] [0.324, 0.191, 0.350], [0.012, 0.035, -0.000, 0.999]
-# IMU3: [-1.57, 0.0165,  1.57,  0.05, 0,  1.57] [0.485, 0.049, 0.335], [0.045, 0.029, 0.706, 0.706]
-# IMU4: [-1.57, -0.17,   1.57,  0.05, 0,  1.57] [0.709, 0.023, 0.312], [0.008, 0.052, -0.000, 0.999]
-# IMU5: [-1.57, 0.0053,  1.57,  0.04, 0,  1.57] [0.883, 0.154, 0.287], [0.045, 0.034, 0.706, 0.706]
-# IMU6: [0.0,   0.12375, 0.0,   0.03, 0, -1.57] [1.087, 0.131, 0.228], [0.489, -0.428, 0.512, 0.562]
-
-# Panda IMU Position
-# IMUi: [DH parameters] [XYZ Position] [Quaternion]
-# IMU0: [1.57, -0.15, -1.57, 0.05, 0, 1.57] [0.050, -0.000, 0.183] [0.000, 0.707, -0.000, 0.707]
-# IMU1: [1.57, 0.06, -1.57, 0.06, 0, 1.57] [0.060, 0.060, 0.333] [-0.500, 0.500, -0.500, 0.500]
-# IMU2: [0, -0.08, 0, 0.05, 0, 1.57] [0.000, -0.050, 0.569] [0.707, 0.000, -0.000, 0.707]
-# IMU3: [-1.57, 0.08, 1.57, 0.06, 0, 1.57]  [0.023, -0.080, 0.653] [0.482, -0.482, -0.517, 0.517]
-# IMU4: [3.14, -0.1, 3.14, 0.1, 0, 1.57] [0.020, 0.100, 0.938] [-0.706, 0.025, 0.025, 0.707]
-# IMU5: [-1.57, 0.03, 1.57, 0.05, 0, 1.57] [-0.023, -0.030, 1.041] [0.482, -0.482, -0.517, 0.517]
-# IMU6: [1.57, 0, -1.57, 0.05, 0, 1.57] [0.165, 0.000, 1.028] [0.732, 0.000, 0.682, -0.000]
+from robotic_skin.calibration.kinematic_chain import KinematicChain
+from robotic_skin.calibration import (
+    optimizer,
+    error_functions,
+    stop_conditions,
+    loss
+)
 
 
 class KinematicEstimator():
@@ -43,8 +26,9 @@ class KinematicEstimator():
     Class for estimating the kinematics of the arm
     and corresponding sensor unit positions.
     """
-    def __init__(self, data, robot_configs, optimizer_function, error_functions_dict, stop_conditions_dict, optimize_all,
-                 method_name='OM'):
+    def __init__(self, data, robot_configs, optimizer_function,
+                 error_functions_dict, stop_conditions_dict,
+                 optimize_all, method_name='OM'):
         """
         Arguments
         ------------
@@ -59,23 +43,16 @@ class KinematicEstimator():
         # Assume n_sensor is equal to n_joint for now
         self.robot_configs = robot_configs
         self.method_name = method_name
-
+        # We keep these variables just in case
         self.pose_names = list(data.dynamic.keys())
         self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
         self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
         self.n_pose = len(self.pose_names)
         self.n_joint = len(self.joint_names)
-        self.n_sensor = self.n_joint
+        self.n_sensor = len(self.imu_names)
 
-        self.cumulative_data = []
-
-        print(self.pose_names)
-        print(self.joint_names)
-        print(self.imu_names)
-
-        assert self.n_joint == 7
-        assert self.n_sensor == 7
-
+        # TODO: Clean these shits
+        su_joint_dict = {i: i for i in range(self.n_joint)}
         # bounds for DH parameters
         bounds = np.array([
             [0.0, 0.00001],     # th
@@ -89,32 +66,42 @@ class KinematicEstimator():
             [0.0, 0.2],         # d
             [0.0, 0.0001],      # a     # 0 gives error
             [0, np.pi]])        # alpha
+        bound_dict = {'link': bounds, 'su': bounds_su}
 
         if 'dh_parameter' not in robot_configs:
             optimize_all = False
 
-        robot_dhparams = robot_configs['dh_parameter'] if not optimize_all else None
-        self.param_manager = ParameterManager(self.n_joint, bounds, bounds_su, robot_dhparams)
+        linkdh_dict = robot_configs['dh_parameter'] if not optimize_all else None
+        sudh_dict = None
+        # sudh_dict = robot_configs['su_dh_parameter']
+        eval_poses = np.array(robot_configs['eval_poses'])
+
+        self.kinematic_chain = KinematicChain(
+            n_joint=self.n_joint,
+            su_joint_dict=su_joint_dict,
+            bound_dict=bound_dict,
+            linkdh_dict=linkdh_dict,
+            sudh_dict=sudh_dict,
+            eval_poses=eval_poses)
 
         # Below is an example of what error_functions and stop_conditions dictionary looks like
         # error_functions = {
         #     'Rotation': error_func_rotation(data, loss_func()),
-        #     'Translation': error_func_transaltion(data, loss_func())
-        # }
+        #     'Translation': error_func_transaltion(data, loss_func())}
         # stop_conditions = {
         #     'Rotation': PassThroughStopCondition(),
-        #     'Translation': DeltaXStopCondition()
-        # }
-        error_functions = error_functions_dict
-        stop_conditions = stop_conditions_dict
-        self.optimizer = optimizer_function(error_functions, stop_conditions,
-                                            optimize_all=optimize_all)
-        # self.optimizer = Optimizer(error_functions, stop_conditions)
+        #     'Translation': DeltaXStopCondition()}
+        self.optimizer = optimizer_function(
+            self.kinematic_chain,
+            error_functions_dict,
+            stop_conditions_dict,
+            optimize_all=optimize_all)
 
-        self.imu_true_positions = robot_configs['su_pose']
+        # TODO: Make this a Data Class
         self.all_euclidean_distances = []
         self.estimated_dh_params = []
         self.all_orientations = []
+        self.cumulative_data = []
 
     def optimize(self):
         """
@@ -128,77 +115,48 @@ class KinematicEstimator():
         # Optimize each joint (& sensor) at a time from the root
         # currently starting from 6th skin unit
         print('Skipping 0th IMU')
-        for i_imu in range(1, self.n_sensor):
-            print("Optimizing %ith SU ..." % (i_imu))
-            params, bounds = self.param_manager.get_params_at(i=i_imu)
-            Tdofs = self.param_manager.get_tmat_until(i_imu)
-
-            assert len(Tdofs) == i_imu + 1, 'Size of Tdofs supposed to be %i, but %i' % (i_imu+1, len(Tdofs))
+        for i_su in range(1, self.n_sensor):
+            print("Optimizing %ith SU ..." % (i_su))
 
             # optimize parameters wrt data
-            params = self.optimizer.optimize(i_imu, Tdofs, params, bounds)
-            self.cumulative_data.append(self.optimizer.all_poses)
-            self.param_manager.set_params_at(i_imu, params)
-            pos, quat = self.get_i_accelerometer_position(i_imu)
-            self.all_orientations.append(quat)
-            euclidean_distance = np.linalg.norm(pos - self.imu_true_positions['su%i' % (i_imu+1)]['position'])
+            params = self.optimizer.optimize(i_su)
+
+            # Compute necessary data
+            self.kinematic_chain.set_params_at(i_su, params)
+            T = self.kinematic_chain.compute_su_TM(i_su, pose_type='eval')
+
+            euclidean_distance = np.linalg.norm(
+                T.position - self.robot_configs['su_pose'][f'su{i_su+1}']['position'])  # noqa: E999
+
+            # Append All the Data to the list
             self.all_euclidean_distances.append(euclidean_distance)
-            """
-            size of params will be different depending on if we are
-            optimizing all or just su dh parameters.
-            """
+            self.all_orientations.append(T.quaternion)
+            self.cumulative_data.append(self.optimizer.all_poses)
             self.estimated_dh_params.append(params)
+
             print('='*100)
-            print('Position:', pos)
-            print('Quaternion:', quat)
+            print('Position:', T.position)
+            print('Quaternion:', T.quaternion)
             print('Euclidean distance between real and predicted points: ', euclidean_distance)
             print('='*100)
+
+        self.all_euclidean_distances = np.array(self.all_euclidean_distances)
         self.all_orientations = np.array(self.all_orientations)
+
         # once done, save to file.
         ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
-        save_path = os.path.join(ros_robotic_skin_path, 'data', f'{self.method_name}_data.pkl')
+        save_path = os.path.join(ros_robotic_skin_path, 'data', f'{self.method_name}_data.pkl')  # noqa: E999
         pickle.dump(self.cumulative_data, open(save_path, "wb"), protocol=2)
-        print("Average Euclidean distance = ", sum(self.all_euclidean_distances) / len(self.all_euclidean_distances))
 
-    def get_i_accelerometer_position(self, i_sensor):
-        """
-        gets the ith accelerometer position on the robot.
-
-        Arguments
-        ---------
-        `i_sensor`: `int`
-            IMU number `i_sensor`
-
-        Returns
-        -------
-        `T.position`: `np.array`
-            position of the imu
-
-        `T.q`: `np.array`
-            orientation of the imu
-
-        """
-        return get_IMU_pose(
-            self.param_manager.Tdof2dof[:i_sensor+1],
-            self.param_manager.Tdof2vdof[i_sensor] *
-            self.param_manager.Tvdof2su[i_sensor]
-        )
+        print("Average Euclidean distance = ", np.mean(self.all_euclidean_distances))
 
     def get_all_accelerometer_positions(self):
-        """
-        Returns all accelerometer positions in the initial position
+        positions = []
+        for i_su in range(self.n_sensor):
+            T = self.kinematic_chain.compute_su_TM(i_su, pose_type='eval')
+            positions.append(T.position)
 
-        Returns
-        --------
-        positions: np.ndarray
-            All accelerometer positions
-        """
-        accelerometer_poses = np.zeros((self.n_sensor, 7))
-        for i in range(self.n_sensor):
-            position, quaternion = self.get_i_accelerometer_position(i)
-            accelerometer_poses[i, :] = np.r_[position, quaternion]
-
-        return accelerometer_poses
+        return positions
 
 
 def load_data(robot):
@@ -253,7 +211,7 @@ def parse_arguments():
     parser.add_argument('-e', '--all_error_functions', nargs='+', default=['StaticErrorFunction',
                                                                            'ConstantRotationErrorFunction'],
                         help="Please provide error function for each key provided")
-    parser.add_argument('-l', '--all_loss_functions', nargs='+', default=['L2Loss', 'L2Loss'],
+    parser.add_argument('-l', '--all_loss_functions', nargs='+', default=['L2Loss', 'L1Loss'],
                         help="Please provide a loss function for each key provided")
     parser.add_argument('-s', '--stop_conditions', nargs='+', default=['PassThroughStopCondition',
                                                                        'DeltaXStopCondition'],
@@ -262,6 +220,8 @@ def parse_arguments():
                         help="Please provide an optimizer function for each key provided")
     parser.add_argument('-oa', '--optimizeall', action='store_true',
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
+    parser.add_argument('--log', type=str, default='WARNING',
+                        help="Please provide a log level")
     return parser.parse_args()
 
 
@@ -271,25 +231,39 @@ if __name__ == '__main__':
     measured_data = load_data(args.robot)
     robot_configs = load_robot_configs(args.configdir, args.robot)
 
+    # Num of dict keys should be all equal
     if not (len(args.all_keys) == len(args.all_error_functions)
             == len(args.all_loss_functions) == len(args.stop_conditions)):
         raise Exception("The # of arguments of all_keys, all_error_functions, all_loss_functions, "
                         "stop_conditions should be same hence exiting...")
+
+    # Select ErrorFunction, StopCondition, Optimizer
     gen_error_functions_dict = {}
     gen_stop_conditions_dict = {}
     for key, error_func, loss_func, stop_func in \
             zip(args.all_keys, args.all_error_functions, args.all_loss_functions, args.stop_conditions):
         error_function = getattr(error_functions, error_func)
         loss_function = getattr(loss, loss_func)
-        stop_function = getattr(optimizer, stop_func)
+        stop_function = getattr(stop_conditions, stop_func)
         gen_error_functions_dict[key] = error_function(measured_data, loss_function())
         gen_stop_conditions_dict[key] = stop_function()
     optimizer = getattr(optimizer, args.optimizer)
+
+    # log
+    numeric_level = getattr(logging, args.log.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % args.log)
+    logging.basicConfig(level=numeric_level)
+
+    # Initialize a Kinematic Estimator
     estimator = KinematicEstimator(measured_data, robot_configs, optimizer,
                                    gen_error_functions_dict, gen_stop_conditions_dict, args.optimizeall)
-
+    # Run Optimization
     estimator.optimize()
+
+    # Get the estimated data
     data = estimator.get_all_accelerometer_positions()
+    # Save the data in a file
     ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
     save_path = os.path.join(ros_robotic_skin_path, 'data', args.savefile)
     np.savetxt(save_path, data)

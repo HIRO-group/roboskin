@@ -1,63 +1,46 @@
+import logging
 import numpy as np
 import robotic_skin.const as C
-from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
+from robotic_skin.calibration.utils.io import n2s
 
 
-def estimate_acceleration_analytically(Tdofs, Tjoints, Tdofi2su, d, i, curr_w):
+def estimate_acceleration_analytically(kinemaic_chain, d_joint, i_su, curr_w):
     """
     Estimates the acceleration analytically.
 
     Arguments
     ---------
-    `Tdofs`: List of `TransformationMatrix`
-        transformation matrices from dof to dof
-
-    `Tjoints`: List of `TransformationMatrix`
-        transformation matrices from joint to joint
-
-    `Tdofi2su`: `TransformationMatrix`
-        transformation matrix from the last dofi to skin unit
-
-    `d`: `int`
+    `kinematic_chain`: `robotic_skin.calibration.kinematic_chain.KinematicChain`
+        Robot's Kinematic Chain
+    `d_joint`: `int`
         dof `d`
-
     `i`: `int`
         imu `i`
-
     `curr_w`: `int`
         Angular velocity
-
     """
-    # Transformation Matrix from su to rs in rs frame
-    rs_T_su = TM.from_numpy(np.zeros(4))
-    # Transformation Matrix from the last DoFi to the excited DoFd
-    dofd_T_dofi = TM.from_numpy(np.zeros(4))
+    rs_T_su = kinemaic_chain.compute_su_TM(
+        i_su=i_su, pose_type='current')
 
-    for j in range(d+1):
-        # print(j)
-        rs_T_su = rs_T_su * Tdofs[j] * Tjoints[j]
+    dof_T_su = kinemaic_chain.compute_su_TM(
+        start_joint=d_joint,
+        i_su=i_su,
+        pose_type='current')
 
-    for j in range(d+1, i+1):
-        # print(j, d, i)
-        rs_T_su = rs_T_su * Tdofs[j] * Tjoints[j]
-        dofd_T_dofi = dofd_T_dofi * Tdofs[j] * Tjoints[j]
-
-    rs_T_su = rs_T_su * Tdofi2su
-    dof_T_su = dofd_T_dofi * Tdofi2su
-
-    dofd_r_su = dof_T_su.position
     # Every joint rotates along its own z axis
     w_dofd = np.array([0, 0, curr_w])
-    a_dofd = np.cross(w_dofd, np.cross(w_dofd, dofd_r_su))
+    a_dofd = np.cross(w_dofd, np.cross(w_dofd, dof_T_su.position))
 
     g_rs = np.array([0, 0, 9.81])
+    g_su = np.dot(rs_T_su.R.T, g_rs)
+    a_centic_su = np.dot(dof_T_su.R.T, a_dofd)
 
-    a_su = np.dot(dof_T_su.R.T, a_dofd) + np.dot(rs_T_su.R.T, g_rs)
+    a_su = a_centic_su + g_su
 
     return a_su
 
 
-def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max_w, joint_angle_func,
+def estimate_acceleration_numerically(kinematic_chain, d_joint, i_su, curr_w, max_w, joint_angle_func,
                                       apply_normal_mittendorder=False):
     """
     Compute an acceleration value from positions.
@@ -71,14 +54,14 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max
 
     Arguments
     ------------
-    d: int
-        dth excited joint
-    Tdof2su: TransformationMatrix
-        Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
-    Tdofs: list of TransformationMatrix
-        Transformation Matrices between Dofs
-    Tjoints: list of TransformationMatrix
-        Transformation Matrices (Rotation Matrix)
+    `kinematic_chain`: `robotic_skin.calibration.kinematic_chain.KinematicChain`
+        Robot's Kinematic Chain
+    `d_joint`: `int`
+        dof `d`
+    `i`: `int`
+        imu `i`
+    `curr_w`: `int`
+        Angular velocity
     apply_normal_mittendorfer: bool
         determines if we resort to the normal method
         mittendorfer uses (which we modified due to some possible missing terms
@@ -88,89 +71,50 @@ def estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, max
     acceleration: np.array
         Acceleration computed from positions
     """  # noqa: W605
-    # Compute Transformation Matrix from RS to SU
-    T = TM.from_numpy(np.zeros(4))
-    dofd_T_dofi = TM.from_numpy(np.zeros(4))
+    rs_T_su = kinematic_chain.compute_su_TM(
+        i_su=i_su, pose_type='current')
 
-    for j in range(d+1, i+1):
-        dofd_T_dofi = dofd_T_dofi * Tdofs[j] * Tjoints[j]
-
-    for Tdof, Tjoint in zip(Tdofs, Tjoints):
-        T = T * Tdof * Tjoint
-
-    T = T * Tdof2su
-    dof_T_su = dofd_T_dofi * Tdof2su
-
-    dofd_r_su = dof_T_su.position
+    dof_T_su = kinematic_chain.compute_su_TM(
+        start_joint=d_joint,
+        i_su=i_su,
+        pose_type='current')
 
     # rotation matrix of reference segment to skin unit
-    Rrs2su = T.R.T
+    su_R_rs = rs_T_su.R.T
 
     # Compute Acceleration at RS frame
     # dt should be a small value, recommended to use 1/(1000 * freq)
     dt = 1.0/1000.0
-    pos = lambda dt: accelerometer_position(dt, Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, joint_angle_func)  # noqa: E731
+
+    positions = []
+    for t in [dt, -dt, 0]:
+        angle = joint_angle_func(curr_w, max_w, t)
+        dof_T_dof, rs_T_dof = kinematic_chain.get_current_TMs()
+        kinematic_chain.add_a_pose(
+            i_joint=d_joint,
+            pose=angle,
+            dof_T_dof=dof_T_dof,
+            rs_T_dof=rs_T_dof)
+        T = kinematic_chain._compute_su_TM(i_su, dof_T_dof, rs_T_dof)
+        positions.append(T.position)
+
+    # get acceleration and include gravity
+    accel_rs = ((positions[0] + positions[1] - 2*positions[2]) / (dt**2))
+    if apply_normal_mittendorder:
+        return np.dot(su_R_rs, accel_rs)
+
     gravity = np.array([0, 0, 9.81])
+    accel_rs += gravity
 
     # we need centripetal acceleration here.
     w_dofd = np.array([0, 0, curr_w])
-    a_dofd = np.cross(w_dofd, np.cross(w_dofd, dofd_r_su))
+    a_dofd = np.cross(w_dofd, np.cross(w_dofd, dof_T_su.position))
 
-    # get acceleration and include gravity
-    accel_rs = ((pos(dt) + pos(-dt) - 2*pos(0)) / (dt**2))
-    if apply_normal_mittendorder:
-        return np.dot(Rrs2su, accel_rs)
-
-    accel_rs += gravity
     # Every joint rotates along its own z axis, one joint moves at a time
     # rotate into su frame
-    accel_su = np.dot(dof_T_su.R.T, a_dofd) + np.dot(Rrs2su, accel_rs)
+    accel_su = np.dot(dof_T_su.R.T, a_dofd) + np.dot(su_R_rs, accel_rs)
     # estimate acceleration of skin unit
     return accel_su
-
-
-def accelerometer_position(t, Tdofs, Tjoints, Tdof2su, d, curr_w, amplitude, joint_angle_func):
-    """
-    Compute ith accelerometer position excited by joint d in pose p at time t
-
-    At pose p, let o be a joint and x be a sensor unit, then it looks like
-            d       i                     dth joint and ith accelerometer
-
-    |o-x-o      -x-o      -x-o      -x-
-        \-x-o/    \-x-o/    \-x-o/
-
-    1   2    3    4    5    6    7         th joint
-    1    2    3    4    5    6    7      th sensor
-
-    Arguments
-    ------------
-    d: int
-        dth excited joint
-    Tdof2su: TransformationMatrix
-        Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
-    Tdofs: list of TransformationMatrix
-        Transformation Matrices between Dofs
-    Tjoints: list of TransformationMatrix
-        Tranformation Matrices of all joints in Pose p
-        Tjoint = [T(th_1), T(th_2), ..., T(th_n)] for n joints
-
-    Returns
-    ---------
-    position: np.array
-        Position of the resulting transformation
-    """  # noqa: W605
-    T = TM.from_numpy(np.zeros(4))
-    for i_joint, (Tdof, Tjoint) in enumerate(zip(Tdofs, Tjoints)):
-        T = T * Tdof * Tjoint
-        if i_joint == d:
-            Tpattern = joint_angle_func(curr_w, amplitude, t)
-            # print(Tpattern.parameters, curr_w, max_w, t, d)
-            # adjust based on joint angle function applied to excited dof.
-            T = T * Tpattern
-
-    T = T * Tdof2su
-    # print(T.position)
-    return T.position
 
 
 def max_acceleration_joint_angle(curr_w, amplitude, t):
@@ -182,7 +126,7 @@ def max_acceleration_joint_angle(curr_w, amplitude, t):
     # th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
     th_pattern = (amplitude / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
     # print('-'*20, th_pattern, curr_w, '-'*20)
-    return TM(theta=th_pattern)
+    return th_pattern
 
 
 def constant_velocity_joint_angle(curr_w, max_w, t):
@@ -190,7 +134,7 @@ def constant_velocity_joint_angle(curr_w, max_w, t):
     Returns transformation matrix given `t` and current
     angular velocity `curr_w`
     """
-    return TM(theta=curr_w*t)
+    return curr_w*t
 
 
 class ErrorFunction():
@@ -206,7 +150,6 @@ class ErrorFunction():
         self.loss_func = loss_func
 
         self.pose_names = list(data.constant.keys())
-        print(self.pose_names)
         self.joint_names = list(data.constant[self.pose_names[0]].keys())
         self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
         self.n_dynamic_pose = len(list(data.dynamic.keys()))
@@ -216,7 +159,7 @@ class ErrorFunction():
         self.n_joint = len(self.joint_names)
         self.n_sensor = self.n_joint
 
-    def __call__(self, i, Tdofs, Tdof2su):
+    def __call__(self, kinematic_chain, i_su):
         """
         __call__ is to be used on returning an error value.
         """
@@ -231,7 +174,7 @@ class StaticErrorFunction(ErrorFunction):
     def __init__(self, data, loss_func):
         super().__init__(data, loss_func)
 
-    def __call__(self, i, Tdofs, Tdof2su):
+    def __call__(self, kinematic_chain, i_su):
         """
         Computes static error for ith accelerometer.
         Static error is an deviation of the gravity vector for p positions.
@@ -244,12 +187,10 @@ class StaticErrorFunction(ErrorFunction):
 
         Arguments
         ------------
-        i: int
-            ith sensor
-        Tdof2su: TransformationMatrix
-            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
-        Tdofs: list of TransformationMatrix
-            Transformation Matrices between Dofs
+        kinemaic_chain:
+            A Kinematic Chain of the robot
+        i_su: int
+            i_su th sensor
 
         Returns
         --------
@@ -261,20 +202,14 @@ class StaticErrorFunction(ErrorFunction):
         gravity = np.array([[0, 0, 9.8], ] * self.n_static_pose, dtype=float)
 
         for p in range(self.n_static_pose):
-            joints = self.data.static[self.pose_names[p]][self.imu_names[i]][3:3+i+1]
-            Tjoints = [TM(theta=joint) for joint in joints]
+            poses = self.data.static[self.pose_names[p]][self.imu_names[i_su]][3:10]
+            kinematic_chain.set_poses(poses)
+            T = kinematic_chain.compute_su_TM(i_su, pose_type='current')
 
-            # 1 Pose are consists for n_joint DoF
-            T = TM.from_numpy(np.zeros(4))   # equals to I Matrix
-            for Tdof, Tjoint in zip(Tdofs, Tjoints):
-                T = T * Tdof * Tjoint
-            # DoF to SU
-            T = T * Tdof2su
+            rs_R_su = T.R
 
-            Rsu2rs = T.R
-
-            accel_su = self.data.static[self.pose_names[p]][self.imu_names[i]][:3]
-            accel_rs = np.dot(Rsu2rs, accel_su)
+            accel_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][:3]
+            accel_rs = np.dot(rs_R_su, accel_su)
             gravities[p, :] = accel_rs
 
         # return np.sum(np.linalg.norm(gravities - np.mean(gravities, 0), axis=1))
@@ -291,52 +226,54 @@ class ConstantRotationErrorFunction(ErrorFunction):
     def __init__(self, data, loss_func):
         super().__init__(data, loss_func)
 
-    def __call__(self, i, Tdofs, Tdof2su):
+    def __call__(self, kinematic_chain, i_su):
         """
         Arguments
         ------------
-        i: int
-            ith sensor
-        Tdof2su: TransformationMatrix
-            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
-        Tdofs: list of TransformationMatrix
-            Transformation Matrices between Dofs
+        i_su: int
+            i_suth sensor
+        kinemaic_chain:
+            A Kinematic Chain of the robot
 
         Returns
         --------
         e1: float
             Static Error
         """
+        i_joint = kinematic_chain.su_joint_dict[i_su]
+
         errors = 0.0
         n_data = 0
         for p in range(self.n_constant_pose):
             # for d in range(i+1):
-            for d in range(max(0, i-2), i+1):
-                data = self.data.constant[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0]
-                meas_qs = data[:, :4]
+            for d_joint in range(max(0, i_joint-2), i_joint+1):
+                data = self.data.constant[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]][0]
+                # meas_qs = data[:, :4]
                 meas_accels = data[:, 4:7]
                 joints = data[:, 7:14]
                 angular_velocities = data[:, 14]
 
-                for meas_q, meas_accel, joint, curr_w in zip(meas_qs, meas_accels, joints, angular_velocities):
-                    # Orientation Error
-                    """
-                    model_q = get_IMU_pose(Tdofs, Tdof2su, joint[:i+1])
-                    meas_q = tfquat_to_pyquat(meas_q)
-                    error1 = pyqt.Quaternion.absolute_distance(model_q, meas_q)
-                    """
+                # for meas_accel, poses, curr_w in zip(meas_accels, joints, angular_velocities):
+                n_eval = 10
+                for i in range(n_eval):
+                    n_data = data.shape[0]
+                    if n_data <= i:
+                        break
 
-                    # Acceleration Error
-                    Tjoints = [TM(theta=joint) for joint in joint[:i+1]]
-                    # model_accel = self.estimate_acceleration_numerically(
-                    # Tdofs, Tjoints, Tdof2su, d, curr_w, None, constant_velocity_joint_angle)
-                    model_accel = estimate_acceleration_analytically(Tdofs, Tjoints, Tdof2su, d, i, curr_w)
-                    # error2 = np.sum(np.abs(model_accel - meas_accel))
+                    idx = i*int(n_data/n_eval)
+                    meas_accel = meas_accels[idx, :]
+                    poses = joints[idx, :]
+                    curr_w = angular_velocities[idx]
+
+                    # TODO: parse start_joint. Currently, there is a bug
+                    kinematic_chain.set_poses(poses, end_joint=i_joint)
+                    model_accel = estimate_acceleration_analytically(kinematic_chain, d_joint, i_su, curr_w)
+
+                    logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t' +
+                                  f'Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}')
+
                     error2 = self.loss_func(model_accel, meas_accel)
-                    # print(i, d, joint[d], curr_w, n2s(model_accel), n2s(meas_accel))
-                    # print(n2s(joint))
 
-                    # errors += error1 + error2
                     errors += error2
                     n_data += 1
 
@@ -352,7 +289,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         super().__init__(data, loss_func)
         self.apply_normal_mittendorfer = apply_normal_mittendorfer
 
-    def __call__(self, i, Tdofs, Tdof2su):
+    def __call__(self, kinematic_chain, i_su):
         """
         Compute errors between estimated and measured max acceleration for sensor i
 
@@ -360,12 +297,10 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
         Arguments
         ------------
-        i: int
-            ith sensor
-        Tdof2su: TransformationMatrix
-            Transformation matrix from the last DoF (Virtual DoF) to Sensor Unit
-        Tdofs: list of TransformationMatrix
-            Transformation Matrices between Dofs
+        i_su: int
+            i_su th sensor
+        kinemaic_chain:
+            A Kinematic Chain of the robot
 
         Returns
         --------
@@ -375,32 +310,21 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         e2 = 0.0
         n_data = 0
         for p in range(self.n_dynamic_pose):
-            for d in range(max(0, i-2), i+1):
+            for d in range(max(0, i_su-2), i_su+1):
                 # max acceleration (x,y,z) of the data
-                max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0][:3]
+                max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i_su]][0][:3]
 
-                curr_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0][5]
+                curr_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i_su]][0][5]
                 # A is used as amplitude of pose pattern
-                A = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0][4]
-                joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i]][0][7:7+i+1]
-                Tjoints = [TM(theta=joint) for joint in joints]
-                # max_accel_model = self.estimate_acceleration_numerically(
-                # Tdofs, Tjoints, Tdof2su, d, curr_w, max_w, max_acceleration_joint_angle)
+                A = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i_su]][0][4]
+                joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i_su]][0][7:14]
+
+                kinematic_chain.set_poses(joints)
                 # use mittendorfer's original or modified based on condition
-                max_accel_model = estimate_acceleration_numerically(Tdofs, Tjoints, Tdof2su, d, i, curr_w, A, max_acceleration_joint_angle,
+                max_accel_model = estimate_acceleration_numerically(kinematic_chain, d, i_su, curr_w, A, max_acceleration_joint_angle,
                                                                     self.apply_normal_mittendorfer)
-                # if p == 0:
-                #     print('[Dynamic Max Accel, %ith Joint]'%(d), n2s(max_accel_train), n2s(max_accel_model), curr_w, max_w)
                 error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
                 e2 += error
                 n_data += 1
 
         return e2/n_data
-
-
-class ErrorFunctions():
-    def __init__(self):
-        pass
-
-    def __call__(self):
-        raise NotImplementedError()

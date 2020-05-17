@@ -27,6 +27,9 @@ class TransformationMatrix():
         self.key_index = np.argwhere(~np.isnan(params)).flatten()
         self.params = np.nan_to_num(params)
         self.matrix = self.transformation_matrix(*self.params)
+        qx = pyqt.Quaternion(axis=[1, 0, 0], angle=self.params[3])
+        qz = pyqt.Quaternion(axis=[0, 0, 1], angle=self.params[0])
+        self.q = qx * qz
 
     def transformation_matrix(self, th, d, a, al):
         """
@@ -142,12 +145,6 @@ class TransformationMatrix():
         d = {k: v for k, v in zip(keys, params)}
         return cls.from_dict(d)
 
-    @classmethod
-    def from_matrix(cls, matrix):
-        T = cls()
-        T.matrix = matrix
-        return T
-
     def __mul__(self, T):
         """
         In our implementation, we use * for dot product
@@ -164,7 +161,21 @@ class TransformationMatrix():
             of two transformation matrices
         """
         new_matrix = np.dot(self.matrix, T.matrix)
-        return TransformationMatrix.from_matrix(new_matrix)
+        new_q = self.q * T.q
+
+        T = TransformationMatrix()
+        T.matrix = new_matrix
+        T.q = new_q
+        return T
+
+    def __call__(self, theta):
+        params = np.copy(self.params)
+        params[0] += theta
+        T = TransformationMatrix(*params)
+
+        q = pyqt.Quaternion(axis=[0, 0, 1], angle=theta)
+        T.q = self.q * q
+        return T
 
     @property
     def R(self):
@@ -179,12 +190,11 @@ class TransformationMatrix():
         return self.matrix[:3, :3]
 
     @property
-    def q(self):
+    def quaternion(self):
         """
         Quaternion as a result of the transformation
         """
-        q = pyqt.Quaternion(matrix=self.R)
-        return pyquat_to_numpy(q)
+        return pyquat_to_numpy(self.q)
 
     @property
     def position(self):
