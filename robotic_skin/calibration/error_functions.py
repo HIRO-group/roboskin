@@ -100,11 +100,12 @@ def estimate_acceleration_numerically(kinematic_chain, d_joint, i_su, curr_w, ma
 
     # get acceleration and include gravity
     accel_rs = ((positions[0] + positions[1] - 2*positions[2]) / (dt**2))
-    if apply_normal_mittendorder:
-        return np.dot(su_R_rs, accel_rs)
 
     gravity = np.array([0, 0, 9.81])
     accel_rs += gravity
+
+    if apply_normal_mittendorder:
+        return np.dot(su_R_rs, accel_rs)
 
     # we need centripetal acceleration here.
     w_dofd = np.array([0, 0, curr_w])
@@ -112,7 +113,9 @@ def estimate_acceleration_numerically(kinematic_chain, d_joint, i_su, curr_w, ma
 
     # Every joint rotates along its own z axis, one joint moves at a time
     # rotate into su frame
-    accel_su = np.dot(dof_T_su.R.T, a_dofd) + np.dot(su_R_rs, accel_rs)
+    a_centric_su = np.dot(dof_T_su.R.T, a_dofd)
+    a_tan_su = np.dot(su_R_rs, accel_rs)
+    accel_su = a_centric_su + a_tan_su
     # estimate acceleration of skin unit
     return accel_su
 
@@ -285,7 +288,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
     Compute errors between estimated and measured max acceleration for sensor i
 
     """
-    def __init__(self, data, loss_func, apply_normal_mittendorfer=True):
+    def __init__(self, data, loss_func, apply_normal_mittendorfer=False):
         super().__init__(data, loss_func)
         self.apply_normal_mittendorfer = apply_normal_mittendorfer
 
@@ -307,22 +310,27 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         e2: float
             Dynamic Error
         """  # noqa: W605
+        i_joint = kinematic_chain.su_joint_dict[i_su]
+
         e2 = 0.0
         n_data = 0
         for p in range(self.n_dynamic_pose):
-            for d in range(max(0, i_su-2), i_su+1):
+            for d_joint in range(max(0, i_joint-2), i_joint+1):
                 # max acceleration (x,y,z) of the data
-                max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i_su]][0][:3]
+                max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]][0][:3]
 
-                curr_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i_su]][0][5]
+                curr_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]][0][5]
                 # A is used as amplitude of pose pattern
-                A = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i_su]][0][4]
-                joints = self.data.dynamic[self.pose_names[p]][self.joint_names[d]][self.imu_names[i_su]][0][7:14]
+                A = self.data.dynamic[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]][0][4]
+                poses = self.data.dynamic[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]][0][7:14]
 
-                kinematic_chain.set_poses(joints)
+                # kinematic_chain.set_poses(joints)
+                kinematic_chain.set_poses(poses, end_joint=i_joint)
                 # use mittendorfer's original or modified based on condition
-                max_accel_model = estimate_acceleration_numerically(kinematic_chain, d, i_su, curr_w, A, max_acceleration_joint_angle,
+                max_accel_model = estimate_acceleration_numerically(kinematic_chain, d_joint, i_su, curr_w, A, max_acceleration_joint_angle,
                                                                     self.apply_normal_mittendorfer)
+                logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t' +
+                              f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
                 error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
                 e2 += error
                 n_data += 1

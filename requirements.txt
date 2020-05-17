@@ -13,3 +13,4 @@ VL53L1X
 pyquaternion
 pyyaml
 flake8
+tabulate
