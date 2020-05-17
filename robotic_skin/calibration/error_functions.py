@@ -32,8 +32,10 @@ def estimate_acceleration_analytically(kinemaic_chain, d_joint, i_su, curr_w):
     a_dofd = np.cross(w_dofd, np.cross(w_dofd, dof_T_su.position))
 
     g_rs = np.array([0, 0, 9.81])
+    g_su = np.dot(rs_T_su.R.T, g_rs)
+    a_centic_su = np.dot(dof_T_su.R.T, a_dofd)
 
-    a_su = np.dot(dof_T_su.R.T, a_dofd) + np.dot(rs_T_su.R.T, g_rs)
+    a_su = a_centic_su + g_su
 
     return a_su
 
@@ -238,12 +240,14 @@ class ConstantRotationErrorFunction(ErrorFunction):
         e1: float
             Static Error
         """
+        i_joint = kinematic_chain.su_joint_dict[i_su]
+
         errors = 0.0
         n_data = 0
         for p in range(self.n_constant_pose):
             # for d in range(i+1):
-            for d in range(max(0, i_su-2), i_su+1):
-                data = self.data.constant[self.pose_names[p]][self.joint_names[d]][self.imu_names[i_su]][0]
+            for d_joint in range(max(0, i_joint-2), i_joint+1):
+                data = self.data.constant[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]][0]
                 # meas_qs = data[:, :4]
                 meas_accels = data[:, 4:7]
                 joints = data[:, 7:14]
@@ -252,7 +256,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
                 # for meas_accel, poses, curr_w in zip(meas_accels, joints, angular_velocities):
                 n_eval = 10
                 for i in range(n_eval):
-                    n_data = meas_accels.shape[0]
+                    n_data = data.shape[0]
                     if n_data <= i:
                         break
 
@@ -261,14 +265,13 @@ class ConstantRotationErrorFunction(ErrorFunction):
                     poses = joints[idx, :]
                     curr_w = angular_velocities[idx]
 
-                    if idx == 0:
-                        break
+                    # TODO: parse start_joint. Currently, there is a bug
+                    kinematic_chain.set_poses(poses, end_joint=i_joint)
+                    model_accel = estimate_acceleration_analytically(kinematic_chain, d_joint, i_su, curr_w)
 
-                    end_joint = kinematic_chain.su_joint_dict[i_su]
-                    kinematic_chain.set_poses(poses, start_joint=d, end_joint=end_joint)
-                    model_accel = estimate_acceleration_analytically(kinematic_chain, d, i_su, curr_w)
-                    logging.debug(f'[Pose{p}, Joint{d}, SU{i_su}, Data{idx}] \
-                        Model: {n2s(model_accel, 4)} \tMeasured: {n2s(meas_accel, 4)}')
+                    logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t' +
+                                  f'Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}')
+
                     error2 = self.loss_func(model_accel, meas_accel)
 
                     errors += error2

@@ -5,6 +5,7 @@ import nlopt
 # import robotic_skin
 import robotic_skin.const as C
 from robotic_skin.calibration.stop_conditions import PassThroughStopCondition
+from robotic_skin.calibration.utils.io import n2s
 
 
 class Optimizer():
@@ -151,11 +152,12 @@ class SeparateOptimizer(Optimizer):
         self.n_param = int(n_param/2)
 
         # ################### First Optimize Rotations ####################
+        logging.info('Optimizing Rotation')
         self.target = 'Rotation'
         self.target_index = self.rotation_index
         self.constant_index = self.position_index
         self.stop_conditions['Rotation'].initialize()
-        self.constant_params = params[self.target_index]
+        self.constant_params = params[self.constant_index]
 
         opt = nlopt.opt(C.GLOBAL_OPTIMIZER, self.n_param)
         opt.set_min_objective(self.objective)
@@ -167,11 +169,12 @@ class SeparateOptimizer(Optimizer):
         param_rot = opt.optimize(params[self.rotation_index])
 
         # ################### Then Optimize for Translations ####################
+        logging.info('Optimizing Translation')
         self.target = 'Translation'
         self.target_index = self.position_index
         self.constant_index = self.rotation_index
         self.stop_conditions['Translation'].initialize()
-        self.constant_params = params[self.target_index]
+        self.constant_params = param_rot
 
         opt = nlopt.opt(C.GLOBAL_OPTIMIZER, self.n_param)
         opt.set_min_objective(self.objective)
@@ -214,9 +217,9 @@ class SeparateOptimizer(Optimizer):
         # append pose
         self.all_poses.append(np.r_[T.position, T.quaternion])
 
-        params, _ = self.kinematic_chain.get_params_at(self.i_su)
+        params, _ = self.kinematic_chain.get_params_at(i_su=self.i_su)
         e = self.error_functions[self.target](self.kinematic_chain, self.i_su)
         res = self.stop_conditions[self.target].update(params[self.target_index], None, e)
 
-        logging.info(f'e={res}, {params[self.target_index]}, P:{T.position}, Q:{T.quaternion}')
+        logging.info(f'e={e}, res={res}, {params[self.target_index]}, P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
         return res

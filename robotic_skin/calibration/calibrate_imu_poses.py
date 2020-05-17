@@ -72,7 +72,8 @@ class KinematicEstimator():
             optimize_all = False
 
         linkdh_dict = robot_configs['dh_parameter'] if not optimize_all else None
-        sudh_dict = robot_configs['su_dh_parameter']
+        sudh_dict = None
+        # sudh_dict = robot_configs['su_dh_parameter']
         eval_poses = np.array(robot_configs['eval_poses'])
 
         self.kinematic_chain = KinematicChain(
@@ -210,7 +211,7 @@ def parse_arguments():
     parser.add_argument('-e', '--all_error_functions', nargs='+', default=['StaticErrorFunction',
                                                                            'ConstantRotationErrorFunction'],
                         help="Please provide error function for each key provided")
-    parser.add_argument('-l', '--all_loss_functions', nargs='+', default=['L2Loss', 'L2Loss'],
+    parser.add_argument('-l', '--all_loss_functions', nargs='+', default=['L2Loss', 'L1Loss'],
                         help="Please provide a loss function for each key provided")
     parser.add_argument('-s', '--stop_conditions', nargs='+', default=['PassThroughStopCondition',
                                                                        'DeltaXStopCondition'],

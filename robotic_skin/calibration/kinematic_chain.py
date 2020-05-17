@@ -260,7 +260,7 @@ class KinematicChain():
         if start_joint == 0:
             return rs_T_dof[i_joint] * self.dof_T_su[i_su]
 
-        T = dof_T_dof[start_joint]
+        T = TM.from_numpy(np.zeros(4))
         for j in range(start_joint+1, i_joint+1):
             T = T * dof_T_dof[j]
         return T * self.dof_T_su[i_su]
@@ -276,7 +276,7 @@ class KinematicChain():
         if pose_type == 'current':
             return self._compute_su_TM(i_su, self.dof_Tc_dof, self.rs_Tc_dof, start_joint)
         else:
-            raise ValueError(f'Not such pose as {pose_type}')
+            raise ValueError(f'There is no such pose_type as {pose_type}')
 
     def set_sudh(self, i_su: int, params: np.ndarray) -> None:
         """
