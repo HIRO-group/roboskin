@@ -5,6 +5,7 @@ from robotic_skin.calibration.utils.io import n2s
 
 # Comment to open up PR
 
+
 def estimate_acceleration_analytically(kinemaic_chain, d_joint, i_su, curr_w):
     """
     Estimates the acceleration analytically.
