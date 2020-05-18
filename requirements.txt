@@ -1,6 +1,7 @@
 Cython
 future
 matplotlib
+torch
 numpy
 sphinx
 sphinx-autobuild
