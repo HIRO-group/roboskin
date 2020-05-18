@@ -219,7 +219,9 @@ class SeparateOptimizer(Optimizer):
 
         params, _ = self.kinematic_chain.get_params_at(i_su=self.i_su)
         e = self.error_functions[self.target](self.kinematic_chain, self.i_su)
+        # if self.target == 'Rotation':
+        #     e += np.linalg.norm(params[self.target_index])
         res = self.stop_conditions[self.target].update(params[self.target_index], None, e)
 
-        logging.info(f'e={e}, res={res}, {params[self.target_index]}, P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
+        logging.info(f'e={res}, {n2s(params, 3)}, P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
         return res

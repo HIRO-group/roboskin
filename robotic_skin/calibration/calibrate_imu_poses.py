@@ -97,6 +97,12 @@ class KinematicEstimator():
             stop_conditions_dict,
             optimize_all=optimize_all)
 
+        if optimize_all:
+            linkdh0 = np.array([0, 0.333, 0, 0])
+            su0 = np.random.rand(6)
+            params = np.r_[linkdh0, su0]
+            self.kinematic_chain.set_params_at(0, params)
+
         # TODO: Make this a Data Class
         self.all_euclidean_distances = []
         self.estimated_dh_params = []
@@ -114,6 +120,7 @@ class KinematicEstimator():
         """
         # Optimize each joint (& sensor) at a time from the root
         # currently starting from 6th skin unit
+
         print('Skipping 0th IMU')
         for i_su in range(1, self.n_sensor):
             print("Optimizing %ith SU ..." % (i_su))
@@ -204,9 +211,19 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Estimating IMU poses')
     parser.add_argument('-r', '--robot', type=str, default='panda',
                         help="Currently only 'panda' and 'sawyer' are supported")
+    parser.add_argument('-dd', '--datadir', type=str, default=None,
+                        help="Please provide a path to the data directory")
+    parser.add_argument('-cd', '--configdir', type=str, default=os.path.join(repodir, 'config'),
+                        help="Please provide a path to the config directory")
     parser.add_argument('-sf', '--savefile', type=str, default='estimate_imu_positions.txt',
                         help="Please Provide a filename for saving estimated IMU poses")
-    parser.add_argument('-cd', '--configdir', type=str, default=os.path.join(repodir, 'config'))
+    parser.add_argument('--log', type=str, default='WARNING',
+                        help="Please provide a log level")
+    parser.add_argument('-oa', '--optimizeall', action='store_true',
+                        help="Determines if the optimizer will be run to find all of the dh parameters.")
+
+    parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer',
+                        help="Please provide an optimizer function for each key provided")
     parser.add_argument('-k', '--all_keys', nargs='+', default=['Rotation', 'Translation'],
                         help="Please Provide a list of keys for the error functions and stop conditions dictionary")
     # parser.add_argument('-e', '--all_error_functions', nargs='+', default=['StaticErrorFunction',
@@ -219,21 +236,13 @@ def parse_arguments():
     parser.add_argument('-s', '--stop_conditions', nargs='+', default=['PassThroughStopCondition',
                                                                        'DeltaXStopCondition'],
                         help="Please provide a stop function for each key provided")
-    parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer',
-                        help="Please provide an optimizer function for each key provided")
-    parser.add_argument('-oa', '--optimizeall', action='store_true',
-                        help="Determines if the optimizer will be run to find all of the dh parameters.")
-    parser.add_argument('--log', type=str, default='WARNING',
-                        help="Please provide a log level")
-    parser.add_argument('--data_dir', type=str, default=None,
-                        help="Please provide a path to the data directory")
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_arguments()
 
-    measured_data = load_data(args.robot, args.data_dir)
+    measured_data = load_data(args.robot, args.datadir)
     robot_configs = load_robot_configs(args.configdir, args.robot)
 
     # Num of dict keys should be all equal

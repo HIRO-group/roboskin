@@ -1,7 +1,9 @@
 import logging
 import numpy as np
 import robotic_skin.const as C
+import pyquaternion as pyqt
 from robotic_skin.calibration.utils.io import n2s
+from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 
 
 def estimate_acceleration_analytically(kinemaic_chain, d_joint, i_su, curr_w):
@@ -201,24 +203,32 @@ class StaticErrorFunction(ErrorFunction):
             Static Error
 
         """  # noqa: W605
+        i_joint = kinematic_chain.su_joint_dict[i_su]
         gravities = np.zeros((self.n_static_pose, 3))
         gravity = np.array([[0, 0, 9.8], ] * self.n_static_pose, dtype=float)
+        error_quaternion = np.zeros(self.n_static_pose)
 
         for p in range(self.n_static_pose):
-            poses = self.data.static[self.pose_names[p]][self.imu_names[i_su]][3:10]
+            poses = self.data.static[self.pose_names[p]][self.imu_names[i_su]][7:14]
             kinematic_chain.set_poses(poses)
             T = kinematic_chain.compute_su_TM(i_su, pose_type='current')
-
+            # Account for Gravity
             rs_R_su = T.R
-
-            accel_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][:3]
+            accel_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][4:7]
             accel_rs = np.dot(rs_R_su, accel_su)
             gravities[p, :] = accel_rs
+            # Account of Quaternion
+            q_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][:4]
+            # d = pyqt.Quaternion.absolute_distance(T.q, np_to_pyqt(q_su))
+            d = np.linalg.norm(q_su - T.quaternion)
+            # logging.debug(f'Measured: {q_su}, Model: {T.quaternion}')
+            error_quaternion[p] = d
 
         # return np.sum(np.linalg.norm(gravities - np.mean(gravities, 0), axis=1))
         # return np.sum(np.linalg.norm(gravities - gravity, axis=1))
-        # return np.mean(np.linalg.norm(gravities - gravity, axis=1))
         return self.loss_func(gravities, gravity, axis=1)
+        # return self.loss_func(gravities, gravity, axis=1) + np.linalg.norm(error_quaternion)
+        # return np.linalg.norm(error_quaternion)
 
 
 class ConstantRotationErrorFunction(ErrorFunction):
