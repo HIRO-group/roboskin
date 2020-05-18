@@ -477,17 +477,27 @@ class KinematicChainTorch(KinematicChain):
         self.dof_T_vdof, self.vdof_T_su, self.dof_T_su = \
             self.__predefined_or_rand_sus(sudh_dict, bound_dict)
 
+    def __predefined_or_rand_dofs(self, linkdh_dict: dict, bound_dict: dict) -> List[TM]:
+        if linkdh_dict is None:
+            # Initialize DH parameters randomly within the given bounds
+            return [TM.from_bounds(bound_dict['link']).tensor_()
+                    for i in range(self.n_joint)]
+        else:
+            # Specified DH Parameters
+            return [TM.from_list(linkdh_dict[f'joint{i+1}']).tensor_()
+                    for i in range(self.n_joint)]
+
     def __predefined_or_rand_sus(self, sudh_dict: dict, bound_dict: dict) -> List[TM]:
         dof_T_vdof = []
         vdof_T_su = []
         dof_T_su = []
         for i in range(self.n_su):
             if sudh_dict is None:
-                _dof_T_vdof = TM.from_bounds(bound_dict['su'][:2, :], ['theta', 'd'])
-                _vdof_T_su = TM.from_bounds(bound_dict['su'][2:, :])
+                _dof_T_vdof = TM.from_bounds(bound_dict['su'][:2, :], ['theta', 'd']).tensor_()
+                _vdof_T_su = TM.from_bounds(bound_dict['su'][2:, :]).tensor_()
             else:
-                _dof_T_vdof = TM.from_list(sudh_dict[f'su{i+1}'][:2], ['theta', 'd'])
-                _vdof_T_su = TM.from_list(sudh_dict[f'su{i+1}'][2:])
+                _dof_T_vdof = TM.from_list(sudh_dict[f'su{i+1}'][:2], ['theta', 'd']).tensor_()
+                _vdof_T_su = TM.from_list(sudh_dict[f'su{i+1}'][2:]).tensor_()
             dof_T_vdof.append(_dof_T_vdof)
             vdof_T_su.append(_vdof_T_su)
             dof_T_su.append(_dof_T_vdof * _vdof_T_su)

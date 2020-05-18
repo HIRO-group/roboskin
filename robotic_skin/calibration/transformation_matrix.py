@@ -171,7 +171,8 @@ class TransformationMatrix():
         new_q = self.q * T.q
 
         T = TransformationMatrix()
-        T.tensor_()
+        if self.is_tensor:
+            T.tensor_()
         T.matrix = new_matrix
         T.q = new_q
         return T
