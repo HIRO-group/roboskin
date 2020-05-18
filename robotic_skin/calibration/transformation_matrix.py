@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 import pyquaternion as pyqt
 from robotic_skin.calibration.utils.quaternion import pyquat_to_numpy
 
@@ -24,6 +25,7 @@ class TransformationMatrix():
         """
         params = np.array([theta, d, a, alpha], dtype=float)
         # Only select provided keys (which are not None)
+        self.is_tensor = False
         self.key_index = np.argwhere(~np.isnan(params)).flatten()
         self.params = np.nan_to_num(params)
         self.matrix = self.transformation_matrix(*self.params)
@@ -107,12 +109,17 @@ class TransformationMatrix():
             [0, 0, 0, 1]
         ])
         """
-        return np.array([
+        mat = np.array([
             [np.cos(th), -np.sin(th), 0, a],
             [np.sin(th)*np.cos(al), np.cos(th)*np.cos(al), -np.sin(al), -d*np.sin(al)],
             [np.sin(th)*np.sin(al), np.cos(th)*np.sin(al), np.cos(al), d*np.cos(al)],
             [0, 0, 0, 1],
         ])
+        if self.is_tensor:
+            return torch.from_numpy(mat).float().requires_grad_(True)
+        else:
+            # standard np array.
+            return mat
 
     @classmethod
     def from_dict(cls, params_dict):
@@ -160,16 +167,17 @@ class TransformationMatrix():
             Resulting transformation matrix from dot products
             of two transformation matrices
         """
-        new_matrix = np.dot(self.matrix, T.matrix)
+        new_matrix = self.mm_fnc(self.matrix, T.matrix)
         new_q = self.q * T.q
 
         T = TransformationMatrix()
+        T.tensor_()
         T.matrix = new_matrix
         T.q = new_q
         return T
 
     def __call__(self, theta):
-        params = np.copy(self.params)
+        params = self.copy_fnc(self.params)
         params[0] += theta
         T = TransformationMatrix(*params)
 
@@ -218,7 +226,10 @@ class TransformationMatrix():
             DH parameters
         """
         T = TransformationMatrix.from_numpy(params, keys)
-        self.matrix = np.copy(T.matrix)
+        self.params = params
+        if self.is_tensor:
+            T.tensor_()
+        self.matrix = self.copy_fnc(T.matrix)
 
     @property
     def parameters(self):
@@ -231,4 +242,46 @@ class TransformationMatrix():
         return self.params[self.key_index]
 
     def __str__(self):
-        return np.array2string(self.matrix)
+        """
+        result of print(tmat)
+        or
+        str(tmat)
+        """
+        if self.is_tensor:
+            return str(self.matrix)
+        else:
+            return np.array2string(self.matrix)
+
+    def copy_fnc(self, input):
+        """
+        generic copy function.
+        """
+        if self.is_tensor:
+            input = torch.tensor(input)
+            return torch.clone(input).requires_grad_(True)
+        else:
+            return np.copy(input)
+
+    def mm_fnc(self, x1, x2):
+        """
+        depending on if the matrix was converted to a tensor,
+        determine the correct matrix multiplication function.
+        """
+        if self.is_tensor:
+            return torch.mm(x1, x2)
+        else:
+            return np.dot(x1, x2)
+
+    def tensor_(self):
+        """
+        converts transformation matrix to a tensor in place.
+        """
+        self.is_tensor = True
+        self.matrix = self.transformation_matrix(*self.params)
+
+    def numpy_(self):
+        """
+        converts transformation matrix to a numpy array in place.
+        """
+        self.is_tensor = False
+        self.matrix = self.transformation_matrix(*self.params)

@@ -224,4 +224,3 @@ class SeparateOptimizer(Optimizer):
 
         logging.info(f'e={e}, res={res}, {params[self.target_index]}, P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
         return res
-

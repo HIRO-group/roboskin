@@ -2,6 +2,7 @@ import copy
 import numpy as np
 from typing import List
 from .transformation_matrix import TransformationMatrix as TM
+import torch
 
 
 class KinematicChain():
@@ -378,5 +379,138 @@ class KinematicChain():
                 self.set_sudh(i_su, params)
 
 
-class KinematicChainTorch():
-    pass
+class KinematicChainTorch(KinematicChain):
+    def __init__(self, n_joint: int, su_joint_dict: dict,  # noqa: E999
+                 bound_dict: dict, linkdh_dict: dict = None,     # noqa: E999
+                 sudh_dict: dict = None, eval_poses: np.ndarray = None) -> None:
+
+        """
+        Defines a kinematic chain.
+        This class enables users to easily retrieve
+        Transformation Matrices to all joints and Skin Units (SU),
+        and their poses (positions and orientations).
+
+        :math:`dof_T*_dof` represents a list of Transformation Matrices
+        between each joint
+        :math:`rs_T*_dof` represents a list of Transformation Matrices
+        from RS frame to each joint
+
+        Arguments
+        -----------
+        su_joint_dict: dict
+            Which SU is attached to which joint.
+            The dict is {i_su: i_joint} where
+
+            ..math::
+                i_su = 0, ..., n_su-1
+                i_joint = 0, ..., n_joint-1
+
+        n_joint: int
+            number of joints
+        bound_dict: dict
+            Bounds of DH Parameters
+            {'link': np.ndarray (4, 2), 'su': np.ndarray (6, 2)}
+        linkdh_dict: dict
+            DH Parameters of all links.
+
+        Attributes
+        ------------
+        self.dof_T0_dof: List[TransformationMatrix]
+            Transformation Matices betw. joints at Origin Poses
+        self.dof_Tc_dof: List[TransformationMatrix]
+            Transformation Matices betw. joints at Current Poses
+        self.rs_T0_dof: List[TransformationMatrix]
+            Transformation Matices from RS to each joint at Origin Poses
+        self.rs_Tc_dof: List[TransformationMatrix]
+            Transformation Matices from RS to each joint at Current Poses
+        self.eval_poses: np.ndarray
+            Joint Poses at when each SU pose is evaluated.
+        self.current_poses: np.ndarray
+            Current Pose :math:`\vec{\theta}`
+        self.dof_T_vdof:
+            Transformation Mtarices from each joint to SU's virtual joint
+        self.vdof_T_su:
+            Transformation Mtarices from a virtual joint to its SU
+        self.dof_T_su:
+            Transformation Mtarices from each joint to its SU
+            Multiplication of self.dof_T_vdof and self.vdof_T_su
+        """
+        assert isinstance(n_joint, int)
+        assert isinstance(su_joint_dict, dict)
+        assert isinstance(bound_dict, dict)
+        assert len(su_joint_dict) != 0
+        assert 'link' in list(bound_dict.keys())
+        assert 'su' in list(bound_dict.keys())
+        assert bound_dict['link'].shape == (4, 2)
+        assert bound_dict['su'].shape == (6, 2)
+
+        if linkdh_dict is not None:
+            assert isinstance(linkdh_dict, dict)
+            assert len(linkdh_dict) == n_joint
+        if sudh_dict is not None:
+            assert isinstance(sudh_dict, dict)
+            assert len(sudh_dict) == len(su_joint_dict)
+        self.su_joint_dict = su_joint_dict
+        self.n_su = len(su_joint_dict)
+        self.n_joint = n_joint
+        self.bound_dict = bound_dict
+        self.linkdh_dict = linkdh_dict
+        self.sudh_dict = sudh_dict
+
+        self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+        self.eval_poses = torch.zeros(self.n_joint) if eval_poses is None else eval_poses
+        self.current_poses = torch.zeros(self.n_joint)
+
+        # At Original Poses (joints == 0 rad)
+        self.dof_T0_dof = self.__predefined_or_rand_dofs(linkdh_dict, bound_dict)
+        self.rs_T0_dof = self.__initialize_chains(self.dof_T0_dof)
+
+        self.rs_Te_dof = copy.deepcopy(self.rs_T0_dof)
+        self.dof_Te_dof = self.__apply_poses(self.eval_poses, self.dof_T0_dof, self.rs_Te_dof)
+
+        # At CURRENT pose (joints == current_poses)
+        self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
+        self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
+
+        # Construct Transformation Matrices for each SU from its previous joint
+        self.dof_T_vdof, self.vdof_T_su, self.dof_T_su = \
+            self.__predefined_or_rand_sus(sudh_dict, bound_dict)
+
+    def __predefined_or_rand_sus(self, sudh_dict: dict, bound_dict: dict) -> List[TM]:
+        dof_T_vdof = []
+        vdof_T_su = []
+        dof_T_su = []
+        for i in range(self.n_su):
+            if sudh_dict is None:
+                _dof_T_vdof = TM.from_bounds(bound_dict['su'][:2, :], ['theta', 'd'])
+                _vdof_T_su = TM.from_bounds(bound_dict['su'][2:, :])
+            else:
+                _dof_T_vdof = TM.from_list(sudh_dict[f'su{i+1}'][:2], ['theta', 'd'])
+                _vdof_T_su = TM.from_list(sudh_dict[f'su{i+1}'][2:])
+            dof_T_vdof.append(_dof_T_vdof)
+            vdof_T_su.append(_vdof_T_su)
+            dof_T_su.append(_dof_T_vdof * _vdof_T_su)
+        return dof_T_vdof, vdof_T_su, dof_T_su
+
+    def reset_poses(self):
+        """
+        Resets current and temporary poses to 0s.
+        Origin and Evaluation Poses will never be changed.
+        """
+        self.current_poses = torch.zeros(self.n_joint)
+        self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
+        self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
+
+    def set_poses(self, poses: np.ndarray,
+                  start_joint: int = 0, end_joint: int = None) -> None:
+        assert isinstance(poses, np.ndarray)
+        assert poses.size == self.n_joint
+        if end_joint is None:
+            end_joint = self.n_joint - 1
+        # Set current pose
+        self.current_poses[start_joint:end_joint+1] = poses[start_joint:end_joint+1]
+        # Compute dof_Tc_dof and update rs_Tc_dof
+        self.current_poses = torch.from_numpy(self.current_poses)
+        self.dof_Tc_dof = self.__apply_poses(
+            self.current_poses, self.dof_T0_dof, self.rs_Tc_dof, start_joint, end_joint)
