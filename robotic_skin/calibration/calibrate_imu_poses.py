@@ -159,7 +159,7 @@ class KinematicEstimator():
         return positions
 
 
-def load_data(robot):
+def load_data(robot, directory=None):
     """
     Function for collecting acceleration data with poses
 
@@ -178,10 +178,11 @@ def load_data(robot):
             else:
                 return pickle.load(f, encoding='latin1')
 
-    try:
-        directory = os.path.join(rospkg.RosPack().get_path('ros_robotic_skin'), 'data')
-    except Exception:
-        print('ros_robotic_skin not installed in the catkin workspace')
+    if directory is None:
+        try:
+            directory = os.path.join(rospkg.RosPack().get_path('ros_robotic_skin'), 'data')
+        except Exception:
+            raise FileNotFoundError('ros_robotic_skin not installed in the catkin workspace')
 
     static = read_pickle('static_data', robot)
     constant = read_pickle('constant_data', robot)
@@ -224,13 +225,15 @@ def parse_arguments():
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
     parser.add_argument('--log', type=str, default='WARNING',
                         help="Please provide a log level")
+    parser.add_argument('--data_dir', type=str, default=None,
+                        help="Please provide a path to the data directory")
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_arguments()
 
-    measured_data = load_data(args.robot)
+    measured_data = load_data(args.robot, args.data_dir)
     robot_configs = load_robot_configs(args.configdir, args.robot)
 
     # Num of dict keys should be all equal
