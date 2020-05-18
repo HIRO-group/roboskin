@@ -268,6 +268,8 @@ class TransformationMatrix():
         depending on if the matrix was converted to a tensor,
         determine the correct matrix multiplication function.
         """
+        if type(x1) != type(x2):
+            raise TypeError("Matrices are of different types.")
         if self.is_tensor:
             return torch.mm(x1, x2)
         else:
