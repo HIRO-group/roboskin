@@ -151,27 +151,54 @@
 <span class="kn">from</span> <span class="nn">geometry_msgs.msg</span> <span class="kn">import</span> <span class="n">Quaternion</span>
 
 
-<div class="viewcode-block" id="tfquat_to_pyquat"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.quaternion.tfquat_to_pyquat">[docs]</a><span class="k">def</span> <span class="nf">tfquat_to_pyquat</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+<div class="viewcode-block" id="tf_to_pyqt"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.quaternion.tf_to_pyqt">[docs]</a><span class="k">def</span> <span class="nf">tf_to_pyqt</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Converts a tf quaternion to a pyqt quaternion</span>
+<span class="sd">    Convert a tf quaternion to a pyqt array.</span>
+<span class="sd">    Order of a tf quaternion</span>
+<span class="sd">    q = (x, y, z, w)</span>
+
+<span class="sd">    Order of a pyqt quaternion</span>
+<span class="sd">    q = (w, x, y, z)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="n">q</span><span class="o">.</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">q</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">q</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">q</span><span class="o">.</span><span class="n">z</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="pyquat_to_tfquat"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.quaternion.pyquat_to_tfquat">[docs]</a><span class="k">def</span> <span class="nf">pyquat_to_tfquat</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+<div class="viewcode-block" id="pyqt_to_tf"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.quaternion.pyqt_to_tf">[docs]</a><span class="k">def</span> <span class="nf">pyqt_to_tf</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Converts a pyqt quaternion to a tf quaternion</span>
+<span class="sd">    Convert a pyqt quaternion to a tf array.</span>
+<span class="sd">    Order of a tf quaternion</span>
+<span class="sd">    q = (x, y, z, w)</span>
+
+<span class="sd">    Order of a pyqt quaternion</span>
+<span class="sd">    q = (w, x, y, z)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">elements</span>
     <span class="k">return</span> <span class="n">Quaternion</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
 
 
-<div class="viewcode-block" id="pyquat_to_numpy"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.quaternion.pyquat_to_numpy">[docs]</a><span class="k">def</span> <span class="nf">pyquat_to_numpy</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+<div class="viewcode-block" id="pyqt_to_np"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.quaternion.pyqt_to_np">[docs]</a><span class="k">def</span> <span class="nf">pyqt_to_np</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert a pyqt quaternion to a numpy array.</span>
+<span class="sd">    Order of a numpy quaternion</span>
+<span class="sd">    q = (x, y, z, w)</span>
+
+<span class="sd">    Order of a pyqt quaternion</span>
+<span class="sd">    q = (w, x, y, z)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">elements</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span></div>
+
+
+<div class="viewcode-block" id="np_to_pyqt"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.quaternion.np_to_pyqt">[docs]</a><span class="k">def</span> <span class="nf">np_to_pyqt</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a numpyp quaternion to a pyqt array.</span>
+<span class="sd">    Order of a numpy quaternion</span>
+<span class="sd">    q = (x, y, z, w)</span>
+
+<span class="sd">    Order of a pyqt quaternion</span>
+<span class="sd">    q = (w, x, y, z)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="o">=</span><span class="n">q</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">w</span><span class="o">=</span><span class="n">q</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="quaternion_l2_distance"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.quaternion.quaternion_l2_distance">[docs]</a><span class="k">def</span> <span class="nf">quaternion_l2_distance</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>

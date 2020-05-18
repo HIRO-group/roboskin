@@ -244,15 +244,33 @@ Angle between quaternions in degrees</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="robotic_skin.calibration.utils.quaternion.pyquat_to_numpy">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.quaternion.</code><code class="sig-name descname">pyquat_to_numpy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#pyquat_to_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion.pyquat_to_numpy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a pyqt quaternion to a numpy array.</p>
+<dt id="robotic_skin.calibration.utils.quaternion.np_to_pyqt">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.quaternion.</code><code class="sig-name descname">np_to_pyqt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#np_to_pyqt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion.np_to_pyqt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a numpyp quaternion to a pyqt array.
+Order of a numpy quaternion
+q = (x, y, z, w)</p>
+<p>Order of a pyqt quaternion
+q = (w, x, y, z)</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="robotic_skin.calibration.utils.quaternion.pyquat_to_tfquat">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.quaternion.</code><code class="sig-name descname">pyquat_to_tfquat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#pyquat_to_tfquat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion.pyquat_to_tfquat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a pyqt quaternion to a tf quaternion</p>
+<dt id="robotic_skin.calibration.utils.quaternion.pyqt_to_np">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.quaternion.</code><code class="sig-name descname">pyqt_to_np</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#pyqt_to_np"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion.pyqt_to_np" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a pyqt quaternion to a numpy array.
+Order of a numpy quaternion
+q = (x, y, z, w)</p>
+<p>Order of a pyqt quaternion
+q = (w, x, y, z)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.quaternion.pyqt_to_tf">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.quaternion.</code><code class="sig-name descname">pyqt_to_tf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#pyqt_to_tf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion.pyqt_to_tf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a pyqt quaternion to a tf array.
+Order of a tf quaternion
+q = (x, y, z, w)</p>
+<p>Order of a pyqt quaternion
+q = (w, x, y, z)</p>
 </dd></dl>
 
 <dl class="py function">
@@ -273,9 +291,13 @@ sources:
 </dd></dl>
 
 <dl class="py function">
-<dt id="robotic_skin.calibration.utils.quaternion.tfquat_to_pyquat">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.quaternion.</code><code class="sig-name descname">tfquat_to_pyquat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#tfquat_to_pyquat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion.tfquat_to_pyquat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a tf quaternion to a pyqt quaternion</p>
+<dt id="robotic_skin.calibration.utils.quaternion.tf_to_pyqt">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.quaternion.</code><code class="sig-name descname">tf_to_pyqt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#tf_to_pyqt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.quaternion.tf_to_pyqt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a tf quaternion to a pyqt array.
+Order of a tf quaternion
+q = (x, y, z, w)</p>
+<p>Order of a pyqt quaternion
+q = (w, x, y, z)</p>
 </dd></dl>
 
 </div>
@@ -308,21 +330,33 @@ sources:
 </dd></dl>
 
 <dl class="py function">
-<dt id="robotic_skin.calibration.utils.tfquat_to_pyquat">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">tfquat_to_pyquat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#tfquat_to_pyquat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.tfquat_to_pyquat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a tf quaternion to a pyqt quaternion</p>
+<dt id="robotic_skin.calibration.utils.tf_to_pyqt">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">tf_to_pyqt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#tf_to_pyqt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.tf_to_pyqt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a tf quaternion to a pyqt array.
+Order of a tf quaternion
+q = (x, y, z, w)</p>
+<p>Order of a pyqt quaternion
+q = (w, x, y, z)</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="robotic_skin.calibration.utils.pyquat_to_tfquat">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">pyquat_to_tfquat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#pyquat_to_tfquat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.pyquat_to_tfquat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a pyqt quaternion to a tf quaternion</p>
+<dt id="robotic_skin.calibration.utils.pyqt_to_tf">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">pyqt_to_tf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#pyqt_to_tf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.pyqt_to_tf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a pyqt quaternion to a tf array.
+Order of a tf quaternion
+q = (x, y, z, w)</p>
+<p>Order of a pyqt quaternion
+q = (w, x, y, z)</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="robotic_skin.calibration.utils.pyquat_to_numpy">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">pyquat_to_numpy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#pyquat_to_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.pyquat_to_numpy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a pyqt quaternion to a numpy array.</p>
+<dt id="robotic_skin.calibration.utils.pyqt_to_np">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">pyqt_to_np</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#pyqt_to_np"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.pyqt_to_np" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a pyqt quaternion to a numpy array.
+Order of a numpy quaternion
+q = (x, y, z, w)</p>
+<p>Order of a pyqt quaternion
+q = (w, x, y, z)</p>
 </dd></dl>
 
 <dl class="py function">
