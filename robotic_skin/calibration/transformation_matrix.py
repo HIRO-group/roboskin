@@ -278,11 +278,22 @@ class TransformationMatrix():
         converts transformation matrix to a tensor in place.
         """
         self.is_tensor = True
-        self.matrix = self.transformation_matrix(*self.params)
+        if type(self.matrix) == torch.Tensor:
+            pass
+        elif type(self.matrix) == np.ndarray:
+            self.matrix = torch.from_numpy(self.matrix).float().requires_grad_(True)
+        else:
+            raise TypeError("self.matrix is of wrong type!")
 
     def numpy_(self):
         """
         converts transformation matrix to a numpy array in place.
         """
         self.is_tensor = False
-        self.matrix = self.transformation_matrix(*self.params)
+
+        if type(self.matrix) == torch.Tensor:
+            self.matrix = self.matrix.detach().numpy()
+        elif type(self.matrix) == np.ndarray:
+            pass
+        else:
+            raise TypeError("self.matrix is of wrong type!")
