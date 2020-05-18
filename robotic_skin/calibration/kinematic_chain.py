@@ -2,7 +2,7 @@ import copy
 import numpy as np
 from typing import List
 from .transformation_matrix import TransformationMatrix as TM
-import torch
+# import torch
 
 
 class KinematicChain():
