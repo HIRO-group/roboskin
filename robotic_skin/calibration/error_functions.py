@@ -203,7 +203,6 @@ class StaticErrorFunction(ErrorFunction):
             Static Error
 
         """  # noqa: W605
-        i_joint = kinematic_chain.su_joint_dict[i_su]
         gravities = np.zeros((self.n_static_pose, 3))
         gravity = np.array([[0, 0, 9.8], ] * self.n_static_pose, dtype=float)
         error_quaternion = np.zeros(self.n_static_pose)
@@ -219,7 +218,7 @@ class StaticErrorFunction(ErrorFunction):
             gravities[p, :] = accel_rs
             # Account of Quaternion
             q_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][:4]
-            # d = pyqt.Quaternion.absolute_distance(T.q, np_to_pyqt(q_su))
+            d = pyqt.Quaternion.absolute_distance(T.q, np_to_pyqt(q_su))
             d = np.linalg.norm(q_su - T.quaternion)
             # logging.debug(f'Measured: {q_su}, Model: {T.quaternion}')
             error_quaternion[p] = d
