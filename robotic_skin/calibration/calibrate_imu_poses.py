@@ -146,16 +146,12 @@ class KinematicEstimator():
             print('Quaternion:', T.quaternion)
             print('Euclidean distance between real and predicted points: ', euclidean_distance)
             print('='*100)
+        print("Average Euclidean distance = ", np.mean(self.all_euclidean_distances))
 
         self.all_euclidean_distances = np.array(self.all_euclidean_distances)
         self.all_orientations = np.array(self.all_orientations)
 
-        # once done, save to file.
-        ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
-        save_path = os.path.join(ros_robotic_skin_path, 'data', f'{self.method_name}_data.pkl')  # noqa: E999
-        pickle.dump(self.cumulative_data, open(save_path, "wb"), protocol=2)
-
-        print("Average Euclidean distance = ", np.mean(self.all_euclidean_distances))
+        return self.cumulative_data
 
     def get_all_accelerometer_positions(self):
         positions = []
@@ -166,7 +162,17 @@ class KinematicEstimator():
         return positions
 
 
-def load_data(robot, directory=None):
+def parse_datadir(datadir):
+    if datadir is None:
+        try:
+            datadir = os.path.join(rospkg.RosPack().get_path('ros_robotic_skin'), 'data')
+        except Exception:
+            raise FileNotFoundError('ros_robotic_skin not installed in the catkin workspace')
+
+    return datadir
+
+
+def load_data(robot, directory):
     """
     Function for collecting acceleration data with poses
 
@@ -184,12 +190,6 @@ def load_data(robot, directory=None):
                 return pickle.load(f)
             else:
                 return pickle.load(f, encoding='latin1')
-
-    if directory is None:
-        try:
-            directory = os.path.join(rospkg.RosPack().get_path('ros_robotic_skin'), 'data')
-        except Exception:
-            raise FileNotFoundError('ros_robotic_skin not installed in the catkin workspace')
 
     static = read_pickle('static_data', robot)
     constant = read_pickle('constant_data', robot)
@@ -221,6 +221,8 @@ def parse_arguments():
                         help="Please provide a log level")
     parser.add_argument('-oa', '--optimizeall', action='store_true',
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
+    parser.add_argument('--method_name', type=str, default='OM',
+                        help="Please provide a method name")
 
     parser.add_argument('-0', '--optimizer', type=str, default='SeparateOptimizer',
                         help="Please provide an optimizer function for each key provided")
@@ -241,8 +243,9 @@ def parse_arguments():
 
 if __name__ == '__main__':
     args = parse_arguments()
+    datadir = parse_datadir(args.datadir)
 
-    measured_data = load_data(args.robot, args.datadir)
+    measured_data = load_data(args.robot, datadir)
     robot_configs = load_robot_configs(args.configdir, args.robot)
 
     # Num of dict keys should be all equal
@@ -273,11 +276,14 @@ if __name__ == '__main__':
     estimator = KinematicEstimator(measured_data, robot_configs, optimizer,
                                    gen_error_functions_dict, gen_stop_conditions_dict, args.optimizeall)
     # Run Optimization
-    estimator.optimize()
+    cumulative_pose_data = estimator.optimize()
+
+    # once done, save to file.
+    save_path = os.path.join(datadir, f'{args.method_name}_data.pkl')
+    pickle.dump(cumulative_pose_data, open(save_path, "wb"), protocol=2)
 
     # Get the estimated data
     data = estimator.get_all_accelerometer_positions()
     # Save the data in a file
-    ros_robotic_skin_path = rospkg.RosPack().get_path('ros_robotic_skin')
-    save_path = os.path.join(ros_robotic_skin_path, 'data', args.savefile)
+    save_path = os.path.join(datadir, args.savefile)
     np.savetxt(save_path, data)
