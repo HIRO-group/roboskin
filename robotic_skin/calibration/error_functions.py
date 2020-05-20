@@ -29,7 +29,7 @@ def initialize_transformation_matrices(kinematic_chain, d_joint, i_su):
     return rs_T_su, dof_T_su
 
 
-def initialize_acceleration_variables(curr_w, dof_T_su: TM):
+def initialize_acceleration_variables(curr_w, dof_T_su):
     """
     Initializes variables used in analytical and numerical estimations of acceleration
 
