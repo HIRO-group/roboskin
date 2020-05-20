@@ -26,6 +26,7 @@ def initialize_transformation_matrices(kinematic_chain, d_joint, i_su):
         pose_type='current')
     return rs_T_su, dof_T_su
 
+
 def estimate_acceleration_analytically(kinematic_chain, d_joint, i_su, curr_w):
     """
     Estimates the acceleration analytically.
