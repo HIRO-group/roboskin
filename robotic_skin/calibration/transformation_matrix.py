@@ -299,3 +299,19 @@ class TransformationMatrix():
             pass
         else:
             raise TypeError("self.matrix is of wrong type!")
+
+    def tensor(self):
+        """
+        converts transformation matrix to tensor,
+        and returns the class.
+        """
+        self.tensor_()
+        return self
+
+    def numpy(self):
+        """
+        converts transformation matrix to np array,
+        and returns the class.
+        """
+        self.numpy_()
+        return self
