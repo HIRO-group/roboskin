@@ -6,6 +6,26 @@ from robotic_skin.calibration.utils.io import n2s
 # Comment to open up PR
 
 
+def initialize_transformation_matrices(d_joint, i_su):
+    """
+    Initializes transformation matrices used in analytical and numerical estimations of acceleration
+
+    Arguments
+    ---------
+    'd_joint': 'int'
+        dof 'd'
+    'i': 'int'
+        imu 'i'
+    """
+    rs_T_su = kinemaic_chain.compute_su_TM(
+        i_su=i_su, pose_type='current')
+
+    dof_T_su = kinemaic_chain.compute_su_TM(
+        start_joint=d_joint,
+        i_su=i_su,
+        pose_type='current')
+    return rs_T_su, dof_T_su
+
 def estimate_acceleration_analytically(kinemaic_chain, d_joint, i_su, curr_w):
     """
     Estimates the acceleration analytically.
@@ -21,13 +41,7 @@ def estimate_acceleration_analytically(kinemaic_chain, d_joint, i_su, curr_w):
     `curr_w`: `int`
         Angular velocity
     """
-    rs_T_su = kinemaic_chain.compute_su_TM(
-        i_su=i_su, pose_type='current')
-
-    dof_T_su = kinemaic_chain.compute_su_TM(
-        start_joint=d_joint,
-        i_su=i_su,
-        pose_type='current')
+    rs_T_su, dof_T_su = initialize_transformation_matrices(d_joint, i_su)
 
     # Every joint rotates along its own z axis
     w_dofd = np.array([0, 0, curr_w])
@@ -46,7 +60,7 @@ def estimate_acceleration_numerically(kinematic_chain, d_joint, i_su, curr_w, ma
                                       apply_normal_mittendorder=False):
     """
     Compute an acceleration value from positions.
-    .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`
+    .. math:: `a = \frac{f({\Delta t}) + f({\Delta t}) - 2 f(0)}{h^2}`
 
     This equation came from Taylor Expansion to get the second derivative from f(t).
     .. math:: f(t+{\Delta t}) = f(t) + hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)
@@ -66,20 +80,14 @@ def estimate_acceleration_numerically(kinematic_chain, d_joint, i_su, curr_w, ma
         Angular velocity
     apply_normal_mittendorfer: bool
         determines if we resort to the normal method
-        mittendorfer uses (which we modified due to some possible missing terms
+        mittendorfer uses (which we modified due to some possible missing terms)
 
     Returns
     ---------
     acceleration: np.array
         Acceleration computed from positions
     """  # noqa: W605
-    rs_T_su = kinematic_chain.compute_su_TM(
-        i_su=i_su, pose_type='current')
-
-    dof_T_su = kinematic_chain.compute_su_TM(
-        start_joint=d_joint,
-        i_su=i_su,
-        pose_type='current')
+    rs_T_su, dof_T_su = initialize_transformation_matrices(d_joint, i_su)
 
     # rotation matrix of reference segment to skin unit
     su_R_rs = rs_T_su.R.T
