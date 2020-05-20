@@ -6,7 +6,7 @@ from robotic_skin.calibration.utils.io import n2s
 # Comment to open up PR
 
 
-def initialize_transformation_matrices(d_joint, i_su):
+def initialize_transformation_matrices(kinematic_chain, d_joint, i_su):
     """
     Initializes transformation matrices used in analytical and numerical estimations of acceleration
 
@@ -17,10 +17,10 @@ def initialize_transformation_matrices(d_joint, i_su):
     'i': 'int'
         imu 'i'
     """
-    rs_T_su = kinemaic_chain.compute_su_TM(
+    rs_T_su = kinematic_chain.compute_su_TM(
         i_su=i_su, pose_type='current')
 
-    dof_T_su = kinemaic_chain.compute_su_TM(
+    dof_T_su = kinematic_chain.compute_su_TM(
         start_joint=d_joint,
         i_su=i_su,
         pose_type='current')
@@ -41,7 +41,7 @@ def estimate_acceleration_analytically(kinematic_chain, d_joint, i_su, curr_w):
     `curr_w`: `int`
         Angular velocity
     """
-    rs_T_su, dof_T_su = initialize_transformation_matrices(d_joint, i_su)
+    rs_T_su, dof_T_su = initialize_transformation_matrices(kinematic_chain, d_joint, i_su)
 
     # Every joint rotates along its own z axis
     w_dofd = np.array([0, 0, curr_w])
@@ -87,7 +87,7 @@ def estimate_acceleration_numerically(kinematic_chain, d_joint, i_su, curr_w, ma
     acceleration: np.array
         Acceleration computed from positions
     """  # noqa: W605
-    rs_T_su, dof_T_su = initialize_transformation_matrices(d_joint, i_su)
+    rs_T_su, dof_T_su = initialize_transformation_matrices(kinematic_chain, d_joint, i_su)
 
     # rotation matrix of reference segment to skin unit
     su_R_rs = rs_T_su.R.T
