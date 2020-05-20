@@ -171,6 +171,17 @@ class ErrorFunction():
         raise NotImplementedError()
 
 
+class CombinedErrorFunction():
+    def __init__(self, error_funcs):
+        self.error_funcs = error_funcs
+
+    def __call__(self, kinematic_chain, i_su):
+        e = 0.0
+        for error_function in self.error_funcs:
+            e += error_function(kinematic_chain, i_su)
+        return e
+
+
 class StaticErrorFunction(ErrorFunction):
     """
     Static error is an deviation of the gravity vector for p positions.
@@ -223,11 +234,7 @@ class StaticErrorFunction(ErrorFunction):
             # logging.debug(f'Measured: {q_su}, Model: {T.quaternion}')
             error_quaternion[p] = d
 
-        # return np.sum(np.linalg.norm(gravities - np.mean(gravities, 0), axis=1))
-        # return np.sum(np.linalg.norm(gravities - gravity, axis=1))
         return self.loss_func(gravities, gravity, axis=1)
-        # return self.loss_func(gravities, gravity, axis=1) + np.linalg.norm(error_quaternion)
-        # return np.linalg.norm(error_quaternion)
 
 
 class ConstantRotationErrorFunction(ErrorFunction):
@@ -255,7 +262,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
         i_joint = kinematic_chain.su_joint_dict[i_su]
 
         errors = 0.0
-        n_data = 0
+        n_error = 0
         for p in range(self.n_constant_pose):
             # for d in range(i+1):
             for d_joint in range(max(0, i_joint-2), i_joint+1):
@@ -287,9 +294,9 @@ class ConstantRotationErrorFunction(ErrorFunction):
                     error2 = self.loss_func(model_accel, meas_accel)
 
                     errors += error2
-                    n_data += 1
+                    n_error += 1
 
-        return errors/n_data
+        return errors/n_error
 
 
 class MaxAccelerationErrorFunction(ErrorFunction):
