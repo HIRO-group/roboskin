@@ -12,6 +12,8 @@ def initialize_transformation_matrices(kinematic_chain, d_joint, i_su):
 
     Arguments
     ---------
+    `kinematic_chain`: `robotic_skin.calibration.kinematic_chain.KinematicChain`
+        Robot's Kinematic Chain
     'd_joint': 'int'
         dof 'd'
     'i': 'int'
@@ -25,6 +27,26 @@ def initialize_transformation_matrices(kinematic_chain, d_joint, i_su):
         i_su=i_su,
         pose_type='current')
     return rs_T_su, dof_T_su
+
+
+def initialize_acceleration_variables(curr_w, dof_T_su: TM):
+    """
+    Initializes variables used in analytical and numerical estimations of acceleration
+
+    Arguments
+    ---------
+    `curr_w`: `int`
+        Angular velocity
+    'dof_T_su': 'TM'
+        Transformation matrix between skin unit and DoF
+    """
+    # we need centripetal acceleration here
+    w_dofd = np.array([0, 0, curr_w])
+    a_dofd = np.cross(w_dofd, np.cross(w_dofd, dof_T_su.position))
+
+    a_centric_su = np.dot(dof_T_su.R.T, a_dofd)
+
+    return w_dofd, a_dofd, a_centric_su
 
 
 def estimate_acceleration_analytically(kinematic_chain, d_joint, i_su, curr_w):
@@ -45,14 +67,12 @@ def estimate_acceleration_analytically(kinematic_chain, d_joint, i_su, curr_w):
     rs_T_su, dof_T_su = initialize_transformation_matrices(kinematic_chain, d_joint, i_su)
 
     # Every joint rotates along its own z axis
-    w_dofd = np.array([0, 0, curr_w])
-    a_dofd = np.cross(w_dofd, np.cross(w_dofd, dof_T_su.position))
+    w_dofd, a_dofd, a_centric_su = initialize_acceleration_variables(curr_w, dof_T_su)
 
+    # Gravity vectors of reference segment and skin unit
     g_rs = np.array([0, 0, 9.81])
     g_su = np.dot(rs_T_su.R.T, g_rs)
-    a_centic_su = np.dot(dof_T_su.R.T, a_dofd)
-
-    a_su = a_centic_su + g_su
+    a_su = a_centric_su + g_su
 
     return a_su
 
@@ -119,12 +139,10 @@ def estimate_acceleration_numerically(kinematic_chain, d_joint, i_su, curr_w, ma
         return np.dot(su_R_rs, accel_rs)
 
     # we need centripetal acceleration here.
-    w_dofd = np.array([0, 0, curr_w])
-    a_dofd = np.cross(w_dofd, np.cross(w_dofd, dof_T_su.position))
+    w_dofd, a_dofd, a_centric_su = initialize_acceleration_variables(curr_w, dof_T_su)
 
     # Every joint rotates along its own z axis, one joint moves at a time
     # rotate into su frame
-    a_centric_su = np.dot(dof_T_su.R.T, a_dofd)
     a_tan_su = np.dot(su_R_rs, accel_rs)
     accel_su = a_centric_su + a_tan_su
     # estimate acceleration of skin unit
