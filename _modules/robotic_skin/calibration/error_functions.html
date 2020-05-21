@@ -294,13 +294,16 @@
 <span class="sd">    Error Function class used to evaluate kinematics</span>
 <span class="sd">    estimation models.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loss</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parses the data and gets the loss function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">loss_func</span> <span class="o">=</span> <span class="n">loss_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">loss</span>
 
+<div class="viewcode-block" id="ErrorFunction.initialize"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.ErrorFunction.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -309,24 +312,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_sensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_sensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span></div>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        __call__ is to be used on returning an error value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not Initialized&#39;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="CombinedErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.CombinedErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">CombinedErrorFunction</span><span class="p">():</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_funcs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span> <span class="o">=</span> <span class="n">error_funcs</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
-        <span class="n">e</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="k">for</span> <span class="n">error_function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span><span class="p">:</span>
-            <span class="n">e</span> <span class="o">+=</span> <span class="n">error_function</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">e</span></div>
 
 
 <div class="viewcode-block" id="StaticErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.StaticErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">StaticErrorFunction</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>
@@ -334,8 +328,8 @@
 <span class="sd">    Static error is an deviation of the gravity vector for p positions.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loss</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -361,6 +355,9 @@
 <span class="sd">            Static Error</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not Initialized&#39;</span><span class="p">)</span>
+
         <span class="n">gravities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="n">gravity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.8</span><span class="p">],</span> <span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">error_quaternion</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">)</span>
@@ -381,7 +378,7 @@
             <span class="c1"># logging.debug(f&#39;Measured: {q_su}, Model: {T.quaternion}&#39;)</span>
             <span class="n">error_quaternion</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_func</span><span class="p">(</span><span class="n">gravities</span><span class="p">,</span> <span class="n">gravity</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">gravities</span><span class="p">,</span> <span class="n">gravity</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ConstantRotationErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.ConstantRotationErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">ConstantRotationErrorFunction</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>
@@ -389,8 +386,8 @@
 <span class="sd">    An error function used when a robotic arm&#39;s joints</span>
 <span class="sd">    are moving at a constant velocity.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loss</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -406,6 +403,9 @@
 <span class="sd">        e1: float</span>
 <span class="sd">            Static Error</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not Initialized&#39;</span><span class="p">)</span>
+
         <span class="n">i_joint</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">su_joint_dict</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span>
 
         <span class="n">errors</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -438,7 +438,7 @@
                     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[Pose</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s1">, Joint</span><span class="si">{</span><span class="n">d_joint</span><span class="si">}</span><span class="s1">, SU</span><span class="si">{</span><span class="n">i_su</span><span class="si">}</span><span class="s1">@Joint</span><span class="si">{</span><span class="n">i_joint</span><span class="si">}</span><span class="s1">, Data</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s1">]</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span>
                                   <span class="sa">f</span><span class="s1">&#39;Model: </span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">model_accel</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s1"> SU: </span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">meas_accel</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
-                    <span class="n">error2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_func</span><span class="p">(</span><span class="n">model_accel</span><span class="p">,</span> <span class="n">meas_accel</span><span class="p">)</span>
+                    <span class="n">error2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">model_accel</span><span class="p">,</span> <span class="n">meas_accel</span><span class="p">)</span>
 
                     <span class="n">errors</span> <span class="o">+=</span> <span class="n">error2</span>
                     <span class="n">n_error</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -451,8 +451,8 @@
 <span class="sd">    Compute errors between estimated and measured max acceleration for sensor i</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">,</span> <span class="n">apply_normal_mittendorfer</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">loss_func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">apply_normal_mittendorfer</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">apply_normal_mittendorfer</span> <span class="o">=</span> <span class="n">apply_normal_mittendorfer</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
@@ -473,6 +473,9 @@
 <span class="sd">        e2: float</span>
 <span class="sd">            Dynamic Error</span>
 <span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not Initialized&#39;</span><span class="p">)</span>
+
         <span class="n">i_joint</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">su_joint_dict</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span>
 
         <span class="n">e2</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -499,6 +502,25 @@
                 <span class="n">n_data</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="k">return</span> <span class="n">e2</span><span class="o">/</span><span class="n">n_data</span></div>
+
+
+<div class="viewcode-block" id="CombinedErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.CombinedErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">CombinedErrorFunction</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">ErrorFunction</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Only ErrorFunction class is allowed&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CombinedErrorFunction.initialize"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.CombinedErrorFunction.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">error_function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span><span class="p">:</span>
+            <span class="n">error_function</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">error_function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">+=</span> <span class="n">error_function</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">e</span></div>
 </pre></div>
 
            </div>
