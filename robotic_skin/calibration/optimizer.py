@@ -4,9 +4,17 @@ import nlopt
 
 # import robotic_skin
 import robotic_skin.const as C
-from robotic_skin.calibration.error_functions import *
-from robotic_skin.calibration.stop_conditions import *
-from robotic_skin.calibration.loss import *
+from robotic_skin.calibration.error_functions import (
+    ConstantRotationErrorFunction,
+    CombinedErrorFunction,
+    StaticErrorFunction,
+    MaxAccelerationErrorFunction
+)
+from robotic_skin.calibration.stop_conditions import (
+    PassThroughStopCondition,
+    DeltaXStopCondition
+)
+from robotic_skin.calibration.loss import L1Loss, L2Loss
 from robotic_skin.calibration.utils.io import n2s
 
 
