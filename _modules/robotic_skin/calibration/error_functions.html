@@ -148,7 +148,9 @@
 <span></span><span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">robotic_skin.const</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">pyquaternion</span> <span class="k">as</span> <span class="nn">pyqt</span>
 <span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils.io</span> <span class="kn">import</span> <span class="n">n2s</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils.quaternion</span> <span class="kn">import</span> <span class="n">np_to_pyqt</span>
 
 
 <div class="viewcode-block" id="estimate_acceleration_analytically"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.estimate_acceleration_analytically">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration_analytically</span><span class="p">(</span><span class="n">kinemaic_chain</span><span class="p">,</span> <span class="n">d_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">):</span>
@@ -316,6 +318,17 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
 
+<div class="viewcode-block" id="CombinedErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.CombinedErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">CombinedErrorFunction</span><span class="p">():</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_funcs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span> <span class="o">=</span> <span class="n">error_funcs</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">error_function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">+=</span> <span class="n">error_function</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">e</span></div>
+
+
 <div class="viewcode-block" id="StaticErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.StaticErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">StaticErrorFunction</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Static error is an deviation of the gravity vector for p positions.</span>
@@ -350,21 +363,24 @@
 <span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
         <span class="n">gravities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="n">gravity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.8</span><span class="p">],</span> <span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">error_quaternion</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">):</span>
-            <span class="n">poses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][</span><span class="mi">3</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+            <span class="n">poses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][</span><span class="mi">7</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span>
             <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_poses</span><span class="p">(</span><span class="n">poses</span><span class="p">)</span>
             <span class="n">T</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
-
+            <span class="c1"># Account for Gravity</span>
             <span class="n">rs_R_su</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">R</span>
-
-            <span class="n">accel_su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][:</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">accel_su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][</span><span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span>
             <span class="n">accel_rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rs_R_su</span><span class="p">,</span> <span class="n">accel_su</span><span class="p">)</span>
             <span class="n">gravities</span><span class="p">[</span><span class="n">p</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">accel_rs</span>
+            <span class="c1"># Account of Quaternion</span>
+            <span class="n">q_su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][:</span><span class="mi">4</span><span class="p">]</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="o">.</span><span class="n">absolute_distance</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="n">np_to_pyqt</span><span class="p">(</span><span class="n">q_su</span><span class="p">))</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">q_su</span> <span class="o">-</span> <span class="n">T</span><span class="o">.</span><span class="n">quaternion</span><span class="p">)</span>
+            <span class="c1"># logging.debug(f&#39;Measured: {q_su}, Model: {T.quaternion}&#39;)</span>
+            <span class="n">error_quaternion</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
 
-        <span class="c1"># return np.sum(np.linalg.norm(gravities - np.mean(gravities, 0), axis=1))</span>
-        <span class="c1"># return np.sum(np.linalg.norm(gravities - gravity, axis=1))</span>
-        <span class="c1"># return np.mean(np.linalg.norm(gravities - gravity, axis=1))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_func</span><span class="p">(</span><span class="n">gravities</span><span class="p">,</span> <span class="n">gravity</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 
@@ -393,7 +409,7 @@
         <span class="n">i_joint</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">su_joint_dict</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span>
 
         <span class="n">errors</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="n">n_data</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">n_error</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_constant_pose</span><span class="p">):</span>
             <span class="c1"># for d in range(i+1):</span>
             <span class="k">for</span> <span class="n">d_joint</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i_joint</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="n">i_joint</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
@@ -425,9 +441,9 @@
                     <span class="n">error2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_func</span><span class="p">(</span><span class="n">model_accel</span><span class="p">,</span> <span class="n">meas_accel</span><span class="p">)</span>
 
                     <span class="n">errors</span> <span class="o">+=</span> <span class="n">error2</span>
-                    <span class="n">n_data</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">n_error</span> <span class="o">+=</span> <span class="mi">1</span>
 
-        <span class="k">return</span> <span class="n">errors</span><span class="o">/</span><span class="n">n_data</span></div>
+        <span class="k">return</span> <span class="n">errors</span><span class="o">/</span><span class="n">n_error</span></div>
 
 
 <div class="viewcode-block" id="MaxAccelerationErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">MaxAccelerationErrorFunction</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>

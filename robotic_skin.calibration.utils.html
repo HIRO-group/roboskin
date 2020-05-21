@@ -93,7 +93,7 @@
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.error_functions">robotic_skin.calibration.error_functions module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.kinematic_chain">robotic_skin.calibration.kinematic_chain module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#robotic-skin-calibration-loss-module">robotic_skin.calibration.loss module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.optimizer">robotic_skin.calibration.optimizer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#robotic-skin-calibration-optimizer-module">robotic_skin.calibration.optimizer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#robotic-skin-calibration-plot-data-module">robotic_skin.calibration.plot_data module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#robotic-skin-calibration-stats-generator-module">robotic_skin.calibration.stats_generator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.stop_conditions">robotic_skin.calibration.stop_conditions module</a></li>
@@ -185,6 +185,26 @@
 <div class="section" id="module-robotic_skin.calibration.utils.io">
 <span id="robotic-skin-calibration-utils-io-module"></span><h2>robotic_skin.calibration.utils.io module<a class="headerlink" href="#module-robotic_skin.calibration.utils.io" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
+<dt id="robotic_skin.calibration.utils.io.initialize_logging">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.io.</code><code class="sig-name descname">initialize_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">log_level</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#initialize_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.io.initialize_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize Logging Module with given log_lvel</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.io.load_data">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.io.</code><code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">robot</span></em>, <em class="sig-param"><span class="n">directory</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.io.load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for collecting acceleration data with poses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>data</strong> – Data includes static and dynamic accelerations data</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt id="robotic_skin.calibration.utils.io.load_robot_configs">
 <code class="sig-prename descclassname">robotic_skin.calibration.utils.io.</code><code class="sig-name descname">load_robot_configs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">configdir</span></em>, <em class="sig-param"><span class="n">robot</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#load_robot_configs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.io.load_robot_configs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads robot’s DH parameters, SUs’ DH parameters and their poses</p>
@@ -209,6 +229,11 @@
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.io.parse_datadir">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.io.</code><code class="sig-name descname">parse_datadir</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">datadir</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#parse_datadir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.io.parse_datadir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-robotic_skin.calibration.utils.quaternion">
@@ -330,6 +355,31 @@ q = (w, x, y, z)</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="robotic_skin.calibration.utils.initialize_logging">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">initialize_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">log_level</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#initialize_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.initialize_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize Logging Module with given log_lvel</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.load_data">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">robot</span></em>, <em class="sig-param"><span class="n">directory</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for collecting acceleration data with poses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>data</strong> – Data includes static and dynamic accelerations data</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.parse_datadir">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">parse_datadir</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">datadir</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#parse_datadir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.parse_datadir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="robotic_skin.calibration.utils.tf_to_pyqt">
 <code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">tf_to_pyqt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#tf_to_pyqt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.tf_to_pyqt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a tf quaternion to a pyqt array.
@@ -353,6 +403,16 @@ q = (w, x, y, z)</p>
 <dt id="robotic_skin.calibration.utils.pyqt_to_np">
 <code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">pyqt_to_np</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#pyqt_to_np"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.pyqt_to_np" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a pyqt quaternion to a numpy array.
+Order of a numpy quaternion
+q = (x, y, z, w)</p>
+<p>Order of a pyqt quaternion
+q = (w, x, y, z)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.np_to_pyqt">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">np_to_pyqt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/quaternion.html#np_to_pyqt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.np_to_pyqt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a numpyp quaternion to a pyqt array.
 Order of a numpy quaternion
 q = (x, y, z, w)</p>
 <p>Order of a pyqt quaternion
