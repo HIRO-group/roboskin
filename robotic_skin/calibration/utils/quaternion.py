@@ -4,27 +4,54 @@ import pyquaternion as pyqt
 from geometry_msgs.msg import Quaternion
 
 
-def tfquat_to_pyquat(q):
+def tf_to_pyqt(q):
     """
-    Converts a tf quaternion to a pyqt quaternion
+    Convert a tf quaternion to a pyqt array.
+    Order of a tf quaternion
+    q = (x, y, z, w)
+
+    Order of a pyqt quaternion
+    q = (w, x, y, z)
     """
     return pyqt.Quaternion(w=q.w, x=q.x, y=q.y, z=q.z)
 
 
-def pyquat_to_tfquat(q):
+def pyqt_to_tf(q):
     """
-    Converts a pyqt quaternion to a tf quaternion
+    Convert a pyqt quaternion to a tf array.
+    Order of a tf quaternion
+    q = (x, y, z, w)
+
+    Order of a pyqt quaternion
+    q = (w, x, y, z)
     """
     q = q.elements
     return Quaternion(q[1], q[2], q[3], q[0])
 
 
-def pyquat_to_numpy(q):
+def pyqt_to_np(q):
     """
     Convert a pyqt quaternion to a numpy array.
+    Order of a numpy quaternion
+    q = (x, y, z, w)
+
+    Order of a pyqt quaternion
+    q = (w, x, y, z)
     """
     q = q.elements
     return np.array([q[1], q[2], q[3], q[0]])
+
+
+def np_to_pyqt(q):
+    """
+    Convert a numpyp quaternion to a pyqt array.
+    Order of a numpy quaternion
+    q = (x, y, z, w)
+
+    Order of a pyqt quaternion
+    q = (w, x, y, z)
+    """
+    return pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
 
 
 def quaternion_l2_distance(q1, q2):

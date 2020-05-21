@@ -1,6 +1,6 @@
 import numpy as np
 import pyquaternion as pyqt
-from robotic_skin.calibration.utils.quaternion import pyquat_to_numpy
+from robotic_skin.calibration.utils.quaternion import pyqt_to_np
 
 
 class TransformationMatrix():
@@ -194,7 +194,7 @@ class TransformationMatrix():
         """
         Quaternion as a result of the transformation
         """
-        return pyquat_to_numpy(self.q)
+        return pyqt_to_np(self.q)
 
     @property
     def position(self):

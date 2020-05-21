@@ -93,7 +93,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.error_functions">robotic_skin.calibration.error_functions module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.kinematic_chain">robotic_skin.calibration.kinematic_chain module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#robotic-skin-calibration-loss-module">robotic_skin.calibration.loss module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.optimizer">robotic_skin.calibration.optimizer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#robotic-skin-calibration-optimizer-module">robotic_skin.calibration.optimizer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#robotic-skin-calibration-plot-data-module">robotic_skin.calibration.plot_data module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#robotic-skin-calibration-stats-generator-module">robotic_skin.calibration.stats_generator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.stop_conditions">robotic_skin.calibration.stop_conditions module</a></li>
@@ -200,8 +200,19 @@
 <div class="section" id="module-robotic_skin.calibration.error_functions">
 <span id="robotic-skin-calibration-error-functions-module"></span><h2>robotic_skin.calibration.error_functions module<a class="headerlink" href="#module-robotic_skin.calibration.error_functions" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
+<dt id="robotic_skin.calibration.error_functions.CombinedErrorFunction">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">CombinedErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#CombinedErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.CombinedErrorFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="robotic_skin.calibration.error_functions.ErrorFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.error_functions.ErrorFunction</span></code></a></p>
+<dl class="py method">
+<dt id="robotic_skin.calibration.error_functions.CombinedErrorFunction.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#CombinedErrorFunction.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.CombinedErrorFunction.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="robotic_skin.calibration.error_functions.ConstantRotationErrorFunction">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">ConstantRotationErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">loss_func</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#ConstantRotationErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.ConstantRotationErrorFunction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">ConstantRotationErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#ConstantRotationErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.ConstantRotationErrorFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="robotic_skin.calibration.error_functions.ErrorFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.error_functions.ErrorFunction</span></code></a></p>
 <p>An error function used when a robotic arm’s joints
 are moving at a constant velocity.</p>
@@ -209,22 +220,27 @@ are moving at a constant velocity.</p>
 
 <dl class="py class">
 <dt id="robotic_skin.calibration.error_functions.ErrorFunction">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">ErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">loss_func</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#ErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">ErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#ErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Error Function class used to evaluate kinematics
 estimation models.</p>
+<dl class="py method">
+<dt id="robotic_skin.calibration.error_functions.ErrorFunction.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#ErrorFunction.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.ErrorFunction.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
 <dt id="robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">MaxAccelerationErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">loss_func</span></em>, <em class="sig-param"><span class="n">apply_normal_mittendorfer</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#MaxAccelerationErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">MaxAccelerationErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span></em>, <em class="sig-param"><span class="n">apply_normal_mittendorfer</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#MaxAccelerationErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="robotic_skin.calibration.error_functions.ErrorFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.error_functions.ErrorFunction</span></code></a></p>
 <p>Compute errors between estimated and measured max acceleration for sensor i</p>
 </dd></dl>
 
 <dl class="py class">
 <dt id="robotic_skin.calibration.error_functions.StaticErrorFunction">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">StaticErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">loss_func</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#StaticErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.StaticErrorFunction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">StaticErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#StaticErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.StaticErrorFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="robotic_skin.calibration.error_functions.ErrorFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.error_functions.ErrorFunction</span></code></a></p>
 <p>Static error is an deviation of the gravity vector for p positions.</p>
 </dd></dl>
@@ -417,89 +433,8 @@ or 10 (all dh params)</p>
 <div class="section" id="robotic-skin-calibration-loss-module">
 <h2>robotic_skin.calibration.loss module<a class="headerlink" href="#robotic-skin-calibration-loss-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-robotic_skin.calibration.optimizer">
-<span id="robotic-skin-calibration-optimizer-module"></span><h2>robotic_skin.calibration.optimizer module<a class="headerlink" href="#module-robotic_skin.calibration.optimizer" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="robotic_skin.calibration.optimizer.Optimizer">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.optimizer.</code><code class="sig-name descname">Optimizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">error_functions</span></em>, <em class="sig-param"><span class="n">stop_conditions</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">optimize_all</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#Optimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.Optimizer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Optimizer class to evaluate the data.</p>
-<dl class="py method">
-<dt id="robotic_skin.calibration.optimizer.Optimizer.objective">
-<code class="sig-name descname">objective</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">grad</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#Optimizer.objective"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.Optimizer.objective" title="Permalink to this definition">¶</a></dt>
-<dd><p>Objective function used in the optimizer.
-Called continuouly until a stopping condition is met.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>params</strong> – Predicted DH Parameters</p></li>
-<li><p><strong>grad</strong> – Gradient</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="robotic_skin.calibration.optimizer.Optimizer.optimize">
-<code class="sig-name descname">optimize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#Optimizer.optimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.Optimizer.optimize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets up the optimizer and runs the model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>i_su</strong> (<em>int</em>) – i_su th Su</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Predicted parameters from the model.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>params</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="robotic_skin.calibration.optimizer.SeparateOptimizer">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.optimizer.</code><code class="sig-name descname">SeparateOptimizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">error_functions</span></em>, <em class="sig-param"><span class="n">stop_conditions</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">optimize_all</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#SeparateOptimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.SeparateOptimizer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.optimizer.Optimizer" title="robotic_skin.calibration.optimizer.Optimizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.optimizer.Optimizer</span></code></a></p>
-<p>Separate Optimizer class</p>
-<dl class="py method">
-<dt id="robotic_skin.calibration.optimizer.SeparateOptimizer.objective">
-<code class="sig-name descname">objective</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_params</span></em>, <em class="sig-param"><span class="n">grad</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#SeparateOptimizer.objective"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.SeparateOptimizer.objective" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes an error e_T = e_1 + e_2 from current parameters</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>target_params</strong> (<em>list of floats</em>) – Target parameters to be estimated</p></li>
-<li><p><strong>grad</strong> (<em>np.ndarray</em>) – Gradient, but we do not use any gradient information
-(We could in the future)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>error</strong> – Error between measured values and estimated model outputs</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="robotic_skin.calibration.optimizer.SeparateOptimizer.optimize">
-<code class="sig-name descname">optimize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/optimizer.html#SeparateOptimizer.optimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.optimizer.SeparateOptimizer.optimize" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function will optimize the given parameters in two steps.
-First it optimizes for rotational parameters and then
-optimizes for translational parameters. Hence, the name
-“Separate”Optimizer.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>i_su</strong> (<em>int</em>) – ith IMU to be optimized</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="robotic-skin-calibration-optimizer-module">
+<h2>robotic_skin.calibration.optimizer module<a class="headerlink" href="#robotic-skin-calibration-optimizer-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="robotic-skin-calibration-plot-data-module">
 <h2>robotic_skin.calibration.plot_data module<a class="headerlink" href="#robotic-skin-calibration-plot-data-module" title="Permalink to this headline">¶</a></h2>
