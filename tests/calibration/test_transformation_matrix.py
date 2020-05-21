@@ -6,7 +6,7 @@ import unittest
 import numpy as np
 import pyquaternion as pyqt
 from robotic_skin.calibration.utils.io import load_robot_configs
-from robotic_skin.calibration.utils.quaternion import pyquat_to_numpy
+from robotic_skin.calibration.utils.quaternion import pyqt_to_np
 from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
 
 
@@ -127,7 +127,7 @@ class TransformationMatrixTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(T.R, expected_R)
 
         q = pyqt.Quaternion(axis=[0, 0, 1], angle=np.pi/2)
-        q = pyquat_to_numpy(q)
+        q = pyqt_to_np(q)
         np.testing.assert_array_almost_equal(T.quaternion, q)
 
         # -90 Deg
@@ -140,7 +140,7 @@ class TransformationMatrixTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(T.R, expected_R)
 
         q = pyqt.Quaternion(axis=[0, 0, 1], angle=-np.pi/2)
-        q = pyquat_to_numpy(q)
+        q = pyqt_to_np(q)
         np.testing.assert_array_almost_equal(T.quaternion, q)
 
         # 180 Deg
@@ -153,7 +153,7 @@ class TransformationMatrixTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(T.R, expected_R)
 
         q = pyqt.Quaternion(axis=[0, 0, 1], angle=np.pi)
-        q = pyquat_to_numpy(q)
+        q = pyqt_to_np(q)
         np.testing.assert_array_almost_equal(T.quaternion, q)
 
     def test_rotation_around_x(self):
@@ -170,7 +170,7 @@ class TransformationMatrixTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(T.R, expected_R)
 
         q = pyqt.Quaternion(axis=[1, 0, 0], angle=np.pi/2)
-        q = pyquat_to_numpy(q)
+        q = pyqt_to_np(q)
         np.testing.assert_array_almost_equal(T.quaternion, q)
 
         # -90 Deg
@@ -183,7 +183,7 @@ class TransformationMatrixTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(T.R, expected_R)
 
         q = pyqt.Quaternion(axis=[1, 0, 0], angle=-np.pi/2)
-        q = pyquat_to_numpy(q)
+        q = pyqt_to_np(q)
         np.testing.assert_array_almost_equal(T.quaternion, q)
 
         # 180 Deg
@@ -196,7 +196,7 @@ class TransformationMatrixTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(T.R, expected_R)
 
         q = pyqt.Quaternion(axis=[1, 0, 0], angle=np.pi)
-        q = pyquat_to_numpy(q)
+        q = pyqt_to_np(q)
         np.testing.assert_array_almost_equal(T.quaternion, q)
 
     def test_dot_product(self):
@@ -234,7 +234,7 @@ class TransformationMatrixTest(unittest.TestCase):
 
         q1 = pyqt.Quaternion(axis=[0, 0, 1], angle=np.pi/4)
         q2 = pyqt.Quaternion(axis=[0, 0, 1], angle=np.pi/2)
-        q = pyquat_to_numpy(q1 * q2)
+        q = pyqt_to_np(q1 * q2)
         np.testing.assert_array_almost_equal(T3.quaternion, q)
 
     def test_gravity_vector(self):
