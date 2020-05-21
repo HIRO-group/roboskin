@@ -2,7 +2,7 @@ import copy
 import numpy as np
 from typing import List
 from .transformation_matrix import TransformationMatrix as TM
-# import torch
+import torch
 
 
 class KinematicChain():
@@ -454,8 +454,8 @@ class KinematicChainTorch():
         self.bound_dict = bound_dict
         self.linkdh_dict = linkdh_dict
         self.sudh_dict = sudh_dict
-        self.eval_poses = np.zeros(n_joint) if eval_poses is None else eval_poses
-        self.current_poses = np.zeros(self.n_joint)
+        self.eval_poses = torch.zeros(n_joint) if eval_poses is None else eval_poses
+        self.current_poses = torch.zeros(self.n_joint)
 
         # At Original Poses (joints == 0 rad)
         self.dof_T0_dof = self.__predefined_or_rand_dofs(linkdh_dict, bound_dict)
@@ -475,11 +475,11 @@ class KinematicChainTorch():
     def __predefined_or_rand_dofs(self, linkdh_dict: dict, bound_dict: dict) -> List[TM]:
         if linkdh_dict is None:
             # Initialize DH parameters randomly within the given bounds
-            return [TM.from_bounds(bound_dict['link'])
+            return [TM.from_bounds(bound_dict['link']).tensor()
                     for i in range(self.n_joint)]
         else:
             # Specified DH Parameters
-            return [TM.from_list(linkdh_dict[f'joint{i+1}'])
+            return [TM.from_list(linkdh_dict[f'joint{i+1}']).tensor()
                     for i in range(self.n_joint)]
 
     def __predefined_or_rand_sus(self, sudh_dict: dict, bound_dict: dict) -> List[TM]:
@@ -488,11 +488,11 @@ class KinematicChainTorch():
         dof_T_su = []
         for i in range(self.n_su):
             if sudh_dict is None:
-                _dof_T_vdof = TM.from_bounds(bound_dict['su'][:2, :], ['theta', 'd'])
-                _vdof_T_su = TM.from_bounds(bound_dict['su'][2:, :])
+                _dof_T_vdof = TM.from_bounds(bound_dict['su'][:2, :], ['theta', 'd']).tensor()
+                _vdof_T_su = TM.from_bounds(bound_dict['su'][2:, :]).tensor()
             else:
-                _dof_T_vdof = TM.from_list(sudh_dict[f'su{i+1}'][:2], ['theta', 'd'])
-                _vdof_T_su = TM.from_list(sudh_dict[f'su{i+1}'][2:])
+                _dof_T_vdof = TM.from_list(sudh_dict[f'su{i+1}'][:2], ['theta', 'd']).tensor()
+                _vdof_T_su = TM.from_list(sudh_dict[f'su{i+1}'][2:]).tensor()
             dof_T_vdof.append(_dof_T_vdof)
             vdof_T_su.append(_vdof_T_su)
             dof_T_su.append(_dof_T_vdof * _vdof_T_su)
@@ -517,7 +517,7 @@ class KinematicChainTorch():
             end_joint = self.n_joint - 1
 
         # Start from the previous DoF (or base if i_joint==0)
-        T = TM.from_numpy(np.zeros(4)) if start_joint == 0 else rs_T_dof[start_joint-1]
+        T = TM.from_numpy(np.zeros(4)).tensor() if start_joint == 0 else rs_T_dof[start_joint-1]
 
         for i in range(start_joint, end_joint+1):
             T = T * dof_T_dof[i]
@@ -531,7 +531,7 @@ class KinematicChainTorch():
             end_joint = self.n_joint - 1
 
         # Start from the previous DoF (or base if i_joint==0)
-        T = TM.from_numpy(np.zeros(4)) if start_joint == 0 else rs_T_dof[start_joint-1]
+        T = TM.from_numpy(np.zeros(4)).tensor() if start_joint == 0 else rs_T_dof[start_joint-1]
 
         dof_Tc_dof = copy.deepcopy(dof_T_dof)
         for i in range(start_joint, end_joint+1):
@@ -545,7 +545,7 @@ class KinematicChainTorch():
         Resets current and temporary poses to 0s.
         Origin and Evaluation Poses will never be changed.
         """
-        self.current_poses = np.zeros(self.n_joint)
+        self.current_poses = torch.zeros(self.n_joint)
         self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
         self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
 
@@ -667,8 +667,8 @@ class KinematicChainTorch():
         assert 0 <= i_su <= self.n_su-1
         assert params.size == 6
 
-        self.dof_T_vdof[i_su] = TM.from_numpy(params[:2], ['theta', 'd'])
-        self.vdof_T_su[i_su] = TM.from_numpy(params[2:])
+        self.dof_T_vdof[i_su] = TM.from_numpy(params[:2], ['theta', 'd']).tensor()
+        self.vdof_T_su[i_su] = TM.from_numpy(params[2:]).tensor()
         self.dof_T_su[i_su] = self.dof_T_vdof[i_su] * self.vdof_T_su[i_su]
 
     def set_linkdh(self, i_joint: int, params: np.ndarray) -> None:
@@ -685,9 +685,9 @@ class KinematicChainTorch():
         assert 0 <= i_joint <= self.n_joint-1
         assert params.size == 4
 
-        self.dof_T0_dof[i_joint] = TM.from_numpy(params)
+        self.dof_T0_dof[i_joint] = TM.from_numpy(params).tensor()
         self.__update_chains(self.dof_T0_dof, self.rs_T0_dof, start_joint=i_joint)
-        self.dof_Tc_dof[i_joint] = TM.from_numpy(params)
+        self.dof_Tc_dof[i_joint] = TM.from_numpy(params).tensor()
         self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
         self.rs_Te_dof = copy.deepcopy(self.rs_T0_dof)
         self.dof_Te_dof = self.__apply_poses(self.eval_poses, self.dof_T0_dof, self.rs_Te_dof)
@@ -710,18 +710,20 @@ class KinematicChainTorch():
         i_joint = self.su_joint_dict[i_su]
 
         if self.linkdh_dict is None:
+
             # optimizing all dh parameters
-            params = np.r_[self.dof_T0_dof[i_joint].parameters,     # 4
-                           self.dof_T_vdof[i_su].parameters,        # 2
-                           self.vdof_T_su[i_su].parameters]         # 4
-            bounds = np.vstack((self.bound_dict['link'],
-                                self.bound_dict['su']))
+            params = torch.cat((self.dof_T0_dof[i_joint].parameters,  # 4
+                                self.dof_T_vdof[i_su].parameters,  # 2
+                                self.vdof_T_su[i_su].parameters))  # 4
+            bounds = torch.stack((self.bound_dict['link'],
+                                  self.bound_dict['su']))
             assert params.size == 10
             assert bounds.shape == (10, 2)
         else:
             # optimizing just su dh params.
-            params = np.r_[self.dof_T_vdof[i_su].parameters,    # 2
-                           self.vdof_T_su[i_su].parameters]     # 4
+            params = torch.cat((self.dof_T_vdof[i_su].parameters,  # 2
+                                self.vdof_T_su[i_su].parameters))  # 4
+
             bounds = self.bound_dict['su']
             assert params.size == 6
             assert bounds.shape == (6, 2)
