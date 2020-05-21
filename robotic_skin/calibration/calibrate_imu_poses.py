@@ -179,9 +179,8 @@ if __name__ == '__main__':
         kinematic_chain=kinematic_chain,
         evaluator=evaluator,
         data_logger=data_logger,
-        data=measured_data,
         optimize_all=args.optimizeall)
-    optimizer.optimize()
+    optimizer.optimize(measured_data)
 
     data_logger.save()
     data_logger.print()

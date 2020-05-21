@@ -147,13 +147,16 @@ class ErrorFunction():
     Error Function class used to evaluate kinematics
     estimation models.
     """
-    def __init__(self, data, loss_func):
+    def __init__(self, loss):
         """
         Parses the data and gets the loss function.
         """
-        self.data = data
-        self.loss_func = loss_func
+        self.initialized = False
+        self.loss = loss
 
+    def initialize(self, data):
+        self.initialized = True
+        self.data = data
         self.pose_names = list(data.constant.keys())
         self.joint_names = list(data.constant[self.pose_names[0]].keys())
         self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
@@ -168,18 +171,9 @@ class ErrorFunction():
         """
         __call__ is to be used on returning an error value.
         """
+        if not self.initialized:
+            raise ValueError('Not Initialized')
         raise NotImplementedError()
-
-
-class CombinedErrorFunction():
-    def __init__(self, error_funcs):
-        self.error_funcs = error_funcs
-
-    def __call__(self, kinematic_chain, i_su):
-        e = 0.0
-        for error_function in self.error_funcs:
-            e += error_function(kinematic_chain, i_su)
-        return e
 
 
 class StaticErrorFunction(ErrorFunction):
@@ -187,8 +181,8 @@ class StaticErrorFunction(ErrorFunction):
     Static error is an deviation of the gravity vector for p positions.
 
     """
-    def __init__(self, data, loss_func):
-        super().__init__(data, loss_func)
+    def __init__(self, loss):
+        super().__init__(loss)
 
     def __call__(self, kinematic_chain, i_su):
         """
@@ -214,6 +208,9 @@ class StaticErrorFunction(ErrorFunction):
             Static Error
 
         """  # noqa: W605
+        if not self.initialized:
+            raise ValueError('Not Initialized')
+
         gravities = np.zeros((self.n_static_pose, 3))
         gravity = np.array([[0, 0, 9.8], ] * self.n_static_pose, dtype=float)
         error_quaternion = np.zeros(self.n_static_pose)
@@ -234,7 +231,7 @@ class StaticErrorFunction(ErrorFunction):
             # logging.debug(f'Measured: {q_su}, Model: {T.quaternion}')
             error_quaternion[p] = d
 
-        return self.loss_func(gravities, gravity, axis=1)
+        return self.loss(gravities, gravity, axis=1)
 
 
 class ConstantRotationErrorFunction(ErrorFunction):
@@ -242,8 +239,8 @@ class ConstantRotationErrorFunction(ErrorFunction):
     An error function used when a robotic arm's joints
     are moving at a constant velocity.
     """
-    def __init__(self, data, loss_func):
-        super().__init__(data, loss_func)
+    def __init__(self, loss):
+        super().__init__(loss)
 
     def __call__(self, kinematic_chain, i_su):
         """
@@ -259,6 +256,9 @@ class ConstantRotationErrorFunction(ErrorFunction):
         e1: float
             Static Error
         """
+        if not self.initialized:
+            raise ValueError('Not Initialized')
+
         i_joint = kinematic_chain.su_joint_dict[i_su]
 
         errors = 0.0
@@ -291,7 +291,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
                     logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t' +
                                   f'Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}')
 
-                    error2 = self.loss_func(model_accel, meas_accel)
+                    error2 = self.loss(model_accel, meas_accel)
 
                     errors += error2
                     n_error += 1
@@ -304,8 +304,8 @@ class MaxAccelerationErrorFunction(ErrorFunction):
     Compute errors between estimated and measured max acceleration for sensor i
 
     """
-    def __init__(self, data, loss_func, apply_normal_mittendorfer=False):
-        super().__init__(data, loss_func)
+    def __init__(self, loss, apply_normal_mittendorfer=False):
+        super().__init__(loss)
         self.apply_normal_mittendorfer = apply_normal_mittendorfer
 
     def __call__(self, kinematic_chain, i_su):
@@ -326,6 +326,9 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         e2: float
             Dynamic Error
         """  # noqa: W605
+        if not self.initialized:
+            raise ValueError('Not Initialized')
+
         i_joint = kinematic_chain.su_joint_dict[i_su]
 
         e2 = 0.0
@@ -352,3 +355,22 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 n_data += 1
 
         return e2/n_data
+
+
+class CombinedErrorFunction(ErrorFunction):
+    def __init__(self, *args):
+        self.error_funcs = []
+        for arg in args:
+            if not isinstance(arg, ErrorFunction):
+                raise ValueError('Only ErrorFunction class is allowed')
+            self.error_funcs.append(arg)
+
+    def initialize(self, data):
+        for error_function in self.error_funcs:
+            error_function.initialize(data)
+
+    def __call__(self, kinematic_chain, i_su):
+        e = 0.0
+        for error_function in self.error_funcs:
+            e += error_function(kinematic_chain, i_su)
+        return e
