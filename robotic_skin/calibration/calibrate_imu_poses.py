@@ -16,7 +16,7 @@ from robotic_skin.calibration import utils
 
 
 class DataLogger():
-    def __init__(self, robot, method, savedir):
+    def __init__(self, savedir, robot, method):
         self.date = datetime.now().strftime('%Y%m%d_%H%M%S')
         filepath = robot + '_' + method + '.pickle'
         self.savepath = os.path.join(savedir, filepath)
@@ -144,7 +144,7 @@ def parse_arguments():
                         help="Please provide a log level")
     parser.add_argument('-oa', '--optimizeall', action='store_true',
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
-    parser.add_argument('-t', '--test_code', action='store_true',
+    parser.add_argument('--test', action='store_true',
                         help="Determines if the true SU DH parameters will be used")
     parser.add_argument('--method', type=str, default='OM',
                         help="Please provide a method name")
@@ -169,10 +169,10 @@ if __name__ == '__main__':
 
     # Kinematic Chain of a robot
     kinematic_chain = construct_kinematic_chain(
-        robot_configs, imu_mappings, args.test_code, args.optimizeall)
+        robot_configs, imu_mappings, args.test, args.optimizeall)
 
     evaluator = Evaluator(true_su_pose=robot_configs['su_pose'])
-    data_logger = DataLogger(args.robot, args.method, datadir)
+    data_logger = DataLogger(datadir, args.robot, args.method)
 
     # Main Loop
     optimizer = choose_optimizer(
