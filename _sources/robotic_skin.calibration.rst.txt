@@ -12,14 +12,6 @@ Subpackages
 Submodules
 ----------
 
-robotic\_skin.calibration.calibrate\_imu\_poses module
-------------------------------------------------------
-
-.. automodule:: robotic_skin.calibration.calibrate_imu_poses
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 robotic\_skin.calibration.error\_functions module
 -------------------------------------------------
 

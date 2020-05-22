@@ -202,7 +202,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">datadir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rospkg</span><span class="o">.</span><span class="n">RosPack</span><span class="p">()</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s1">&#39;ros_robotic_skin&#39;</span><span class="p">),</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;ros_robotic_skin not installed in the catkin workspace&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;ros_robotic_skin not installed in the catkin workspace or pass --datadir=PATH_TO_DATA_DIRECTORY&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">datadir</span></div>
 
