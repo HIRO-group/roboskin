@@ -93,7 +93,6 @@ def create_cascaded_table(method_names: list, data_loggers: list, target_measure
         method_header_row.append(method_header_per_column)
     table.append(method_header_row)
 
-    n_row = len(row_names)
     # Create the actual table
     # Create A Row
     for i, row_name in enumerate(row_names):
