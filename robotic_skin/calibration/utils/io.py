@@ -87,3 +87,55 @@ def load_data(robot, directory):
         imu_mappings = pickle.load(f, encoding='latin1')
 
     return data, imu_mappings
+
+
+def add_noise(data, data_type: str, sigma=1):
+    if data_type not in ['static', 'constant', 'dynamic']:
+        raise ValueError('There is no such data_type='+data_type)
+
+    d = getattr(data, data_type)
+    imu_indices = {
+        'static': [4, 5, 6],
+        'constant': [4, 5, 6],
+        'dynamic': [1, 2, 3]}
+    imu_index = imu_indices[data_type]
+
+    pose_names = list(d.keys())
+    joint_names = list(d[pose_names[0]].keys())
+    imu_names = list(d[pose_names[0]][joint_names[0]].keys())
+
+    for pose in pose_names:
+        for joint in joint_names:
+            for imu in imu_names:
+                print(data_type, d[pose][joint][imu][0].shape, imu_index)
+                d[pose][joint][imu][0][:, imu_index] = np.random.uniform(d[pose][joint][imu][0][:, imu_index], sigma)
+
+
+def add_outlier(data, data_type: str, sigma=3, outlier_ratio=0.25):
+    if data_type not in ['static', 'constant', 'dynamic']:
+        raise ValueError('There is no such data_type='+data_type)
+    if not (0 <= outlier_ratio <= 1):
+        raise ValueError('Outlier Ratio must be between 0 and 1')
+
+    # IMU index differs betw. data_types
+    d = getattr(data, data_type)
+    imu_indices = {
+        'static': [4, 5, 6],
+        'constant': [4, 5, 6],
+        'dynamic': [1, 2, 3]}
+    imu_index = imu_indices[data_type]
+
+    pose_names = list(d.keys())
+    joint_names = list(d[pose_names[0]].keys())
+    imu_names = list(d[pose_names[0]][joint_names[0]].keys())
+    # Add outliers
+    for pose in pose_names:
+        for joint in joint_names:
+            for imu in imu_names:
+                n_data = d[pose][joint][imu].shape[0]
+                # generate indices to add outliers
+                if n_data == 1:
+                    index = 0
+                else:
+                    index = np.random.choice(np.arange(n_data), size=int(n_data*outlier_ratio))
+                d[pose][joint][imu][index, imu_index] = np.random.uniform(d[pose][joint][imu][index, imu_index], sigma)
