@@ -20,18 +20,36 @@ from robotic_skin.calibration.loss import L1Loss, L2Loss
 from robotic_skin.calibration.utils.io import n2s
 
 
-def choose_optimizer(args, data, kinematic_chain, evaluator, data_logger, optimize_all):
+def choose_optimizer(args, kinematic_chain, evaluator, data_logger, optimize_all):
+    """
+    # These are examples of how we could parse arguments in the future ...
+    param_grid = {
+        'error_functions': CombinedErrorFunction,
+        'error_functions__e1': StaticErrorFunction,
+        'error_functions__e1__loss': [L1Loss, L2Loss],
+        'error_functions__e2': MaxAccelerationErrorFunction,
+        'error_functions__e2__loss': [L1Loss, L2Loss],
+    }
+
+    param_grid = {
+        'error_functions__Position': ConstantRotationErrorFunction,
+        'error_functions__Position__loss': [L1Loss, L2Loss],
+        'error_functions__Orientation': StaticErrorFunction,
+        'error_functions__Orientation__loss': [L1Loss, L2Loss]
+    }
+    """
+
     if args.method == 'OM':
         optimizer = OurMethodOptimizer(
-            data, kinematic_chain, evaluator, data_logger,
+            kinematic_chain, evaluator, data_logger,
             optimize_all, args.error_functions, args.stop_conditions)
     elif args.method == 'MM':
         optimizer = MittendorferMethodOptimizer(
-            data, kinematic_chain, evaluator, data_logger,
+            kinematic_chain, evaluator, data_logger,
             optimize_all, args.error_functions, args.stop_conditions, apply_normal_mittendorfer=True)
     elif args.method == 'MMM':
         optimizer = MittendorferMethodOptimizer(
-            data, kinematic_chain, evaluator, data_logger,
+            kinematic_chain, evaluator, data_logger,
             optimize_all, args.error_functions, args.stop_conditions, apply_normal_mittendorfer=False)
     else:
         raise ValueError(f'There is no such method name={args.method}')
@@ -79,15 +97,27 @@ class OptimizerBase():
 
 
 class IncrementalOptimizerBase(OptimizerBase):
-    def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all):
+    def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all,
+                 error_functions, stop_conditions):
         super().__init__(kinematic_chain, evaluator, data_logger, optimize_all)
+        if not (isinstance(error_functions, dict) or isinstance(error_functions, ErrorFunction)):
+            raise ValueError('error_functions must be either dict or ErrorFunction')
+        self.error_functions = error_functions
+        self.stop_conditions = stop_conditions
         self.global_step = 0
         self.local_step = 0
 
-    def optimize(self):
+    def optimize(self, data):
         """
         Optimize SU from Base to the End-Effector incrementally
         """
+        # Initilialize error functions with data
+        if isinstance(self.error_functions, dict):
+            for error_function in self.error_functions.values():
+                error_function.initialize(data)
+        elif isinstance(self.error_functions, ErrorFunction):
+            self.error_functions.initialize(data)
+
         print('Skipping 0th IMU')
         for i_su in range(1, self.kinematic_chain.n_su):
             print("Optimizing %ith SU ..." % (i_su))
@@ -141,11 +171,10 @@ class TorchOptimizerBase(OptimizerBase):
 
 
 class MixedIncrementalOptimizer(IncrementalOptimizerBase):
-    def __init__(self, kinematic_chain, evaluator, data_logger,
-                 optimize_all, error_function, stop_condition):
-        super().__init__(kinematic_chain, evaluator, data_logger, optimize_all)
-        self.error_function = error_function
-        self.stop_condition = stop_condition
+    def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all,
+                 error_function: ErrorFunction, stop_condition: StopCondition):
+        super().__init__(kinematic_chain, evaluator, data_logger, optimize_all,
+                         error_function, stop_condition)
 
     def _optimize(self, i_su):
         """
@@ -166,7 +195,7 @@ class MixedIncrementalOptimizer(IncrementalOptimizerBase):
         self.local_step = 0
 
         self.n_param = params.shape[0]
-        self.stop_condition.initialize()
+        self.stop_conditions.initialize()
         # Construct an global optimizer
         opt = nlopt.opt(C.GLOBAL_OPTIMIZER, self.n_param)
         # The objective function only accepts x and grad arguments.
@@ -204,8 +233,8 @@ class MixedIncrementalOptimizer(IncrementalOptimizerBase):
         self.kinematic_chain.set_params_at(self.i_su, params)
 
         params, _ = self.kinematic_chain.get_params_at(i_su=self.i_su)
-        e = self.error_function(self.kinematic_chain, self.i_su)
-        res = self.stop_condition.update(params, None, e)
+        e = self.error_functions(self.kinematic_chain, self.i_su)
+        res = self.stop_conditions.update(params, None, e)
 
         # Evaluate
         T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
@@ -231,15 +260,13 @@ class MixedIncrementalOptimizer(IncrementalOptimizerBase):
 class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
     def __init__(self, kinematic_chain, evaluator, data_logger,
                  optimize_all, error_functions, stop_conditions):
-        super().__init__(kinematic_chain, evaluator, data_logger, optimize_all)
+        super().__init__(kinematic_chain, evaluator, data_logger, optimize_all,
+                         error_functions, stop_conditions)
         self.targets = ['Position', 'Orientation']
 
         for dictionary in [error_functions, stop_conditions]:
             if self.targets != list(dictionary.keys()):
                 raise KeyError(f'All dict Keys must be {self.targets}')
-
-        self.error_functions = error_functions
-        self.stop_conditions = stop_conditions
 
         self.indices = {}
         # indices vary based on optimizing all dh params.
@@ -357,12 +384,12 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
 
 
 class MittendorferMethodOptimizer(MixedIncrementalOptimizer):
-    def __init__(self, data, kinematic_chain, evaluator, data_logger,
+    def __init__(self, kinematic_chain, evaluator, data_logger,
                  optimize_all, error_function_=None, stop_condition_=None,
                  apply_normal_mittendorfer=True):
         error_function = CombinedErrorFunction(
-            [StaticErrorFunction(data, L2Loss()),
-             MaxAccelerationErrorFunction(data, L2Loss(), apply_normal_mittendorfer)])
+            StaticErrorFunction(L2Loss()),
+            MaxAccelerationErrorFunction(L2Loss(), apply_normal_mittendorfer))
         stop_condition = DeltaXStopCondition()
 
         if isinstance(error_function_, ErrorFunction):
@@ -375,11 +402,11 @@ class MittendorferMethodOptimizer(MixedIncrementalOptimizer):
 
 
 class OurMethodOptimizer(SeparateIncrementalOptimizer):
-    def __init__(self, data, kinematic_chain, evaluator, data_logger, optimize_all,
+    def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all,
                  error_functions_=None, stop_conditions_=None):
         error_functions = {
-            'Position': ConstantRotationErrorFunction(data, L1Loss()),
-            'Orientation': StaticErrorFunction(data, L2Loss())}
+            'Position': ConstantRotationErrorFunction(L2Loss()),
+            'Orientation': StaticErrorFunction(L2Loss())}
         stop_conditions = {
             'Position': DeltaXStopCondition(),
             'Orientation': PassThroughStopCondition(),
