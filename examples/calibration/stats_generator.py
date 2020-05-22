@@ -15,13 +15,11 @@ from robotic_skin.calibration.optimizer import (
     OurMethodOptimizer,
     MittendorferMethodOptimizer,
 )
-from calibrate_imu_poses import (
-    parse_arguments,
-    construct_kinematic_chain,
-    Evaluator,
-    DataLogger
-)
+from robotic_skin.calibration.kinematic_chain import construct_kinematic_chain
+from robotic_skin.calibration.data_logger import DataLogger
+from robotic_skin.calibration.evaluator import Evaluator
 from robotic_skin.calibration import utils
+from calibrate_imu_poses import parse_arguments
 
 REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CONFIGDIR = os.path.join(REPODIR, 'config')

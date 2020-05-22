@@ -83,7 +83,7 @@ pycodestyle <script-name>.py
 
 ### Flake8 Test
 ```
-flake8 . --count --max-complexity=10 --max-line-length=140 --statistics --exclude setup.py
+flake8 . --count --max-complexity=10 --max-line-length=140 --statistics --exclude setup.py --ignore=E121,E123,E126,E226,E24,E704,W503,W504,E999
 ```
 
 ### Where should I write my features tests?
