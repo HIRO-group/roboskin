@@ -129,13 +129,13 @@ class IncrementalOptimizerBase(OptimizerBase):
         raise NotImplementedError
 
 
-class NNOptimizerBase(OptimizerBase):
+class TorchOptimizerBase(OptimizerBase):
     def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all):
         super().__init__(kinematic_chain, evaluator, data_logger)
 
     def optimize(self):
         """
-        NN opimization
+        Pytorch optimization. Simply calculates the gradients.
         """
         raise NotImplementedError()
 
