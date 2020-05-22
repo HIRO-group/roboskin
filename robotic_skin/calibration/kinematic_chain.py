@@ -3,6 +3,56 @@ import numpy as np
 from typing import List
 from .transformation_matrix import TransformationMatrix as TM
 
+BOUNDS = np.array([
+    [-np.pi, np.pi],    # th
+    [-1.0, 1.0],        # d
+    [-1.0, 1.0],        # a     (radius)
+    [-np.pi, np.pi]])   # alpha
+BOUNDS_SU = np.array([
+    [-np.pi, np.pi],    # th
+    [-1.0, 1.0],        # d
+    [-np.pi, np.pi],    # th
+    [-1.0, 1.0],        # d
+    [-1.0, 1.0],        # a     # 0 gives error
+    [-np.pi, np.pi]])   # alpha
+
+
+def construct_kinematic_chain(robot_configs: dict, imu_mappings: dict,
+                              test_code=False, optimize_all=False):
+    su_joint_dict = {}
+    joints = []
+    for imu_str, link_str in imu_mappings.items():
+        su_joint_dict[int(imu_str[-1])] = int(link_str[-1]) - 1
+        joints.append(int(link_str[-1]) - 1)
+    joints = np.unique(joints)
+
+    bound_dict = {'link': BOUNDS, 'su': BOUNDS_SU}
+
+    keys = ['dh_parameter', 'su_dh_parameter', 'eval_poses']
+    for key in keys:
+        if key not in robot_configs:
+            raise KeyError(f'Keys {keys} should exist in robot yaml file')
+
+    linkdh_dict = None if optimize_all else robot_configs['dh_parameter']
+    sudh_dict = robot_configs['su_dh_parameter'] if test_code else None
+    eval_poses = np.array(robot_configs['eval_poses'])
+
+    kinematic_chain = KinematicChain(
+        n_joint=joints.size,
+        su_joint_dict=su_joint_dict,
+        bound_dict=bound_dict,
+        linkdh_dict=linkdh_dict,
+        sudh_dict=sudh_dict,
+        eval_poses=eval_poses)
+
+    if optimize_all:
+        linkdh0 = np.array(robot_configs['dh_parameter']['joint1'])
+        su0 = np.random.rand(6)
+        params = np.r_[linkdh0, su0]
+        kinematic_chain.set_params_at(0, params)
+
+    return kinematic_chain
+
 
 class KinematicChain():
     def __init__(self, n_joint: int, su_joint_dict: dict,  # noqa: E999
