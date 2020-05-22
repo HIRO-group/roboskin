@@ -49,6 +49,34 @@ def initialize_acceleration_variables(curr_w, dof_T_su):
     return w_dofd, a_dofd, a_centric_su
 
 
+def current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t):
+    """
+    Returns the position o the current skin unit
+
+    Arguments
+    ---------
+    `kinematic_chain`: `robotic_skin.calibration.kinematic_chain.KinematicChain`
+        Robot's Kinematic Chain
+    `curr_w`: `int`
+        Angular velocity
+    'max_w': 'int'
+        Maximum angular velocity
+    `i`: `int`
+        imu `i`
+    'd_joint': 'int'
+        dof 'd'
+    """
+    angle = joint_angle_func(curr_w, max_w, t)
+    dof_T_dof, rs_T_dof = kinematic_chain.get_current_TMs()
+    kinematic_chain.add_a_pose(
+        i_joint=d_joint,
+        pose=angle,
+        dof_T_dof=dof_T_dof,
+        rs_T_dof=rs_T_dof)
+    T = kinematic_chain._compute_su_TM(i_su, dof_T_dof, rs_T_dof)
+    return T.position
+
+
 def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint_angle_func=None,
                           apply_normal_mittendorfer=False, analytical=True):
     """
@@ -71,6 +99,8 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
         imu `i`
     `curr_w`: `int`
         Angular velocity
+    'max_w': 'int'
+        Maximum angular velocity
     apply_normal_mittendorfer: bool
         determines if we resort to the normal method
         mittendorfer uses (which we modified due to some possible missing terms)
@@ -86,11 +116,14 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
     # Gravity vector
     gravity = np.array([0, 0, 9.81])
 
+    # rotation matrix of reference segment to skin unit
+    su_R_rs = rs_T_su.R.T
+
     # If the analytical boolean is true
     # Calculate analytical acceleration estimation
     if analytical:
         # Gravity vector of skin unit
-        g_su = np.dot(rs_T_su.R.T, gravity)
+        g_su = np.dot(su_R_rs, gravity)
 
         # Acceleration of skin unit
         a_su = a_centric_su + g_su
@@ -99,24 +132,14 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
 
     # The following will run if analytical boolean is false
 
-    # rotation matrix of reference segment to skin unit
-    su_R_rs = rs_T_su.R.T
-
     # Compute Acceleration at RS frame
     # dt should be small value, recommended to use 1/(1000 * freq)
     dt = 1.0 / 1000.0
 
     positions = []
     for t in [dt, -dt, 0]:
-        angle = joint_angle_func(curr_w, max_w, t)
-        dof_T_dof, rs_T_dof = kinematic_chain.get_current_TMs()
-        kinematic_chain.add_a_pose(
-            i_joint=d_joint,
-            pose=angle,
-            dof_T_dof=dof_T_dof,
-            rs_T_dof=rs_T_dof)
-        T = kinematic_chain._compute_su_TM(i_su, dof_T_dof, rs_T_dof)
-        positions.append(T.position)
+        curr_position = current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t)
+        positions.append(curr_position)
 
     # get acceleration and include gravity
     a_rs = ((positions[0] + positions[1] - 2*positions[2]) / (dt**2))
@@ -147,14 +170,6 @@ def max_acceleration_joint_angle(curr_w, amplitude, t):
     th_pattern = (amplitude / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
     # print('-'*20, th_pattern, curr_w, '-'*20)
     return th_pattern
-
-
-def constant_velocity_joint_angle(curr_w, max_w, t):
-    """
-    Returns transformation matrix given `t` and current
-    angular velocity `curr_w`
-    """
-    return curr_w*t
 
 
 class ErrorFunction():
