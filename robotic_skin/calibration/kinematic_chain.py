@@ -1,7 +1,7 @@
 import copy
 import numpy as np
 from typing import List
-from .transformation_matrix import TransformationMatrix as TM
+from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
 import torch
 
 
@@ -460,17 +460,28 @@ class KinematicChainTorch():
         # At Original Poses (joints == 0 rad)
         self.dof_T0_dof = self.__predefined_or_rand_dofs(linkdh_dict, bound_dict)
         self.rs_T0_dof = self.__initialize_chains(self.dof_T0_dof)
+        self.rs_Te_dof = self._copy_transmat_torch(self.rs_T0_dof)
 
-        self.rs_Te_dof = copy.deepcopy(self.rs_T0_dof)
         self.dof_Te_dof = self.__apply_poses(self.eval_poses, self.dof_T0_dof, self.rs_Te_dof)
-
         # At CURRENT pose (joints == current_poses)
-        self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
-        self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
+        self.dof_Tc_dof = self._copy_transmat_torch(self.dof_T0_dof)
+        self.rs_Tc_dof = self._copy_transmat_torch(self.rs_T0_dof)
 
         # Construct Transformation Matrices for each SU from its previous joint
         self.dof_T_vdof, self.vdof_T_su, self.dof_T_su = \
             self.__predefined_or_rand_sus(sudh_dict, bound_dict)
+
+    def _copy_transmat_torch(self, transmats):
+        """
+        copy transformation matrix in torch. Requires
+        a few extra steps.
+        """
+        shallow_copy = copy.copy(transmats)
+        for t in shallow_copy:
+            t.matrix = t.matrix.clone()
+            t.params = t.params.clone()
+            t.q = copy.deepcopy(t.q)
+        return shallow_copy
 
     def __predefined_or_rand_dofs(self, linkdh_dict: dict, bound_dict: dict) -> List[TM]:
         if linkdh_dict is None:
@@ -533,7 +544,8 @@ class KinematicChainTorch():
         # Start from the previous DoF (or base if i_joint==0)
         T = TM.from_numpy(np.zeros(4)).tensor() if start_joint == 0 else rs_T_dof[start_joint-1]
 
-        dof_Tc_dof = copy.deepcopy(dof_T_dof)
+        dof_Tc_dof = dof_T_dof.clone()
+        # dof_Tc_dof = copy.deepcopy(dof_T_dof)
         for i in range(start_joint, end_joint+1):
             dof_Tc_dof[i] = dof_T_dof[i](poses[i])
             T = T * dof_Tc_dof[i]
@@ -546,8 +558,10 @@ class KinematicChainTorch():
         Origin and Evaluation Poses will never be changed.
         """
         self.current_poses = torch.zeros(self.n_joint)
-        self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
-        self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
+        self.dof_Tc_dof = self.dof_T0_dof.clone()
+        self.rs_Tc_dof = self.rs_T0_dof.clone()
+        # self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
+        # self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
 
     def set_poses(self, poses: np.ndarray,
                   start_joint: int = 0, end_joint: int = None) -> None:
@@ -584,7 +598,7 @@ class KinematicChainTorch():
         self.__update_chains(dof_T_dof, rs_T_dof, start_joint=i_joint)
 
     def get_current_TMs(self):
-        return copy.deepcopy(self.dof_Tc_dof), copy.deepcopy(self.rs_Tc_dof)
+        return self.dof_Tc_dof.clone(), self.rs_Tc_dof.clone()
 
     def _compute_joint_TM(self, i_joint: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
                           start_joint: int = 0) -> TM:
@@ -688,8 +702,9 @@ class KinematicChainTorch():
         self.dof_T0_dof[i_joint] = TM.from_numpy(params).tensor()
         self.__update_chains(self.dof_T0_dof, self.rs_T0_dof, start_joint=i_joint)
         self.dof_Tc_dof[i_joint] = TM.from_numpy(params).tensor()
-        self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
-        self.rs_Te_dof = copy.deepcopy(self.rs_T0_dof)
+        self.rs_Tc_dof = self.rs_T0_dof.clone()
+        self.rs_Te_dof = self.rs_T0_dof.clone()
+
         self.dof_Te_dof = self.__apply_poses(self.eval_poses, self.dof_T0_dof, self.rs_Te_dof)
 
     def get_params_at(self, i_su: int):
@@ -753,3 +768,40 @@ class KinematicChainTorch():
         else:
             if self.sudh_dict is None:
                 self.set_sudh(i_su, params)
+
+import os
+import unittest
+import numpy as np
+import pyquaternion as pyqt
+from robotic_skin.calibration.utils.io import load_robot_configs
+
+repodir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+robot_config = load_robot_configs(os.path.join(repodir, 'config'), 'panda')
+
+linkdh_dict = robot_config['dh_parameter']
+sudh_dict = robot_config['su_dh_parameter']
+su_pose = robot_config['su_pose']
+
+n_joint = len(linkdh_dict)
+su_joint_dict = {i: i for i in range(n_joint)}
+
+bounds = np.array([
+    [-np.pi, np.pi],    # th
+    [0.0, 1.0],         # d
+    [0.0, 1.0],         # a
+    [-np.pi, np.pi]])   # alpha
+bounds_su = np.array([
+    [-np.pi, np.pi],    # th
+    [-1.0, 1.0],        # d
+    [-np.pi, np.pi],    # th
+    [0.0, 0.2],         # d
+    [0.0, 0.0001],      # a     # 0 gives error
+    [0, np.pi]])        # alpha
+bound_dict = {'link': bounds, 'su': bounds_su}
+
+KinematicChainTorch(
+            n_joint=n_joint,
+            su_joint_dict=su_joint_dict,
+            bound_dict=bound_dict,
+            linkdh_dict=None,
+            sudh_dict=None)
