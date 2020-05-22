@@ -39,6 +39,17 @@ To run an interactive shell session:
 docker run -it <docker-image-name>
 ```
 
+# Example
+```
+python examples/calibration/calibrate_imu_poses.py
+```
+
+Arguments
+- `--method`: Choose a method from OM (Our Method), MM (Mittendorfer's Method), MMM (modified Mittendorfers' Method)
+- `--test`: Use True SU DH Parameters for testing the code
+- `--datadir`: As default, the script looks for `ros_robotic_skin`'s data directory. If it's not installed, please pass `--data=PATH_TO_DATA_DIR`.
+- `--optimizeall`: As default, the script only optimizes for SU DH parameters. Passing `--optimizeall` will optimize the robot's link DH parameters as well.
+
 
 # For Developers
 New features and bug fixes are welcome. Send PRs. <br>

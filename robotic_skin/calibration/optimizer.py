@@ -16,7 +16,7 @@ from robotic_skin.calibration.stop_conditions import (
     PassThroughStopCondition,
     DeltaXStopCondition
 )
-from robotic_skin.calibration.loss import L1Loss, L2Loss
+from robotic_skin.calibration.loss import L2Loss
 from robotic_skin.calibration.utils.io import n2s
 
 
@@ -387,8 +387,12 @@ class MittendorferMethodOptimizer(MixedIncrementalOptimizer):
                  optimize_all, error_function_=None, stop_condition_=None,
                  apply_normal_mittendorfer=True):
         error_function = CombinedErrorFunction(
-            StaticErrorFunction(L2Loss()),
-            MaxAccelerationErrorFunction(L2Loss(), apply_normal_mittendorfer))
+            StaticErrorFunction(
+                loss=L2Loss()),
+            MaxAccelerationErrorFunction(
+                loss=L2Loss(),
+                apply_normal_mittendorfer=apply_normal_mittendorfer)
+            )
         stop_condition = DeltaXStopCondition()
 
         if isinstance(error_function_, ErrorFunction):
