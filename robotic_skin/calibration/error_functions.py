@@ -49,7 +49,7 @@ def initialize_acceleration_variables(curr_w, dof_T_su):
     return w_dofd, a_dofd, a_centric_su
 
 
-def current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t):
+def current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t, joint_angle_func):
     """
     Returns the position o the current skin unit
 
@@ -138,7 +138,7 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
 
     positions = []
     for t in [dt, -dt, 0]:
-        curr_position = current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t)
+        curr_position = current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t, joint_angle_func)
         positions.append(curr_position)
 
     # get acceleration and include gravity
