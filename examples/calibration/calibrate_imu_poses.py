@@ -21,6 +21,7 @@ class DataLogger():
         self.savepath = os.path.join(savedir, filepath)
         self.best_data = {}
         self.trials = {}
+        self.average_euclidean_distance = 0.0
 
     def add_best(self, i_su, **kwargs):
         for key, value in kwargs.items():
@@ -32,19 +33,25 @@ class DataLogger():
 
             self.best_data[key][i_su] = value
 
+            # Append value to np.array
+            setattr(self, key, np.array(list(self.best_data[key].values())))
+        self.average_euclidean_distance = np.mean(
+            list(self.best_data['euclidean_distance'].values()))
+
     def add_trial(self, global_step, **kwargs):
         for key, value in kwargs.items():
             if isinstance(value, np.ndarray):
                 value = value.tolist()
 
             if global_step not in self.best_data:
-                self.best_data[global_step] = {}
+                self.trials[global_step] = {}
 
-            self.best_data[global_step][key] = value
+            self.trials[global_step][key] = value
 
     def save(self):
         data = {
             'date': self.date,
+            'average_euclidean_distance': self.average_euclidean_distance,
             'best_data': self.best_data,
             'trials': self.trials}
         with open(self.savepath, 'wb') as f:
@@ -58,6 +65,8 @@ class DataLogger():
         print('Estimated SU Orientations')
         for i, values in self.best_data['orientation'].items():
             print(f'SU{i}: {utils.n2s(np.array(values), 3)}')
+
+        print('average_euclidean_distance: ', self.average_euclidean_distance)
 
 
 class Evaluator():
@@ -74,6 +83,57 @@ class Evaluator():
 
         return {'position': euclidean_distance,
                 'orientation': quaternion_distance}
+
+
+def add_noise(data, data_type: str, sigma=1):
+    if data_type not in ['static', 'constant', 'dynamic']:
+        raise ValueError('There is no such data_type='+data_type)
+
+    d = getattr(data, data_type)
+    imu_indices = {
+        'static': [4, 5, 6],
+        'constant': [4, 5, 6],
+        'dynamic': [1, 2, 3]}
+    imu_index = imu_indices[data_type]
+
+    pose_names = list(d.keys())
+    joint_names = list(d[pose_names[0]].keys())
+    imu_names = list(d[pose_names[0]][joint_names[0]].keys())
+
+    for pose in pose_names:
+        for joint in joint_names:
+            for imu in imu_names:
+                d[pose][joint][imu][:, imu_index] = np.random.uniform(d[pose][joint][imu][:, imu_index], sigma)
+
+
+def add_outlier(data, data_type: str, sigma=3, outlier_ratio=0.25):
+    if data_type not in ['static', 'constant', 'dynamic']:
+        raise ValueError('There is no such data_type='+data_type)
+    if not (0 <= outlier_ratio <= 1):
+        raise ValueError('Outlier Ratio must be between 0 and 1')
+
+    # IMU index differs betw. data_types
+    d = getattr(data, data_type)
+    imu_indices = {
+        'static': [4, 5, 6],
+        'constant': [4, 5, 6],
+        'dynamic': [1, 2, 3]}
+    imu_index = imu_indices[data_type]
+
+    pose_names = list(d.keys())
+    joint_names = list(d[pose_names[0]].keys())
+    imu_names = list(d[pose_names[0]][joint_names[0]].keys())
+    # Add outliers
+    for pose in pose_names:
+        for joint in joint_names:
+            for imu in imu_names:
+                n_data = d[pose][joint][imu].shape[0]
+                # generate indices to add outliers
+                if n_data == 1:
+                    index = 0
+                else:
+                    index = np.random.choice(np.arange(n_data), size=int(n_data*outlier_ratio))
+                d[pose][joint][imu][index, imu_index] = np.random.uniform(d[pose][joint][imu][index, imu_index], sigma)
 
 
 def construct_kinematic_chain(robot_configs: dict, imu_mappings: dict,
@@ -97,6 +157,18 @@ def construct_kinematic_chain(robot_configs: dict, imu_mappings: dict,
         [0.0, 0.2],         # d
         [0.0, 0.0001],      # a     # 0 gives error
         [0, np.pi]])        # alpha
+    bounds = np.array([
+        [-np.pi, np.pi],    # th
+        [-1.0, 1.0],        # d
+        [-1.0, 1.0],        # a     (radius)
+        [-np.pi, np.pi]])   # alpha
+    bounds_su = np.array([
+        [-np.pi, np.pi],    # th
+        [-1.0, 1.0],        # d
+        [-np.pi, np.pi],    # th
+        [-1.0, 1.0],        # d
+        [-1.0, 1.0],        # a     # 0 gives error
+        [-np.pi, np.pi]])   # alpha
     bound_dict = {'link': bounds, 'su': bounds_su}
 
     keys = ['dh_parameter', 'su_dh_parameter', 'eval_poses']
@@ -117,7 +189,7 @@ def construct_kinematic_chain(robot_configs: dict, imu_mappings: dict,
         eval_poses=eval_poses)
 
     if optimize_all:
-        linkdh0 = np.array(linkdh_dict['joint1'])
+        linkdh0 = np.array(robot_configs['dh_parameter']['joint1'])
         su0 = np.random.rand(6)
         params = np.r_[linkdh0, su0]
         kinematic_chain.set_params_at(0, params)
@@ -183,4 +255,13 @@ if __name__ == '__main__':
     optimizer.optimize(measured_data)
 
     data_logger.save()
-    data_logger.print()
+    print('Positions')
+    print(data_logger.position)
+    print('Orientations')
+    print(data_logger.orientation)
+    print('Euclidean Distance')
+    print(data_logger.euclidean_distance)
+    print('Quaternion Distance')
+    print(data_logger.quaternion_distance)
+    print('Ave. Euclidean Distance')
+    print(data_logger.average_euclidean_distance)
