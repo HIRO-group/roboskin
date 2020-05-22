@@ -5,8 +5,6 @@ import pyquaternion as pyqt
 from robotic_skin.calibration.utils.io import n2s
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 
-# Comment to open up PR
-
 
 def initialize_transformation_matrices(kinematic_chain, d_joint, i_su):
     """
@@ -51,7 +49,7 @@ def initialize_acceleration_variables(curr_w, dof_T_su):
     return w_dofd, a_dofd, a_centric_su
 
 
-def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint_angle_func=None, 
+def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint_angle_func=None,
                           apply_normal_mittendorfer=False, analytical=True):
     """
     Compute an acceleration value from positions.
@@ -88,7 +86,7 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
     # Gravity vector
     gravity = np.array([0, 0, 9.81])
 
-    # If the analytical boolean is true 
+    # If the analytical boolean is true
     # Calculate analytical acceleration estimation
     if analytical:
         # Gravity vector of skin unit
@@ -107,7 +105,7 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
     # Compute Acceleration at RS frame
     # dt should be small value, recommended to use 1/(1000 * freq)
     dt = 1.0 / 1000.0
-    
+
     positions = []
     for t in [dt, -dt, 0]:
         angle = joint_angle_func(curr_w, max_w, t)
@@ -303,10 +301,9 @@ class ConstantRotationErrorFunction(ErrorFunction):
 
                     # TODO: parse start_joint. Currently, there is a bug
                     kinematic_chain.set_poses(poses, end_joint=i_joint)
-                    model_accel = estimate_acceleration(kinematic_chain=kinematic_chain, 
+                    model_accel = estimate_acceleration(kinematic_chain=kinematic_chain,
                                                         d_joint=d_joint,
                                                         i_su=i_su, curr_w=curr_w)
-                    #model_accel = estimate_acceleration_analytically(kinematic_chain, d_joint, i_su, curr_w)
 
                     logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t' +
                                   f'Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}')
@@ -373,8 +370,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                                                         joint_angle_func=max_acceleration_joint_angle,
                                                         apply_normal_mittendorfer=self.apply_normal_mittendorfer,
                                                         analytical=False)
-                #max_accel_model = estimate_acceleration_numerically(kinematic_chain, d_joint, i_su, curr_w, A, max_acceleration_joint_angle,
-                                                                    #self.apply_normal_mittendorfer)
+
                 logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t' +
                               f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
                 error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
