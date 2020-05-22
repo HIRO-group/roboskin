@@ -51,7 +51,7 @@ def initialize_acceleration_variables(curr_w, dof_T_su):
 
 def current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t, joint_angle_func):
     """
-    Returns the position o the current skin unit
+    Returns the position of the current skin unit
 
     Arguments
     ---------
@@ -148,13 +148,13 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
 
     # If necessary, we can change a_rs and a_su  for non-analytical
     # back to accel_rs and accel_su
+    a_tan_su = np.dot(su_R_rs, a_rs)
 
     if apply_normal_mittendorfer:
-        return np.dot(su_R_rs, a_rs)
+        return a_tan_su
 
     # Every joint rotates along its own z axis, one joint moves at a time
     # rotate into su frame
-    a_tan_su = np.dot(su_R_rs, a_rs)
     a_su = a_centric_su + a_tan_su
     # estimate acceleration of skin unit
     return a_su
