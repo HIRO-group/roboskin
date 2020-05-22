@@ -51,7 +51,7 @@ def initialize_acceleration_variables(curr_w, dof_T_su):
     return w_dofd, a_dofd, a_centric_su
 
 
-def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w = 0, joint_angle_func = None, 
+def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint_angle_func=None, 
                           apply_normal_mittendorfer=False, analytical=True):
     """
     Compute an acceleration value from positions.
@@ -137,106 +137,6 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w = 0, joi
     a_su = a_centric_su + a_tan_su
     # estimate acceleration of skin unit
     return a_su
-
-
-# def estimate_acceleration_analytically(kinematic_chain, d_joint, i_su, curr_w):
-#     """
-#     Estimates the acceleration analytically.
-
-#     Arguments
-#     ---------
-#     `kinematic_chain`: `robotic_skin.calibration.kinematic_chain.KinematicChain`
-#         Robot's Kinematic Chain
-#     `d_joint`: `int`
-#         dof `d`
-#     `i`: `int`
-#         imu `i`
-#     `curr_w`: `int`
-#         Angular velocity
-#     """
-#     rs_T_su, dof_T_su = initialize_transformation_matrices(kinematic_chain, d_joint, i_su)
-
-#     # Every joint rotates along its own z axis
-#     w_dofd, a_dofd, a_centric_su = initialize_acceleration_variables(curr_w, dof_T_su)
-
-#     # Gravity vectors of reference segment and skin unit
-#     g_rs = np.array([0, 0, 9.81])
-#     g_su = np.dot(rs_T_su.R.T, g_rs)
-#     a_su = a_centric_su + g_su
-
-#     return a_su
-
-
-# def estimate_acceleration_numerically(kinematic_chain, d_joint, i_su, curr_w, max_w, joint_angle_func,
-#                                       apply_normal_mittendorder=False):
-#     """
-#     Compute an acceleration value from positions.
-#     .. math:: `a = \frac{f({\Delta t}) + f({\Delta t}) - 2 f(0)}{h^2}`
-
-#     This equation came from Taylor Expansion to get the second derivative from f(t).
-#     .. math:: f(t+{\Delta t}) = f(t) + hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)
-#     .. math:: f(t-{\Delta t}) = f(t) - hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)
-
-#     Add both equations and plug t=0 to get the above equation
-
-#     Arguments
-#     ------------
-#     `kinematic_chain`: `robotic_skin.calibration.kinematic_chain.KinematicChain`
-#         Robot's Kinematic Chain
-#     `d_joint`: `int`
-#         dof `d`
-#     `i`: `int`
-#         imu `i`
-#     `curr_w`: `int`
-#         Angular velocity
-#     apply_normal_mittendorfer: bool
-#         determines if we resort to the normal method
-#         mittendorfer uses (which we modified due to some possible missing terms)
-
-#     Returns
-#     ---------
-#     acceleration: np.array
-#         Acceleration computed from positions
-#     """  # noqa: W605
-#     rs_T_su, dof_T_su = initialize_transformation_matrices(kinematic_chain, d_joint, i_su)
-
-#     # rotation matrix of reference segment to skin unit
-#     su_R_rs = rs_T_su.R.T
-
-#     # Compute Acceleration at RS frame
-#     # dt should be a small value, recommended to use 1/(1000 * freq)
-#     dt = 1.0/1000.0
-
-#     positions = []
-#     for t in [dt, -dt, 0]:
-#         angle = joint_angle_func(curr_w, max_w, t)
-#         dof_T_dof, rs_T_dof = kinematic_chain.get_current_TMs()
-#         kinematic_chain.add_a_pose(
-#             i_joint=d_joint,
-#             pose=angle,
-#             dof_T_dof=dof_T_dof,
-#             rs_T_dof=rs_T_dof)
-#         T = kinematic_chain._compute_su_TM(i_su, dof_T_dof, rs_T_dof)
-#         positions.append(T.position)
-
-#     # get acceleration and include gravity
-#     accel_rs = ((positions[0] + positions[1] - 2*positions[2]) / (dt**2))
-
-#     gravity = np.array([0, 0, 9.81])
-#     accel_rs += gravity
-
-#     if apply_normal_mittendorder:
-#         return np.dot(su_R_rs, accel_rs)
-
-#     # we need centripetal acceleration here.
-#     w_dofd, a_dofd, a_centric_su = initialize_acceleration_variables(curr_w, dof_T_su)
-
-#     # Every joint rotates along its own z axis, one joint moves at a time
-#     # rotate into su frame
-#     a_tan_su = np.dot(su_R_rs, accel_rs)
-#     accel_su = a_centric_su + a_tan_su
-#     # estimate acceleration of skin unit
-#     return accel_su
 
 
 def max_acceleration_joint_angle(curr_w, amplitude, t):
