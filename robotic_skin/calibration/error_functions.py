@@ -53,7 +53,7 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
                           apply_normal_mittendorfer=False, analytical=True):
     """
     Compute an acceleration value from positions.
-    .. math:: `a = \frac{f({\Delta t}) + f({\Delta t}) - 2 f(0)}{h^2}`
+    .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`
 
     This equation came from Taylor Expansion to get the second derivative from f(t).
     .. math:: f(t+{\Delta t}) = f(t) + hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)
