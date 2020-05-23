@@ -234,7 +234,7 @@ class MixedIncrementalOptimizer(IncrementalOptimizerBase):
 
         params, _ = self.kinematic_chain.get_params_at(i_su=self.i_su)
         e = self.error_functions(self.kinematic_chain, self.i_su)
-        res = self.stop_conditions.update(params, None, e)
+        res, params = self.stop_conditions.update(params, None, e)
 
         # Evaluate
         T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
@@ -359,7 +359,7 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
 
         params, _ = self.kinematic_chain.get_params_at(i_su=self.i_su)
         e = self.error_functions[self.target](self.kinematic_chain, self.i_su)
-        res = self.stop_conditions[self.target].update(params[self.target_index], None, e)
+        res, target_params = self.stop_conditions[self.target].update(params[self.target_index], None, e)
 
         # Evaluate
         T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
@@ -387,9 +387,9 @@ class MittendorferMethodOptimizer(MixedIncrementalOptimizer):
                  optimize_all, error_function_=None, stop_condition_=None,
                  apply_normal_mittendorfer=True):
         error_function = CombinedErrorFunction(
-            StaticErrorFunction(
+            e1=StaticErrorFunction(
                 loss=L2Loss()),
-            MaxAccelerationErrorFunction(
+            e2=MaxAccelerationErrorFunction(
                 loss=L2Loss(),
                 apply_normal_mittendorfer=apply_normal_mittendorfer)
             )
@@ -416,9 +416,14 @@ class OurMethodOptimizer(SeparateIncrementalOptimizer):
         }
 
         if isinstance(error_functions_, dict):
-            error_functions = error_functions_
+            for k, v in error_functions_.items():
+                if k in error_functions.keys():
+                    error_functions[k] = v
         if isinstance(stop_conditions_, dict):
-            stop_conditions = stop_conditions_
+            for k, v in stop_conditions_.items():
+                if k in error_functions.keys():
+                    stop_conditions[k] = v
+                    print('Stop Condition Set')
 
         super().__init__(kinematic_chain, evaluator, data_logger,
                          optimize_all, error_functions, stop_conditions)

@@ -159,12 +159,26 @@ def add_outlier(data, data_type: str, sigma=3, outlier_ratio=0.25):  # noqa:#C90
         for joint in joint_names:
             for imu in imu_names:
                 if data_type == 'constant':
-                    n_data = d[pose_names[i]][joint][imu].shape[0]
-                    index = np.random.choice(np.arange(n_data), size=int(n_data*outlier_ratio))
-                    d[pose_names[i]][joint][imu][0][:, imu_index] = \
-                        np.random.uniform(d[pose_names[i]][joint][imu][0][index, imu_index], sigma)
+                    data = d[pose_names[i]][joint][imu][0]
+                    index = outlier_index(data, outlier_ratio)
+                    if index is None:
+                        continue
+                    data[:, imu_index][index] = \
+                        np.random.uniform(data[:, imu_index][index], sigma).reshape(-1, 3)
                 else:
                     flag = np.random.choice([0, 1], p=[1-outlier_ratio, outlier_ratio])
                     if not flag:
                         continue
                     d[pose_names[i]][joint][imu][0][imu_index] = np.random.uniform(d[pose_names[i]][joint][imu][0][imu_index], sigma)
+
+
+def outlier_index(data, outlier_ratio):
+    n_data = data.shape[0]
+    index = np.random.choice(np.arange(n_data), size=int(n_data*outlier_ratio))
+    index = np.unique(index)
+    if index.size == 0:
+        return None
+    elif index.size == 1:
+        return index[0]
+
+    return index

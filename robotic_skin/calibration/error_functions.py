@@ -349,12 +349,13 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
 
 class CombinedErrorFunction(ErrorFunction):
-    def __init__(self, *args):
+    def __init__(self, **kwargs):
         self.error_funcs = []
-        for arg in args:
-            if not isinstance(arg, ErrorFunction):
+        for k, v in kwargs.items():
+            if not isinstance(v, ErrorFunction):
                 raise ValueError('Only ErrorFunction class is allowed')
-            self.error_funcs.append(arg)
+            setattr(self, k, v)
+            self.error_funcs.append(v)
 
     def initialize(self, data):
         for error_function in self.error_funcs:

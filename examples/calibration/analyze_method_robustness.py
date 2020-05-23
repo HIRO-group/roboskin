@@ -10,6 +10,11 @@ from robotic_skin.calibration.optimizer import (
 from robotic_skin.calibration.kinematic_chain import construct_kinematic_chain
 from robotic_skin.calibration.data_logger import DataLogger
 from robotic_skin.calibration.evaluator import Evaluator
+from robotic_skin.calibration.stop_conditions import (
+    CombinedStopCondition,
+    DeltaXStopCondition,
+    MaxCountStopCondition,
+)
 from robotic_skin.calibration import utils
 from calibrate_imu_poses import parse_arguments
 
@@ -19,6 +24,7 @@ CONFIGDIR = os.path.join(REPODIR, 'config')
 
 if __name__ == '__main__':
     args = parse_arguments()
+    utils.initialize_logging(args.log)
 
     robot_configs = utils.load_robot_configs(CONFIGDIR, args.robot)
     evaluator = Evaluator(true_su_pose=robot_configs['su_pose'])
@@ -31,12 +37,19 @@ if __name__ == '__main__':
     data_loggers = []
 
     # Our Method
+    stop_conditions = {
+        'Orientation': DeltaXStopCondition(threshold=0.00001),
+        'Position': CombinedStopCondition(
+            s1=DeltaXStopCondition(),
+            s2=MaxCountStopCondition(count_limit=500)
+        ),
+    }
     kinematic_chain = construct_kinematic_chain(
         robot_configs, imu_mappings, args.test, args.optimizeall)
     data_logger = DataLogger(datadir, args.robot, args.method)
     optimizer = OurMethodOptimizer(
         kinematic_chain, evaluator, data_logger,
-        args.optimizeall, args.error_functions, args.stop_conditions)
+        args.optimizeall, args.error_functions, stop_conditions)
     optimizers.append(optimizer)
     data_loggers.append(data_logger)
 
@@ -58,6 +71,9 @@ if __name__ == '__main__':
     optimizers.append(optimizer)
     data_loggers.append(data_logger)
 
+    print(f'Optimizers: {len(optimizers)}')
+    print(f'DataLoggers: {len(data_loggers)}')
+
     n_noise = 10
     noise_sigmas = 0.1 * np.arange(n_noise)
     ave_euclidean_distance = np.zeros((n_noise, len(method_names)))
@@ -67,12 +83,11 @@ if __name__ == '__main__':
         utils.add_noise(data, 'static', sigma=noise_sigma)
         utils.add_noise(data, 'constant', sigma=noise_sigma)
         utils.add_noise(data, 'dynamic', sigma=noise_sigma)
-        utils.add_outlier(data, 'static', sigma=noise_sigma)
-        utils.add_outlier(data, 'constant', sigma=noise_sigma)
-        utils.add_outlier(data, 'dynamic', sigma=noise_sigma)
         for j, (optimizer, data_logger) in enumerate(zip(optimizers, data_loggers)):
             optimizer.optimize(data)
-            ave_euclidean_distance[i, j] = data_logger.average_eulidean_distance
+            ave_euclidean_distance[i, j] = data_logger.average_euclidean_distance
+
+    print(ave_euclidean_distance)
 
     colors = ['-b', '-r', '-g']
     for i, (data_logger, color, method_name) in enumerate(zip(data_loggers, colors, method_names)):
@@ -83,3 +98,6 @@ if __name__ == '__main__':
     plt.legend(loc="upper left")
     plt.xticks(np.arange(n_noise), np.arange(1, n_noise + 1))
     plt.plot()
+    filename = os.path.join(REPODIR, "images", "ave_l2_norm_graph.png")
+    plt.savefig(filename, format="png")
+    plt.show()
