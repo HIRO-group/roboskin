@@ -6,52 +6,9 @@ from robotic_skin.calibration.utils.io import n2s
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 
 
-def initialize_transformation_matrices(kinematic_chain, d_joint, i_su):
+def current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t, joint_angle_func):
     """
-    Initializes transformation matrices used in analytical and numerical estimations of acceleration
-
-    Arguments
-    ---------
-    `kinematic_chain`: `robotic_skin.calibration.kinematic_chain.KinematicChain`
-        Robot's Kinematic Chain
-    'd_joint': 'int'
-        dof 'd'
-    'i': 'int'
-        imu 'i'
-    """
-    rs_T_su = kinematic_chain.compute_su_TM(
-        i_su=i_su, pose_type='current')
-
-    dof_T_su = kinematic_chain.compute_su_TM(
-        start_joint=d_joint,
-        i_su=i_su,
-        pose_type='current')
-    return rs_T_su, dof_T_su
-
-
-def initialize_acceleration_variables(curr_w, dof_T_su):
-    """
-    Initializes variables used in analytical and numerical estimations of acceleration
-
-    Arguments
-    ---------
-    `curr_w`: `int`
-        Angular velocity
-    'dof_T_su': 'TM'
-        Transformation matrix between skin unit and DoF
-    """
-    # we need centripetal acceleration here
-    w_dofd = np.array([0, 0, curr_w])
-    a_dofd = np.cross(w_dofd, np.cross(w_dofd, dof_T_su.position))
-
-    a_centric_su = np.dot(dof_T_su.R.T, a_dofd)
-
-    return w_dofd, a_dofd, a_centric_su
-
-
-def current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t):
-    """
-    Returns the position o the current skin unit
+    Returns the position of the current skin unit
 
     Arguments
     ---------
@@ -108,10 +65,19 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
         determines if we are returning the analytical or numerical
         estimation of acceleration
     """
-    rs_T_su, dof_T_su = initialize_transformation_matrices(kinematic_chain, d_joint, i_su)
+    rs_T_su = kinematic_chain.compute_su_TM(
+        i_su=i_su, pose_type='current')
+
+    dof_T_su = kinematic_chain.compute_su_TM(
+        start_joint=d_joint,
+        i_su=i_su,
+        pose_type='current')
 
     # Every joint rotates along its own z axis
-    w_dofd, a_dofd, a_centric_su = initialize_acceleration_variables(curr_w, dof_T_su)
+    w_dofd = np.array([0, 0, curr_w])
+    a_dofd = np.cross(w_dofd, np.cross(w_dofd, dof_T_su.position))
+
+    a_centric_su = np.dot(dof_T_su.R.T, a_dofd)
 
     # Gravity vector
     gravity = np.array([0, 0, 9.81])
@@ -138,7 +104,7 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
 
     positions = []
     for t in [dt, -dt, 0]:
-        curr_position = current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t)
+        curr_position = current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t, joint_angle_func)
         positions.append(curr_position)
 
     # get acceleration and include gravity
@@ -148,13 +114,13 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
 
     # If necessary, we can change a_rs and a_su  for non-analytical
     # back to accel_rs and accel_su
+    a_tan_su = np.dot(su_R_rs, a_rs)
 
     if apply_normal_mittendorfer:
-        return np.dot(su_R_rs, a_rs)
+        return a_tan_su
 
     # Every joint rotates along its own z axis, one joint moves at a time
     # rotate into su frame
-    a_tan_su = np.dot(su_R_rs, a_rs)
     a_su = a_centric_su + a_tan_su
     # estimate acceleration of skin unit
     return a_su
