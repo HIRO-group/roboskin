@@ -67,6 +67,9 @@ if __name__ == '__main__':
         utils.add_noise(data, 'static', sigma=noise_sigma)
         utils.add_noise(data, 'constant', sigma=noise_sigma)
         utils.add_noise(data, 'dynamic', sigma=noise_sigma)
+        utils.add_outlier(data, 'static', sigma=noise_sigma)
+        utils.add_outlier(data, 'constant', sigma=noise_sigma)
+        utils.add_outlier(data, 'dynamic', sigma=noise_sigma)
         for j, (optimizer, data_logger) in enumerate(zip(optimizers, data_loggers)):
             optimizer.optimize(data)
             ave_euclidean_distance[i, j] = data_logger.average_eulidean_distance

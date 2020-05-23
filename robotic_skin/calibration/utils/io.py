@@ -92,50 +92,79 @@ def load_data(robot, directory):
 def add_noise(data, data_type: str, sigma=1):
     if data_type not in ['static', 'constant', 'dynamic']:
         raise ValueError('There is no such data_type='+data_type)
-
     d = getattr(data, data_type)
+
     imu_indices = {
         'static': [4, 5, 6],
         'constant': [4, 5, 6],
         'dynamic': [1, 2, 3]}
     imu_index = imu_indices[data_type]
 
-    pose_names = list(d.keys())
-    joint_names = list(d[pose_names[0]].keys())
-    imu_names = list(d[pose_names[0]][joint_names[0]].keys())
+    pose_names = list(data.constant.keys())
+    joint_names = list(data.constant[pose_names[0]].keys())
+    imu_names = list(data.constant[pose_names[0]][joint_names[0]].keys())
 
-    for pose in pose_names:
+    n_dynamic_pose = len(list(data.dynamic.keys()))
+    n_constant_pose = len(list(data.constant.keys()))
+    n_static_pose = len(list(data.static.keys()))
+
+    if data_type == 'static':
+        for i in range(n_static_pose):
+            for imu in imu_names:
+                d[pose_names[i]][imu][imu_index] = \
+                    np.random.uniform(d[pose_names[i]][imu][imu_index], sigma)
+        return
+
+    n_pose = n_constant_pose if data_type == 'constant' else n_dynamic_pose
+    for i in range(n_pose):
         for joint in joint_names:
             for imu in imu_names:
-                print(data_type, d[pose][joint][imu][0].shape, imu_index)
-                d[pose][joint][imu][0][:, imu_index] = np.random.uniform(d[pose][joint][imu][0][:, imu_index], sigma)
+                if data_type == 'constant':
+                    d[pose_names[i]][joint][imu][0][:, imu_index] = np.random.uniform(d[pose_names[i]][joint][imu][0][:, imu_index], sigma)
+                elif data_type == 'dynamic':
+                    d[pose_names[i]][joint][imu][0][imu_index] = np.random.uniform(d[pose_names[i]][joint][imu][0][imu_index], sigma)
 
 
-def add_outlier(data, data_type: str, sigma=3, outlier_ratio=0.25):
+def add_outlier(data, data_type: str, sigma=3, outlier_ratio=0.25):  # noqa:#C901
     if data_type not in ['static', 'constant', 'dynamic']:
         raise ValueError('There is no such data_type='+data_type)
-    if not (0 <= outlier_ratio <= 1):
-        raise ValueError('Outlier Ratio must be between 0 and 1')
 
-    # IMU index differs betw. data_types
     d = getattr(data, data_type)
+
     imu_indices = {
         'static': [4, 5, 6],
         'constant': [4, 5, 6],
         'dynamic': [1, 2, 3]}
     imu_index = imu_indices[data_type]
 
-    pose_names = list(d.keys())
-    joint_names = list(d[pose_names[0]].keys())
-    imu_names = list(d[pose_names[0]][joint_names[0]].keys())
-    # Add outliers
-    for pose in pose_names:
+    pose_names = list(data.constant.keys())
+    joint_names = list(data.constant[pose_names[0]].keys())
+    imu_names = list(data.constant[pose_names[0]][joint_names[0]].keys())
+
+    n_dynamic_pose = len(list(data.dynamic.keys()))
+    n_constant_pose = len(list(data.constant.keys()))
+    n_static_pose = len(list(data.static.keys()))
+
+    if data_type == 'static':
+        for i in range(n_static_pose):
+            for imu in imu_names:
+                flag = np.random.choice([0, 1], p=[1-outlier_ratio, outlier_ratio])
+                if not flag:
+                    continue
+                d[pose_names[i]][imu][imu_index] = np.random.uniform(d[pose_names[i]][imu][imu_index], sigma)
+        return
+
+    n_pose = n_constant_pose if data_type == 'constant' else n_dynamic_pose
+    for i in range(n_pose):
         for joint in joint_names:
             for imu in imu_names:
-                n_data = d[pose][joint][imu].shape[0]
-                # generate indices to add outliers
-                if n_data == 1:
-                    index = 0
-                else:
+                if data_type == 'constant':
+                    n_data = d[pose_names[i]][joint][imu].shape[0]
                     index = np.random.choice(np.arange(n_data), size=int(n_data*outlier_ratio))
-                d[pose][joint][imu][index, imu_index] = np.random.uniform(d[pose][joint][imu][index, imu_index], sigma)
+                    d[pose_names[i]][joint][imu][0][:, imu_index] = \
+                        np.random.uniform(d[pose_names[i]][joint][imu][0][index, imu_index], sigma)
+                else:
+                    flag = np.random.choice([0, 1], p=[1-outlier_ratio, outlier_ratio])
+                    if not flag:
+                        continue
+                    d[pose_names[i]][joint][imu][0][imu_index] = np.random.uniform(d[pose_names[i]][joint][imu][0][imu_index], sigma)
