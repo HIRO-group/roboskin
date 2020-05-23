@@ -536,7 +536,7 @@ class KinematicChainTorch():
 
     def __apply_poses(self, poses: np.ndarray, dof_T_dof: List[TM], rs_T_dof: List[TM],
                       start_joint: int = 0, end_joint: int = None) -> List[TM]:
-        assert isinstance(poses, np.ndarray)
+        assert isinstance(poses, torch.Tensor)
         assert len(dof_T_dof) == poses.size
         if end_joint is None:
             end_joint = self.n_joint - 1
