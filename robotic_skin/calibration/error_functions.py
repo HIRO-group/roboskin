@@ -6,7 +6,7 @@ from robotic_skin.calibration.utils.io import n2s
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 
 
-def current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t, joint_angle_func):
+def current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t):
     """
     Returns position of the current skin unit
 
@@ -23,7 +23,7 @@ def current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t, joint_
     'd_joint': 'int'
         dof 'd'
     """
-    angle = joint_angle_func(curr_w, max_w, t)
+    angle = (max_w / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
     dof_T_dof, rs_T_dof = kinematic_chain.get_current_TMs()
     kinematic_chain.add_a_pose(
         i_joint=d_joint,
@@ -34,7 +34,7 @@ def current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t, joint_
     return T.position
 
 
-def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint_angle_func=None,
+def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0,
                           apply_normal_mittendorfer=False, analytical=True):
     """
     Compute an acceleration value from positions.
@@ -104,7 +104,7 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
 
     positions = []
     for t in [dt, -dt, 0]:
-        curr_position = current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t, joint_angle_func)
+        curr_position = current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t)
         positions.append(curr_position)
 
     # get acceleration and include gravity
@@ -124,18 +124,6 @@ def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0, joint
     a_su = a_centric_su + a_tan_su
     # estimate acceleration of skin unit
     return a_su
-
-
-def max_acceleration_joint_angle(curr_w, amplitude, t):
-    """
-    max acceleration along a joint angle of robot function.
-    includes pattern
-    """
-    # th_pattern = np.sign(t) * max_w / (curr_w) * (1 - np.cos(curr_w*t))
-    # th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
-    th_pattern = (amplitude / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
-    # print('-'*20, th_pattern, curr_w, '-'*20)
-    return th_pattern
 
 
 class ErrorFunction():
@@ -348,7 +336,6 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                                                         d_joint=d_joint,
                                                         i_su=i_su, curr_w=curr_w,
                                                         max_w=A,
-                                                        joint_angle_func=max_acceleration_joint_angle,
                                                         apply_normal_mittendorfer=self.apply_normal_mittendorfer,
                                                         analytical=False)
 
