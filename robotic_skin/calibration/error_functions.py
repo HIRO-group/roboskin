@@ -8,7 +8,7 @@ from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 
 def current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t, joint_angle_func):
     """
-    Returns the position of the current skin unit
+    Returns position of the current skin unit
 
     Arguments
     ---------
