@@ -44,22 +44,6 @@ robotic\_skin.calibration.optimizer module
    :undoc-members:
    :show-inheritance:
 
-robotic\_skin.calibration.plot\_data module
--------------------------------------------
-
-.. automodule:: robotic_skin.calibration.plot_data
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-robotic\_skin.calibration.stats\_generator module
--------------------------------------------------
-
-.. automodule:: robotic_skin.calibration.stats_generator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 robotic\_skin.calibration.stop\_conditions module
 -------------------------------------------------
 
