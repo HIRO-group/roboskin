@@ -146,6 +146,7 @@ class IncrementalOptimizerBase(OptimizerBase):
             print('Position:', T.position)
             print('Quaternion:', T.quaternion)
             print('Euclidean distance: ', errors['position'])
+            print('Elapsed Time', elapsed_time)
             print('='*100)
         elapsed_time = self.evaluator.end_timer()
         self.data_logger.add_global_elapsed_time(elapsed_time)

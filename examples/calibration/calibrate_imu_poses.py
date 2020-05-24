@@ -84,3 +84,5 @@ if __name__ == '__main__':
     print(data_logger.quaternion_distance)
     print('Ave. Euclidean Distance')
     print(data_logger.average_euclidean_distance)
+    print('Elapsed Time')
+    print(data_logger.elapsed_time)
