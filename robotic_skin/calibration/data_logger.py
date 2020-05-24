@@ -13,6 +13,10 @@ class DataLogger():
         self.best_data = {}
         self.trials = {}
         self.average_euclidean_distance = 0.0
+        self.elapsed_time = 0.0
+
+    def add_global_elapsed_time(self, elapsed_time):
+        self.elapsed_time = elapsed_time
 
     def add_best(self, i_su, **kwargs):
         for key, value in kwargs.items():
@@ -48,7 +52,7 @@ class DataLogger():
         with open(self.savepath, 'wb') as f:
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def print(self):
+    def __call__(self):
         print('Estimated SU Positions')
         for i, values in self.best_data['position'].items():
             print(f'SU{i}: {utils.n2s(np.array(values), 3)}')

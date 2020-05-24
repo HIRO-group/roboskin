@@ -109,6 +109,7 @@ class IncrementalOptimizerBase(OptimizerBase):
         """
         Optimize SU from Base to the End-Effector incrementally
         """
+        self.evaluator.start_timer()
         # Initilialize error functions with data
         if isinstance(self.error_functions, dict):
             for error_function in self.error_functions.values():
@@ -121,7 +122,9 @@ class IncrementalOptimizerBase(OptimizerBase):
             print("Optimizing %ith SU ..." % (i_su))
 
             # optimize parameters wrt data
+            self.evaluator.start_timer(timer_name=f'SU{i_su+1}')
             params = self._optimize(i_su=i_su)
+            elapsed_time = self.evaluator.end_timer(timer_name=f'SU{i_su+1}')
 
             # Compute necessary data
             self.kinematic_chain.set_params_at(i_su, params)
@@ -135,6 +138,7 @@ class IncrementalOptimizerBase(OptimizerBase):
                 params=params,
                 position=T.position,
                 orientation=T.quaternion,
+                elapsed_time=elapsed_time,
                 euclidean_distance=errors['position'],
                 quaternion_distance=errors['orientation'])
 
@@ -143,6 +147,8 @@ class IncrementalOptimizerBase(OptimizerBase):
             print('Quaternion:', T.quaternion)
             print('Euclidean distance: ', errors['position'])
             print('='*100)
+        elapsed_time = self.evaluator.end_timer()
+        self.data_logger.add_global_elapsed_time(elapsed_time)
 
     def _optimize(self, i_su: int):
         """
