@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from robotic_skin.calibration import utils
-from calibrate_imu_poses import parse_arguments
 
 
 def is_first(i):

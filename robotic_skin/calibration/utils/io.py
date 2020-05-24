@@ -40,13 +40,16 @@ def load_robot_configs(configdir, robot):
         raise ValueError('Please provide a valid config directory with robot yaml files')
 
 
-def initialize_logging(log_level: str):
+def initialize_logging(log_level: str, filename: str = None):
     """
     Initialize Logging Module with given log_lvel
     """
     numeric_level = getattr(logging, log_level.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % log_level)
+    if filename:
+        logging.basicConfig(level=numeric_level, filename=filename)
+
     logging.basicConfig(level=numeric_level)
 
 

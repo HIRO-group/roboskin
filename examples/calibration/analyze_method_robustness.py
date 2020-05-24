@@ -97,7 +97,7 @@ def plot_performance(data_logger, method_names, ave_euclidean_distance, n_noise,
 
 if __name__ == '__main__':
     args = parse_arguments()
-    utils.initialize_logging(args.log)
+    utils.initialize_logging(args.log, args.logfile)
 
     robot_configs = utils.load_robot_configs(CONFIGDIR, args.robot)
     evaluator = Evaluator(true_su_pose=robot_configs['su_pose'])
