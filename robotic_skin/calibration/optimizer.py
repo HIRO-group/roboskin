@@ -3,6 +3,7 @@ import numpy as np
 import nlopt
 
 # import robotic_skin
+import torch
 import robotic_skin.const as C
 from robotic_skin.calibration.error_functions import (
     ErrorFunction,
@@ -178,6 +179,7 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
             )
         stop_condition = DeltaXStopCondition()
 
+
         if isinstance(error_function_, ErrorFunction):
             error_function = error_function_
         if isinstance(stop_condition_, StopCondition):
@@ -190,7 +192,11 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         self.kinematic_chain.set_params_at(self.i_su, params)
 
         params, _ = self.kinematic_chain.get_params_at(i_su=self.i_su)
+        optimizer = torch.optim.Adam([params], lr=0.01)
         e = self.error_functions(self.kinematic_chain, self.i_su)
+        e.backward()
+        optimizer.step()
+
         res = self.stop_conditions.update(params, None, e)
 
         # Evaluate
@@ -239,7 +245,6 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
             self.error_functions.initialize(data)
         print('Skipping 0th IMU.')
         print(self.kinematic_chain.n_su)
-        exit()
         for i_su in range(1, self.kinematic_chain.n_su):
             print("Optimizing %ith SU ..." % (i_su))
 
