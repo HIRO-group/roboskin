@@ -47,10 +47,17 @@ def choose_optimizer(args, kinematic_chain, evaluator, data_logger, optimize_all
         optimizer = MittendorferMethodOptimizer(
             kinematic_chain, evaluator, data_logger,
             optimize_all, args.error_functions, args.stop_conditions, apply_normal_mittendorfer=True)
+
     elif args.method == 'MMM':
         optimizer = MittendorferMethodOptimizer(
             kinematic_chain, evaluator, data_logger,
             optimize_all, args.error_functions, args.stop_conditions, apply_normal_mittendorfer=False)
+
+    elif args.method == 'TM':
+        # method using pytorch's autograd
+        optimizer = TorchOptimizerBase(
+            kinematic_chain, evaluator, data_logger,
+            optimize_all, args.error_functions, args.stop_conditions)
     else:
         raise ValueError(f'There is no such method name={args.method}')
 
@@ -159,15 +166,108 @@ class IncrementalOptimizerBase(OptimizerBase):
         raise NotImplementedError
 
 
-class TorchOptimizerBase(OptimizerBase):
-    def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all):
-        super().__init__(kinematic_chain, evaluator, data_logger)
+class TorchOptimizerBase(IncrementalOptimizerBase):
+    def __init__(self, kinematic_chain, evaluator, data_logger,
+                 optimize_all, error_function_=None, stop_condition_=None,):
 
-    def optimize(self):
+        error_function = CombinedErrorFunction(
+            StaticErrorFunction(
+                loss=L2Loss()),
+            MaxAccelerationErrorFunction(
+                loss=L2Loss())
+            )
+        stop_condition = DeltaXStopCondition()
+
+        if isinstance(error_function_, ErrorFunction):
+            error_function = error_function_
+        if isinstance(stop_condition_, StopCondition):
+            stop_condition = stop_condition_
+
+        super().__init__(kinematic_chain, evaluator, data_logger,
+                         optimize_all, error_function, stop_condition)
+
+    def objective(self, params):
+        self.kinematic_chain.set_params_at(self.i_su, params)
+
+        params, _ = self.kinematic_chain.get_params_at(i_su=self.i_su)
+        e = self.error_functions(self.kinematic_chain, self.i_su)
+        res = self.stop_conditions.update(params, None, e)
+
+        # Evaluate
+        T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
+        errors = self.evaluator.evaluate(i_su=self.i_su, T=T)
+        # Log
+        self.data_logger.add_trial(
+            global_step=self.global_step,
+            params=params,
+            position=T.position,
+            orientation=T.quaternion,
+            euclidean_distance=errors['position'],
+            quaternion_distance=errors['orientation'])
+        # print to terminal
+        logging.info(f'e={e:.5f}, res={res:.5f}, params:{n2s(params, 3)}' +
+                     f'P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
+
+        self.local_step += 1
+        self.global_step += 1
+
+        return res
+
+    def _optimize(self, i_su):
+        """
+        optimizes one skin unit, `i_su`.
+        """
+        params, bounds = self.kinematic_chain.get_params_at(i_su=i_su)
+        self.i_su = i_su
+        self.local_step = 0
+
+        self.n_param = params.shape[0]
+        # optimize parameter, feet in data first.
+        return params
+
+    def optimize(self, data):
         """
         Pytorch optimization. Simply calculates the gradients.
         """
-        raise NotImplementedError()
+
+        # iterate through each SU
+        # Initilialize error functions with data
+        if isinstance(self.error_functions, dict):
+            for error_function in self.error_functions.values():
+                error_function.initialize(data)
+        elif isinstance(self.error_functions, ErrorFunction):
+            self.error_functions.initialize(data)
+        print('Skipping 0th IMU.')
+        print(self.kinematic_chain.n_su)
+        exit()
+        for i_su in range(1, self.kinematic_chain.n_su):
+            print("Optimizing %ith SU ..." % (i_su))
+
+            # optimize parameters wrt data
+            params = self._optimize(i_su=i_su)
+
+            # Compute necessary data
+            self.kinematic_chain.set_params_at(i_su, params)
+            T = self.kinematic_chain.compute_su_TM(i_su, pose_type='eval')
+
+            # Evalute and print to terminal
+            errors = self.evaluator.evaluate(i_su=i_su, T=T)
+            # Append to a logger and save every loop
+            self.data_logger.add_best(
+                i_su=i_su,
+                params=params,
+                position=T.position,
+                orientation=T.quaternion,
+                euclidean_distance=errors['position'],
+                quaternion_distance=errors['orientation'])
+
+            print('='*100)
+            print('Position:', T.position)
+            print('Quaternion:', T.quaternion)
+            print('Euclidean distance: ', errors['position'])
+            print('='*100)
+
+
 
 
 class MixedIncrementalOptimizer(IncrementalOptimizerBase):
@@ -409,11 +509,11 @@ class OurMethodOptimizer(SeparateIncrementalOptimizer):
     def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all,
                  error_functions_=None, stop_conditions_=None):
         error_functions = {
-            'Position': ConstantRotationErrorFunction(L2Loss()),
+            'Position': MaxAccelerationErrorFunction(L2Loss()),
             'Orientation': StaticErrorFunction(L2Loss())}
         stop_conditions = {
             'Position': DeltaXStopCondition(),
-            'Orientation': PassThroughStopCondition(),
+            'Orientation': DeltaXStopCondition(),
         }
 
         if isinstance(error_functions_, dict):

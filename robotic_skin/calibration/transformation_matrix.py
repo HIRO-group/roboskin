@@ -181,7 +181,8 @@ class TransformationMatrix():
         params = self.copy_fnc(self.params)
         params[0] += theta
         T = TransformationMatrix(*params)
-
+        if self.is_tensor:
+            T.tensor_()
         q = pyqt.Quaternion(axis=[0, 0, 1], angle=theta)
         T.q = self.q * q
         return T

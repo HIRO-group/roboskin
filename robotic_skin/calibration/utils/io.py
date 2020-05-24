@@ -23,6 +23,14 @@ def n2s(x, precision=2):
     return np.array2string(x, precision=precision, separator=',', suppress_small=True)
 
 
+def t2s(x):
+    """
+    the equivalent of printing out
+    a pytorch tensor, but in string form.
+    """
+    return str(x)
+
+
 def load_robot_configs(configdir, robot):
     """
     Loads robot's DH parameters, SUs' DH parameters and their poses

@@ -9,7 +9,10 @@ import numpy as np
 import pyquaternion as pyqt
 from datetime import datetime
 
-from robotic_skin.calibration.kinematic_chain import KinematicChain
+from robotic_skin.calibration.kinematic_chain import (
+    KinematicChain,
+    KinematicChainTorch
+)
 from robotic_skin.calibration.optimizer import choose_optimizer
 from robotic_skin.calibration import utils
 
@@ -180,7 +183,7 @@ def construct_kinematic_chain(robot_configs: dict, imu_mappings: dict,
     sudh_dict = robot_configs['su_dh_parameter'] if test_code else None
     eval_poses = np.array(robot_configs['eval_poses'])
 
-    kinematic_chain = KinematicChain(
+    kinematic_chain = KinematicChainTorch(
         n_joint=joints.size,
         su_joint_dict=su_joint_dict,
         bound_dict=bound_dict,
@@ -217,7 +220,7 @@ def parse_arguments():
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
     parser.add_argument('--test', action='store_true',
                         help="Determines if the true SU DH parameters will be used")
-    parser.add_argument('--method', type=str, default='OM',
+    parser.add_argument('--method', type=str, default='TM',
                         help="Please provide a method name")
 
     parser.add_argument('-e', '--error_functions', nargs='+', default=None,
@@ -253,6 +256,7 @@ if __name__ == '__main__':
         data_logger=data_logger,
         optimize_all=args.optimizeall)
     optimizer.optimize(measured_data)
+    exit()
 
     data_logger.save()
     print('Positions')
