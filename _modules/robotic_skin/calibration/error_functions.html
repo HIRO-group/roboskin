@@ -153,44 +153,36 @@
 <span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils.quaternion</span> <span class="kn">import</span> <span class="n">np_to_pyqt</span>
 
 
-<div class="viewcode-block" id="estimate_acceleration_analytically"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.estimate_acceleration_analytically">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration_analytically</span><span class="p">(</span><span class="n">kinemaic_chain</span><span class="p">,</span> <span class="n">d_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">):</span>
+<div class="viewcode-block" id="current_su_position"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.current_su_position">[docs]</a><span class="k">def</span> <span class="nf">current_su_position</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">d_joint</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Estimates the acceleration analytically.</span>
+<span class="sd">    Returns position of the current skin unit</span>
 
 <span class="sd">    Arguments</span>
 <span class="sd">    ---------</span>
 <span class="sd">    `kinematic_chain`: `robotic_skin.calibration.kinematic_chain.KinematicChain`</span>
 <span class="sd">        Robot&#39;s Kinematic Chain</span>
-<span class="sd">    `d_joint`: `int`</span>
-<span class="sd">        dof `d`</span>
-<span class="sd">    `i`: `int`</span>
-<span class="sd">        imu `i`</span>
 <span class="sd">    `curr_w`: `int`</span>
 <span class="sd">        Angular velocity</span>
+<span class="sd">    &#39;max_w&#39;: &#39;int&#39;</span>
+<span class="sd">        Maximum angular velocity</span>
+<span class="sd">    `i`: `int`</span>
+<span class="sd">        imu `i`</span>
+<span class="sd">    &#39;d_joint&#39;: &#39;int&#39;</span>
+<span class="sd">        dof &#39;d&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">kinemaic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span>
-        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
-
-    <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">kinemaic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span>
-        <span class="n">start_joint</span><span class="o">=</span><span class="n">d_joint</span><span class="p">,</span>
-        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
-        <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
-
-    <span class="c1"># Every joint rotates along its own z axis</span>
-    <span class="n">w_dofd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">])</span>
-    <span class="n">a_dofd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">dof_T_su</span><span class="o">.</span><span class="n">position</span><span class="p">))</span>
-
-    <span class="n">g_rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.81</span><span class="p">])</span>
-    <span class="n">g_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rs_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">g_rs</span><span class="p">)</span>
-    <span class="n">a_centic_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dof_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">a_dofd</span><span class="p">)</span>
-
-    <span class="n">a_su</span> <span class="o">=</span> <span class="n">a_centic_su</span> <span class="o">+</span> <span class="n">g_su</span>
-
-    <span class="k">return</span> <span class="n">a_su</span></div>
+    <span class="n">angle</span> <span class="o">=</span> <span class="p">(</span><span class="n">max_w</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">C</span><span class="o">.</span><span class="n">PATTERN_FREQ</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">C</span><span class="o">.</span><span class="n">PATTERN_FREQ</span><span class="o">*</span><span class="n">t</span><span class="p">))</span>
+    <span class="n">dof_T_dof</span><span class="p">,</span> <span class="n">rs_T_dof</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">get_current_TMs</span><span class="p">()</span>
+    <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">add_a_pose</span><span class="p">(</span>
+        <span class="n">i_joint</span><span class="o">=</span><span class="n">d_joint</span><span class="p">,</span>
+        <span class="n">pose</span><span class="o">=</span><span class="n">angle</span><span class="p">,</span>
+        <span class="n">dof_T_dof</span><span class="o">=</span><span class="n">dof_T_dof</span><span class="p">,</span>
+        <span class="n">rs_T_dof</span><span class="o">=</span><span class="n">rs_T_dof</span><span class="p">)</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">_compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="n">dof_T_dof</span><span class="p">,</span> <span class="n">rs_T_dof</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">T</span><span class="o">.</span><span class="n">position</span></div>
 
 
-<div class="viewcode-block" id="estimate_acceleration_numerically"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.estimate_acceleration_numerically">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration_numerically</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">d_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">joint_angle_func</span><span class="p">,</span>
-                                      <span class="n">apply_normal_mittendorder</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="estimate_acceleration"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.estimate_acceleration">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">d_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                          <span class="n">apply_normal_mittendorfer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">analytical</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute an acceleration value from positions.</span>
 <span class="sd">    .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`</span>
@@ -211,15 +203,15 @@
 <span class="sd">        imu `i`</span>
 <span class="sd">    `curr_w`: `int`</span>
 <span class="sd">        Angular velocity</span>
+<span class="sd">    &#39;max_w&#39;: &#39;int&#39;</span>
+<span class="sd">        Maximum angular velocity</span>
 <span class="sd">    apply_normal_mittendorfer: bool</span>
 <span class="sd">        determines if we resort to the normal method</span>
-<span class="sd">        mittendorfer uses (which we modified due to some possible missing terms</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    ---------</span>
-<span class="sd">    acceleration: np.array</span>
-<span class="sd">        Acceleration computed from positions</span>
-<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: W605</span>
+<span class="sd">        mittendorfer uses (which we modified due to some possible missing terms)</span>
+<span class="sd">    analytical: bool</span>
+<span class="sd">        determines if we are returning the analytical or numerical</span>
+<span class="sd">        estimation of acceleration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span>
         <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
 
@@ -228,65 +220,57 @@
         <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
         <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
 
-    <span class="c1"># rotation matrix of reference segment to skin unit</span>
-    <span class="n">su_R_rs</span> <span class="o">=</span> <span class="n">rs_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span>
-
-    <span class="c1"># Compute Acceleration at RS frame</span>
-    <span class="c1"># dt should be a small value, recommended to use 1/(1000 * freq)</span>
-    <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="mf">1000.0</span>
-
-    <span class="n">positions</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="n">dt</span><span class="p">,</span> <span class="o">-</span><span class="n">dt</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
-        <span class="n">angle</span> <span class="o">=</span> <span class="n">joint_angle_func</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
-        <span class="n">dof_T_dof</span><span class="p">,</span> <span class="n">rs_T_dof</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">get_current_TMs</span><span class="p">()</span>
-        <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">add_a_pose</span><span class="p">(</span>
-            <span class="n">i_joint</span><span class="o">=</span><span class="n">d_joint</span><span class="p">,</span>
-            <span class="n">pose</span><span class="o">=</span><span class="n">angle</span><span class="p">,</span>
-            <span class="n">dof_T_dof</span><span class="o">=</span><span class="n">dof_T_dof</span><span class="p">,</span>
-            <span class="n">rs_T_dof</span><span class="o">=</span><span class="n">rs_T_dof</span><span class="p">)</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">_compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="n">dof_T_dof</span><span class="p">,</span> <span class="n">rs_T_dof</span><span class="p">)</span>
-        <span class="n">positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
-
-    <span class="c1"># get acceleration and include gravity</span>
-    <span class="n">accel_rs</span> <span class="o">=</span> <span class="p">((</span><span class="n">positions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">positions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">positions</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">dt</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
-
-    <span class="n">gravity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.81</span><span class="p">])</span>
-    <span class="n">accel_rs</span> <span class="o">+=</span> <span class="n">gravity</span>
-
-    <span class="k">if</span> <span class="n">apply_normal_mittendorder</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">su_R_rs</span><span class="p">,</span> <span class="n">accel_rs</span><span class="p">)</span>
-
-    <span class="c1"># we need centripetal acceleration here.</span>
+    <span class="c1"># Every joint rotates along its own z axis</span>
     <span class="n">w_dofd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">])</span>
     <span class="n">a_dofd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w_dofd</span><span class="p">,</span> <span class="n">dof_T_su</span><span class="o">.</span><span class="n">position</span><span class="p">))</span>
 
+    <span class="n">a_centric_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dof_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">a_dofd</span><span class="p">)</span>
+
+    <span class="c1"># Gravity vector</span>
+    <span class="n">gravity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.81</span><span class="p">])</span>
+
+    <span class="c1"># rotation matrix of reference segment to skin unit</span>
+    <span class="n">su_R_rs</span> <span class="o">=</span> <span class="n">rs_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="c1"># If the analytical boolean is true</span>
+    <span class="c1"># Calculate analytical acceleration estimation</span>
+    <span class="k">if</span> <span class="n">analytical</span><span class="p">:</span>
+        <span class="c1"># Gravity vector of skin unit</span>
+        <span class="n">g_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">su_R_rs</span><span class="p">,</span> <span class="n">gravity</span><span class="p">)</span>
+
+        <span class="c1"># Acceleration of skin unit</span>
+        <span class="n">a_su</span> <span class="o">=</span> <span class="n">a_centric_su</span> <span class="o">+</span> <span class="n">g_su</span>
+
+        <span class="k">return</span> <span class="n">a_su</span>
+
+    <span class="c1"># The following will run if analytical boolean is false</span>
+
+    <span class="c1"># Compute Acceleration at RS frame</span>
+    <span class="c1"># dt should be small value, recommended to use 1/(1000 * freq)</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">1000.0</span>
+
+    <span class="n">positions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="n">dt</span><span class="p">,</span> <span class="o">-</span><span class="n">dt</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+        <span class="n">curr_position</span> <span class="o">=</span> <span class="n">current_su_position</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">d_joint</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curr_position</span><span class="p">)</span>
+
+    <span class="c1"># get acceleration and include gravity</span>
+    <span class="n">a_rs</span> <span class="o">=</span> <span class="p">((</span><span class="n">positions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">positions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">positions</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">dt</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+    <span class="n">a_rs</span> <span class="o">+=</span> <span class="n">gravity</span>
+
+    <span class="c1"># If necessary, we can change a_rs and a_su  for non-analytical</span>
+    <span class="c1"># back to accel_rs and accel_su</span>
+    <span class="n">a_tan_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">su_R_rs</span><span class="p">,</span> <span class="n">a_rs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">apply_normal_mittendorfer</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">a_tan_su</span>
+
     <span class="c1"># Every joint rotates along its own z axis, one joint moves at a time</span>
     <span class="c1"># rotate into su frame</span>
-    <span class="n">a_centric_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dof_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">a_dofd</span><span class="p">)</span>
-    <span class="n">a_tan_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">su_R_rs</span><span class="p">,</span> <span class="n">accel_rs</span><span class="p">)</span>
-    <span class="n">accel_su</span> <span class="o">=</span> <span class="n">a_centric_su</span> <span class="o">+</span> <span class="n">a_tan_su</span>
+    <span class="n">a_su</span> <span class="o">=</span> <span class="n">a_centric_su</span> <span class="o">+</span> <span class="n">a_tan_su</span>
     <span class="c1"># estimate acceleration of skin unit</span>
-    <span class="k">return</span> <span class="n">accel_su</span></div>
-
-
-<div class="viewcode-block" id="max_acceleration_joint_angle"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.max_acceleration_joint_angle">[docs]</a><span class="k">def</span> <span class="nf">max_acceleration_joint_angle</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    max acceleration along a joint angle of robot function.</span>
-<span class="sd">    includes pattern</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># th_pattern = np.sign(t) * max_w / (curr_w) * (1 - np.cos(curr_w*t))</span>
-    <span class="c1"># th_pattern = np.sign(t) * max_w / (2*np.pi*C.PATTERN_FREQ) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))</span>
-    <span class="n">th_pattern</span> <span class="o">=</span> <span class="p">(</span><span class="n">amplitude</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">C</span><span class="o">.</span><span class="n">PATTERN_FREQ</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">C</span><span class="o">.</span><span class="n">PATTERN_FREQ</span><span class="o">*</span><span class="n">t</span><span class="p">))</span>
-    <span class="c1"># print(&#39;-&#39;*20, th_pattern, curr_w, &#39;-&#39;*20)</span>
-    <span class="k">return</span> <span class="n">th_pattern</span></div>
-
-
-<div class="viewcode-block" id="constant_velocity_joint_angle"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.constant_velocity_joint_angle">[docs]</a><span class="k">def</span> <span class="nf">constant_velocity_joint_angle</span><span class="p">(</span><span class="n">curr_w</span><span class="p">,</span> <span class="n">max_w</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns transformation matrix given `t` and current</span>
-<span class="sd">    angular velocity `curr_w`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">curr_w</span><span class="o">*</span><span class="n">t</span></div>
+    <span class="k">return</span> <span class="n">a_su</span></div>
 
 
 <div class="viewcode-block" id="ErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.ErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">ErrorFunction</span><span class="p">():</span>
@@ -433,7 +417,9 @@
 
                     <span class="c1"># TODO: parse start_joint. Currently, there is a bug</span>
                     <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_poses</span><span class="p">(</span><span class="n">poses</span><span class="p">,</span> <span class="n">end_joint</span><span class="o">=</span><span class="n">i_joint</span><span class="p">)</span>
-                    <span class="n">model_accel</span> <span class="o">=</span> <span class="n">estimate_acceleration_analytically</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">d_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">)</span>
+                    <span class="n">model_accel</span> <span class="o">=</span> <span class="n">estimate_acceleration</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="o">=</span><span class="n">kinematic_chain</span><span class="p">,</span>
+                                                        <span class="n">d_joint</span><span class="o">=</span><span class="n">d_joint</span><span class="p">,</span>
+                                                        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="o">=</span><span class="n">curr_w</span><span class="p">)</span>
 
                     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[Pose</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s1">, Joint</span><span class="si">{</span><span class="n">d_joint</span><span class="si">}</span><span class="s1">, SU</span><span class="si">{</span><span class="n">i_su</span><span class="si">}</span><span class="s1">@Joint</span><span class="si">{</span><span class="n">i_joint</span><span class="si">}</span><span class="s1">, Data</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s1">]</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span>
                                   <span class="sa">f</span><span class="s1">&#39;Model: </span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">model_accel</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s1"> SU: </span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">meas_accel</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -493,8 +479,13 @@
                 <span class="c1"># kinematic_chain.set_poses(joints)</span>
                 <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_poses</span><span class="p">(</span><span class="n">poses</span><span class="p">,</span> <span class="n">end_joint</span><span class="o">=</span><span class="n">i_joint</span><span class="p">)</span>
                 <span class="c1"># use mittendorfer&#39;s original or modified based on condition</span>
-                <span class="n">max_accel_model</span> <span class="o">=</span> <span class="n">estimate_acceleration_numerically</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">d_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">max_acceleration_joint_angle</span><span class="p">,</span>
-                                                                    <span class="bp">self</span><span class="o">.</span><span class="n">apply_normal_mittendorfer</span><span class="p">)</span>
+                <span class="n">max_accel_model</span> <span class="o">=</span> <span class="n">estimate_acceleration</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="o">=</span><span class="n">kinematic_chain</span><span class="p">,</span>
+                                                        <span class="n">d_joint</span><span class="o">=</span><span class="n">d_joint</span><span class="p">,</span>
+                                                        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="o">=</span><span class="n">curr_w</span><span class="p">,</span>
+                                                        <span class="n">max_w</span><span class="o">=</span><span class="n">A</span><span class="p">,</span>
+                                                        <span class="n">apply_normal_mittendorfer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">apply_normal_mittendorfer</span><span class="p">,</span>
+                                                        <span class="n">analytical</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
                 <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[Pose</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s1">, Joint</span><span class="si">{</span><span class="n">d_joint</span><span class="si">}</span><span class="s1">, SU</span><span class="si">{</span><span class="n">i_su</span><span class="si">}</span><span class="s1">@Joint</span><span class="si">{</span><span class="n">i_joint</span><span class="si">}</span><span class="s1">]</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span>
                               <span class="sa">f</span><span class="s1">&#39;Model: </span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">max_accel_model</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s1"> SU: </span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">max_accel_train</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">max_accel_train</span> <span class="o">-</span> <span class="n">max_accel_model</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>

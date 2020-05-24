@@ -240,31 +240,25 @@ estimation models.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="robotic_skin.calibration.error_functions.constant_velocity_joint_angle">
-<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">constant_velocity_joint_angle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">max_w</span></em>, <em class="sig-param"><span class="n">t</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#constant_velocity_joint_angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.constant_velocity_joint_angle" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns transformation matrix given <cite>t</cite> and current
-angular velocity <cite>curr_w</cite></p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="robotic_skin.calibration.error_functions.estimate_acceleration_analytically">
-<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">estimate_acceleration_analytically</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinemaic_chain</span></em>, <em class="sig-param"><span class="n">d_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">curr_w</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#estimate_acceleration_analytically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.estimate_acceleration_analytically" title="Permalink to this definition">¶</a></dt>
-<dd><p>Estimates the acceleration analytically.</p>
+<dt id="robotic_skin.calibration.error_functions.current_su_position">
+<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">current_su_position</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">max_w</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">d_joint</span></em>, <em class="sig-param"><span class="n">t</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#current_su_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.current_su_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns position of the current skin unit</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>kinematic_chain</strong> (<cite>robotic_skin.calibration.kinematic_chain.KinematicChain</cite>) – Robot’s Kinematic Chain</p></li>
-<li><p><strong>d_joint</strong> (<cite>int</cite>) – dof <cite>d</cite></p></li>
-<li><p><strong>i</strong> (<cite>int</cite>) – imu <cite>i</cite></p></li>
 <li><p><strong>curr_w</strong> (<cite>int</cite>) – Angular velocity</p></li>
+<li><p><strong>'max_w'</strong> (<em>'int'</em>) – Maximum angular velocity</p></li>
+<li><p><strong>i</strong> (<cite>int</cite>) – imu <cite>i</cite></p></li>
+<li><p><strong>'d_joint'</strong> (<em>'int'</em>) – dof ‘d’</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="robotic_skin.calibration.error_functions.estimate_acceleration_numerically">
-<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">estimate_acceleration_numerically</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">d_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">max_w</span></em>, <em class="sig-param"><span class="n">joint_angle_func</span></em>, <em class="sig-param"><span class="n">apply_normal_mittendorder</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#estimate_acceleration_numerically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.estimate_acceleration_numerically" title="Permalink to this definition">¶</a></dt>
+<dt id="robotic_skin.calibration.error_functions.estimate_acceleration">
+<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">estimate_acceleration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">d_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">max_w</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">apply_normal_mittendorfer</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">analytical</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#estimate_acceleration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.estimate_acceleration" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Compute an acceleration value from positions.
 .. math:: <a href="#id1"><span class="problematic" id="id2">`</span></a>a =</p>
@@ -291,22 +285,16 @@ angular velocity <cite>curr_w</cite></p>
 </dd>
 <dt><cite>curr_w</cite>: <cite>int</cite></dt><dd><p>Angular velocity</p>
 </dd>
-<dt>apply_normal_mittendorfer: bool</dt><dd><p>determines if we resort to the normal method
-mittendorfer uses (which we modified due to some possible missing terms</p>
+<dt>‘max_w’: ‘int’</dt><dd><p>Maximum angular velocity</p>
 </dd>
-</dl>
-<dl class="simple">
-<dt>acceleration: np.array</dt><dd><p>Acceleration computed from positions</p>
+<dt>apply_normal_mittendorfer: bool</dt><dd><p>determines if we resort to the normal method
+mittendorfer uses (which we modified due to some possible missing terms)</p>
+</dd>
+<dt>analytical: bool</dt><dd><p>determines if we are returning the analytical or numerical
+estimation of acceleration</p>
 </dd>
 </dl>
 </div></blockquote>
-</dd></dl>
-
-<dl class="py function">
-<dt id="robotic_skin.calibration.error_functions.max_acceleration_joint_angle">
-<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">max_acceleration_joint_angle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">amplitude</span></em>, <em class="sig-param"><span class="n">t</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#max_acceleration_joint_angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.max_acceleration_joint_angle" title="Permalink to this definition">¶</a></dt>
-<dd><p>max acceleration along a joint angle of robot function.
-includes pattern</p>
 </dd></dl>
 
 </div>
