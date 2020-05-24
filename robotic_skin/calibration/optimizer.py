@@ -248,7 +248,7 @@ class MixedIncrementalOptimizer(IncrementalOptimizerBase):
             euclidean_distance=errors['position'],
             quaternion_distance=errors['orientation'])
         # print to terminal
-        logging.info(f'e={e:.5f}, res={res:.5f}, params:{n2s(params, 3)}' +
+        logging.info(f'e={e:.5f}, res={res:.5f}, params:{n2s(params, 3)} ' +
                      f'P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
 
         self.local_step += 1
@@ -373,7 +373,7 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
             euclidean_distance=errors['position'],
             quaternion_distance=errors['orientation'])
         # print to terminal
-        logging.info(f'e={e:.5f}, res={res:.5f}, params:{n2s(target_params, 3)}' +
+        logging.info(f'e={e:.5f}, res={res:.5f}, params:{n2s(target_params, 3)} ' +
                      f'P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
 
         self.local_step += 1
@@ -408,11 +408,11 @@ class OurMethodOptimizer(SeparateIncrementalOptimizer):
     def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all,
                  error_functions_=None, stop_conditions_=None):
         error_functions = {
-            'Position': ConstantRotationErrorFunction(L2Loss()),
+            'Position': MaxAccelerationErrorFunction(L2Loss()),
             'Orientation': StaticErrorFunction(L2Loss())}
         stop_conditions = {
             'Position': DeltaXStopCondition(),
-            'Orientation': PassThroughStopCondition(),
+            'Orientation': DeltaXStopCondition(),
         }
 
         if isinstance(error_functions_, dict):

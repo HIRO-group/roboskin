@@ -113,6 +113,6 @@ class DeltaXStopCondition(StopCondition):
         if len(self.xdiffs) >= self.windowsize:
             if np.mean(self.xdiffs[-(self.windowsize+1):-1]) <= self.threshold:
                 print(f'Reached DeltaX less than a threshold of {self.threshold}')
-                return self.retval
+                return self.retval, x
 
         return e, x

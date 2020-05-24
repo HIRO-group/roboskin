@@ -90,39 +90,7 @@ def load_data(robot, directory):
 
 
 def add_noise(data, data_type: str, sigma=1):
-    if data_type not in ['static', 'constant', 'dynamic']:
-        raise ValueError('There is no such data_type='+data_type)
-    d = getattr(data, data_type)
-
-    imu_indices = {
-        'static': [4, 5, 6],
-        'constant': [4, 5, 6],
-        'dynamic': [1, 2, 3]}
-    imu_index = imu_indices[data_type]
-
-    pose_names = list(data.constant.keys())
-    joint_names = list(data.constant[pose_names[0]].keys())
-    imu_names = list(data.constant[pose_names[0]][joint_names[0]].keys())
-
-    n_dynamic_pose = len(list(data.dynamic.keys()))
-    n_constant_pose = len(list(data.constant.keys()))
-    n_static_pose = len(list(data.static.keys()))
-
-    if data_type == 'static':
-        for i in range(n_static_pose):
-            for imu in imu_names:
-                d[pose_names[i]][imu][imu_index] = \
-                    np.random.uniform(d[pose_names[i]][imu][imu_index], sigma)
-        return
-
-    n_pose = n_constant_pose if data_type == 'constant' else n_dynamic_pose
-    for i in range(n_pose):
-        for joint in joint_names:
-            for imu in imu_names:
-                if data_type == 'constant':
-                    d[pose_names[i]][joint][imu][0][:, imu_index] = np.random.uniform(d[pose_names[i]][joint][imu][0][:, imu_index], sigma)
-                elif data_type == 'dynamic':
-                    d[pose_names[i]][joint][imu][0][imu_index] = np.random.uniform(d[pose_names[i]][joint][imu][0][imu_index], sigma)
+    return add_outlier(data, data_type, sigma, 1)
 
 
 def add_outlier(data, data_type: str, sigma=3, outlier_ratio=0.25):  # noqa:#C901
@@ -134,7 +102,7 @@ def add_outlier(data, data_type: str, sigma=3, outlier_ratio=0.25):  # noqa:#C90
     imu_indices = {
         'static': [4, 5, 6],
         'constant': [4, 5, 6],
-        'dynamic': [1, 2, 3]}
+        'dynamic': [0, 1, 2]}
     imu_index = imu_indices[data_type]
 
     pose_names = list(data.constant.keys())
@@ -151,7 +119,7 @@ def add_outlier(data, data_type: str, sigma=3, outlier_ratio=0.25):  # noqa:#C90
                 flag = np.random.choice([0, 1], p=[1-outlier_ratio, outlier_ratio])
                 if not flag:
                     continue
-                d[pose_names[i]][imu][imu_index] = np.random.uniform(d[pose_names[i]][imu][imu_index], sigma)
+                d[pose_names[i]][imu][imu_index] += np.random.normal(0, sigma, size=3)
         return
 
     n_pose = n_constant_pose if data_type == 'constant' else n_dynamic_pose
@@ -163,19 +131,19 @@ def add_outlier(data, data_type: str, sigma=3, outlier_ratio=0.25):  # noqa:#C90
                     index = outlier_index(data, outlier_ratio)
                     if index is None:
                         continue
-                    data[:, imu_index][index] = \
-                        np.random.uniform(data[:, imu_index][index], sigma).reshape(-1, 3)
+                    shape = data[index].shape
+                    d[pose_names[i]][joint][imu][0][index] += np.random.normal(0, sigma, size=shape)
                 else:
                     flag = np.random.choice([0, 1], p=[1-outlier_ratio, outlier_ratio])
                     if not flag:
                         continue
-                    d[pose_names[i]][joint][imu][0][imu_index] = np.random.uniform(d[pose_names[i]][joint][imu][0][imu_index], sigma)
+                    shape = d[pose_names[i]][joint][imu][0][imu_index].shape
+                    d[pose_names[i]][joint][imu][0][imu_index] += np.random.normal(0, sigma, size=shape)
 
 
 def outlier_index(data, outlier_ratio):
     n_data = data.shape[0]
-    index = np.random.choice(np.arange(n_data), size=int(n_data*outlier_ratio))
-    index = np.unique(index)
+    index = np.random.choice(np.arange(n_data), size=int(n_data*outlier_ratio), replace=False)
     if index.size == 0:
         return None
     elif index.size == 1:
