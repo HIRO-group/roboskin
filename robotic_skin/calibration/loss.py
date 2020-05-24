@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+import torch.nn as nn
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 
@@ -24,6 +26,7 @@ class L1Loss(Loss):
         super().__init__()
 
     def __call__(self, x_estimated, x_target, axis=0):
+        torch.nn.L
         x = x_estimated - x_target
         return np.mean(np.linalg.norm(x, axis=axis, ord=1))
 
@@ -55,3 +58,33 @@ class MeanAbsoluteLoss(Loss):
 
     def __call__(self, x_estimated, x_target, axis=0):
         return mean_absolute_error(x_target, x_estimated)
+
+
+class L1LossTorch(Loss):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, x_estimated, x_target):
+        loss = nn.L1Loss()
+        output = loss(x_estimated, x_target)
+        return output
+
+
+class L2LossTorch(Loss):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, x_estimated, x_target):
+        loss = nn.MSELoss()
+        output = loss(x_estimated, x_target)
+        return output
+
+
+class SmoothL1LossTorch(Loss):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, x_estimated, x_target):
+        loss = nn.SmoothL1Loss()
+        output = loss(x_estimated, x_target)
+        return output
