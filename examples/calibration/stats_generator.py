@@ -125,7 +125,7 @@ if __name__ == "__main__":  # noqa: C901
     robot_configs = utils.load_robot_configs(CONFIGDIR, args.robot)
 
     stats_file_name = os.path.join(REPODIR, "comparison_result.md")
-    l2_norm_plot_file_name = os.path.join(REPODIR, "data", "l2_norm_graph2.png")
+    l2_norm_plot_file_name = os.path.join(REPODIR, "images", "l2_norm_graph2.png")
 
     # Original_Params
     data_logger_true = DataLogger(datadir, args.robot, args.method)

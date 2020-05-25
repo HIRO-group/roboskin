@@ -6,15 +6,14 @@ import nlopt
 import robotic_skin.const as C
 from robotic_skin.calibration.error_functions import (
     ErrorFunction,
-    ConstantRotationErrorFunction,
-    CombinedErrorFunction,
     StaticErrorFunction,
-    MaxAccelerationErrorFunction
+    CombinedErrorFunction,
+    MaxAccelerationErrorFunction,
+    ConstantRotationErrorFunction,
 )
 from robotic_skin.calibration.stop_conditions import (
     StopCondition,
-    PassThroughStopCondition,
-    DeltaXStopCondition
+    DeltaXStopCondition,
 )
 from robotic_skin.calibration.loss import L2Loss
 from robotic_skin.calibration.utils.io import n2s
@@ -47,7 +46,7 @@ def choose_optimizer(args, kinematic_chain, evaluator, data_logger, optimize_all
         optimizer = MittendorferMethodOptimizer(
             kinematic_chain, evaluator, data_logger,
             optimize_all, args.error_functions, args.stop_conditions, apply_normal_mittendorfer=True)
-    elif args.method == 'MMM':
+    elif args.method == 'mMM':
         optimizer = MittendorferMethodOptimizer(
             kinematic_chain, evaluator, data_logger,
             optimize_all, args.error_functions, args.stop_conditions, apply_normal_mittendorfer=False)
@@ -111,6 +110,7 @@ class IncrementalOptimizerBase(OptimizerBase):
         """
         Optimize SU from Base to the End-Effector incrementally
         """
+        self.data_logger.start_timer('total')
         # Initilialize error functions with data
         if isinstance(self.error_functions, dict):
             for error_function in self.error_functions.values():
@@ -118,12 +118,14 @@ class IncrementalOptimizerBase(OptimizerBase):
         elif isinstance(self.error_functions, ErrorFunction):
             self.error_functions.initialize(data)
 
-        print('Skipping 0th IMU')
+        logging.info('Skipping 0th IMU')
         for i_su in range(1, self.kinematic_chain.n_su):
-            print("Optimizing %ith SU ..." % (i_su))
+            logging.info("Optimizing %ith SU ..." % (i_su))
 
             # optimize parameters wrt data
+            self.data_logger.start_timer(timer_name=f'SU{i_su+1}')
             params = self._optimize(i_su=i_su)
+            elapsed_time = self.data_logger.end_timer(timer_name=f'SU{i_su+1}')
 
             # Compute necessary data
             self.kinematic_chain.set_params_at(i_su, params)
@@ -137,14 +139,17 @@ class IncrementalOptimizerBase(OptimizerBase):
                 params=params,
                 position=T.position,
                 orientation=T.quaternion,
+                elapsed_time=elapsed_time,
                 euclidean_distance=errors['position'],
                 quaternion_distance=errors['orientation'])
 
-            print('='*100)
-            print('Position:', T.position)
-            print('Quaternion:', T.quaternion)
-            print('Euclidean distance: ', errors['position'])
-            print('='*100)
+            logging.info('='*100)
+            logging.info(f'Position: {T.position}')
+            logging.info(f'Quaternion: {T.quaternion}')
+            logging.info(f"Euclidean distance: {errors['position']}")
+            logging.info(f'Elapsed Time {elapsed_time}')
+            logging.info('='*100)
+        elapsed_time = self.data_logger.end_timer('total')
 
     def _optimize(self, i_su: int):
         """
@@ -234,7 +239,7 @@ class MixedIncrementalOptimizer(IncrementalOptimizerBase):
 
         params, _ = self.kinematic_chain.get_params_at(i_su=self.i_su)
         e = self.error_functions(self.kinematic_chain, self.i_su)
-        res = self.stop_conditions.update(params, None, e)
+        res, params = self.stop_conditions.update(params, None, e)
 
         # Evaluate
         T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
@@ -248,8 +253,8 @@ class MixedIncrementalOptimizer(IncrementalOptimizerBase):
             euclidean_distance=errors['position'],
             quaternion_distance=errors['orientation'])
         # print to terminal
-        logging.info(f'e={e:.5f}, res={res:.5f}, params:{n2s(params, 3)}' +
-                     f'P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
+        logging.debug(f'e={e:.5f}, res={res:.5f}, params:{n2s(params, 3)} ' +
+                      f'P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
 
         self.local_step += 1
         self.global_step += 1
@@ -296,7 +301,6 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
         self.n_param = int(params.shape[0]/2)
 
         # ################### First Optimize Rotations ####################
-        logging.info('Optimizing Orientation')
         self.target = 'Orientation'
         self.constant = 'Position'
         self.target_index = self.indices[self.target]
@@ -314,7 +318,6 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
         params[self.target_index] = opt.optimize(params[self.target_index])
 
         # ################### Then Optimize for Translations ####################
-        logging.info('Optimizing Position')
         self.target = 'Position'
         self.constant = 'Orientation'
         self.target_index = self.indices[self.target]
@@ -359,7 +362,7 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
 
         params, _ = self.kinematic_chain.get_params_at(i_su=self.i_su)
         e = self.error_functions[self.target](self.kinematic_chain, self.i_su)
-        res = self.stop_conditions[self.target].update(params[self.target_index], None, e)
+        res, target_params = self.stop_conditions[self.target].update(params[self.target_index], None, e)
 
         # Evaluate
         T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
@@ -373,8 +376,8 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
             euclidean_distance=errors['position'],
             quaternion_distance=errors['orientation'])
         # print to terminal
-        logging.info(f'e={e:.5f}, res={res:.5f}, params:{n2s(target_params, 3)}' +
-                     f'P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
+        logging.debug(f'e={e:.5f}, res={res:.5f}, params:{n2s(target_params, 3)} ' +
+                      f'P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
 
         self.local_step += 1
         self.global_step += 1
@@ -387,12 +390,12 @@ class MittendorferMethodOptimizer(MixedIncrementalOptimizer):
                  optimize_all, error_function_=None, stop_condition_=None,
                  apply_normal_mittendorfer=True):
         error_function = CombinedErrorFunction(
-            StaticErrorFunction(
+            e1=StaticErrorFunction(
                 loss=L2Loss()),
-            MaxAccelerationErrorFunction(
+            e2=MaxAccelerationErrorFunction(
                 loss=L2Loss(),
                 apply_normal_mittendorfer=apply_normal_mittendorfer)
-            )
+        )
         stop_condition = DeltaXStopCondition()
 
         if isinstance(error_function_, ErrorFunction):
@@ -412,13 +415,18 @@ class OurMethodOptimizer(SeparateIncrementalOptimizer):
             'Orientation': StaticErrorFunction(L2Loss())}
         stop_conditions = {
             'Position': DeltaXStopCondition(),
-            'Orientation': PassThroughStopCondition(),
+            'Orientation': DeltaXStopCondition(threshold=0.00001),
         }
 
         if isinstance(error_functions_, dict):
-            error_functions = error_functions_
+            for k, v in error_functions_.items():
+                if k in error_functions.keys():
+                    error_functions[k] = v
         if isinstance(stop_conditions_, dict):
-            stop_conditions = stop_conditions_
+            for k, v in stop_conditions_.items():
+                if k in error_functions.keys():
+                    stop_conditions[k] = v
+                    print('Stop Condition Set')
 
         super().__init__(kinematic_chain, evaluator, data_logger,
                          optimize_all, error_functions, stop_conditions)

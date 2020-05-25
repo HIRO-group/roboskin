@@ -30,6 +30,8 @@ def parse_arguments():
                         help="Please Provide a filename for saving estimated IMU poses")
     parser.add_argument('--log', type=str, default='WARNING',
                         help="Please provide a log level")
+    parser.add_argument('--logfile', type=str, default=None,
+                        help="Please provide a log filename to export")
     parser.add_argument('-oa', '--optimizeall', action='store_true',
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
     parser.add_argument('--test', action='store_true',
@@ -50,10 +52,14 @@ if __name__ == '__main__':
     args = parse_arguments()
     datadir = utils.parse_datadir(args.datadir)
 
-    utils.initialize_logging(args.log)
+    utils.initialize_logging(args.log, args.logfile)
 
     robot_configs = utils.load_robot_configs(args.configdir, args.robot)
     measured_data, imu_mappings = utils.load_data(args.robot, datadir)
+    noise_sigma = 8
+    outlier_ratio = 0.1
+    utils.add_outlier(measured_data, 'dynamic', sigma=noise_sigma, outlier_ratio=outlier_ratio)
+    utils.add_outlier(measured_data, 'constant', sigma=noise_sigma, outlier_ratio=outlier_ratio)
 
     # Kinematic Chain of a robot
     kinematic_chain = construct_kinematic_chain(
@@ -82,3 +88,5 @@ if __name__ == '__main__':
     print(data_logger.quaternion_distance)
     print('Ave. Euclidean Distance')
     print(data_logger.average_euclidean_distance)
+    print('Elapsed Time')
+    print(data_logger.elapsed_times['total'])
