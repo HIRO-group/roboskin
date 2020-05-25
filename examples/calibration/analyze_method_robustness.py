@@ -13,11 +13,7 @@ from robotic_skin.calibration.data_logger import DataLogger
 from robotic_skin.calibration.loss import L2Loss
 from robotic_skin.calibration.evaluator import Evaluator
 from robotic_skin.calibration.error_functions import MaxAccelerationErrorFunction
-from robotic_skin.calibration.stop_conditions import (
-    CombinedStopCondition,
-    DeltaXStopCondition,
-    MaxCountStopCondition,
-)
+from robotic_skin.calibration.stop_conditions import DeltaXStopCondition
 from robotic_skin.calibration import utils
 from calibrate_imu_poses import parse_arguments
 
