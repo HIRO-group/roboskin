@@ -12,10 +12,34 @@ Subpackages
 Submodules
 ----------
 
+robotic\_skin.calibration.convert\_to\_lowertriangular\_matrix module
+---------------------------------------------------------------------
+
+.. automodule:: robotic_skin.calibration.convert_to_lowertriangular_matrix
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+robotic\_skin.calibration.data\_logger module
+---------------------------------------------
+
+.. automodule:: robotic_skin.calibration.data_logger
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 robotic\_skin.calibration.error\_functions module
 -------------------------------------------------
 
 .. automodule:: robotic_skin.calibration.error_functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+robotic\_skin.calibration.evaluator module
+------------------------------------------
+
+.. automodule:: robotic_skin.calibration.evaluator
    :members:
    :undoc-members:
    :show-inheritance:
