@@ -1,8 +1,7 @@
-import logging
+# import logging
 import numpy as np
 import robotic_skin.const as C
 import pyquaternion as pyqt
-from robotic_skin.calibration.utils.io import n2s
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 
 
@@ -274,8 +273,8 @@ class ConstantRotationErrorFunction(ErrorFunction):
                                                         d_joint=d_joint,
                                                         i_su=i_su, curr_w=curr_w)
 
-                    logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t' +
-                                  f'Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}')
+                    # logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t' +
+                    #               f'Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}')
 
                     error2 = self.loss(model_accel, meas_accel)
 
@@ -339,8 +338,8 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                                                         apply_normal_mittendorfer=self.apply_normal_mittendorfer,
                                                         analytical=False)
 
-                logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t' +
-                              f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
+                # logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t' +
+                #               f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
                 error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
                 e2 += error
                 n_data += 1
@@ -349,12 +348,13 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
 
 class CombinedErrorFunction(ErrorFunction):
-    def __init__(self, *args):
+    def __init__(self, **kwargs):
         self.error_funcs = []
-        for arg in args:
-            if not isinstance(arg, ErrorFunction):
+        for k, v in kwargs.items():
+            if not isinstance(v, ErrorFunction):
                 raise ValueError('Only ErrorFunction class is allowed')
-            self.error_funcs.append(arg)
+            setattr(self, k, v)
+            self.error_funcs.append(v)
 
     def initialize(self, data):
         for error_function in self.error_funcs:

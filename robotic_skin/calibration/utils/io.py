@@ -40,13 +40,20 @@ def load_robot_configs(configdir, robot):
         raise ValueError('Please provide a valid config directory with robot yaml files')
 
 
-def initialize_logging(log_level: str):
+def initialize_logging(log_level: str, filename: str = None):
     """
     Initialize Logging Module with given log_lvel
     """
     numeric_level = getattr(logging, log_level.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % log_level)
+    if filename:
+        overwrite = 'y'
+        if os.path.exists(filename):
+            overwrite = input(f'File {filename} already exists. Do you want to overwrite [y/n]?')
+        if overwrite == 'y':
+            logging.basicConfig(level=numeric_level, filename=filename, filemode='w')
+
     logging.basicConfig(level=numeric_level)
 
 
@@ -87,3 +94,66 @@ def load_data(robot, directory):
         imu_mappings = pickle.load(f, encoding='latin1')
 
     return data, imu_mappings
+
+
+def add_noise(data, data_type: str, sigma=1):
+    return add_outlier(data, data_type, sigma, 1)
+
+
+def add_outlier(data, data_type: str, sigma=3, outlier_ratio=0.25):  # noqa:#C901
+    if data_type not in ['static', 'constant', 'dynamic']:
+        raise ValueError('There is no such data_type='+data_type)
+
+    d = getattr(data, data_type)
+
+    imu_indices = {
+        'static': [4, 5, 6],
+        'constant': [4, 5, 6],
+        'dynamic': [0, 1, 2]}
+    imu_index = imu_indices[data_type]
+
+    pose_names = list(data.constant.keys())
+    joint_names = list(data.constant[pose_names[0]].keys())
+    imu_names = list(data.constant[pose_names[0]][joint_names[0]].keys())
+
+    n_dynamic_pose = len(list(data.dynamic.keys()))
+    n_constant_pose = len(list(data.constant.keys()))
+    n_static_pose = len(list(data.static.keys()))
+
+    if data_type == 'static':
+        for i in range(n_static_pose):
+            for imu in imu_names:
+                flag = np.random.choice([0, 1], p=[1-outlier_ratio, outlier_ratio])
+                if not flag:
+                    continue
+                d[pose_names[i]][imu][imu_index] += np.random.normal(0, sigma, size=3)
+        return
+
+    n_pose = n_constant_pose if data_type == 'constant' else n_dynamic_pose
+    for i in range(n_pose):
+        for joint in joint_names:
+            for imu in imu_names:
+                if data_type == 'constant':
+                    data = d[pose_names[i]][joint][imu][0]
+                    index = outlier_index(data, outlier_ratio)
+                    if index is None:
+                        continue
+                    shape = data[index].shape
+                    d[pose_names[i]][joint][imu][0][index] += np.random.normal(0, sigma, size=shape)
+                else:
+                    flag = np.random.choice([0, 1], p=[1-outlier_ratio, outlier_ratio])
+                    if not flag:
+                        continue
+                    shape = d[pose_names[i]][joint][imu][0][imu_index].shape
+                    d[pose_names[i]][joint][imu][0][imu_index] += np.random.normal(0, sigma, size=shape)
+
+
+def outlier_index(data, outlier_ratio):
+    n_data = data.shape[0]
+    index = np.random.choice(np.arange(n_data), size=int(n_data*outlier_ratio), replace=False)
+    if index.size == 0:
+        return None
+    elif index.size == 1:
+        return index[0]
+
+    return index
