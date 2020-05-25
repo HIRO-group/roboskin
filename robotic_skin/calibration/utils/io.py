@@ -48,7 +48,11 @@ def initialize_logging(log_level: str, filename: str = None):
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % log_level)
     if filename:
-        logging.basicConfig(level=numeric_level, filename=filename)
+        overwrite = 'y'
+        if os.path.exists(filename):
+            overwrite = input(f'File {filename} already exists. Do you want to overwrite [y/n]?')
+        if overwrite == 'y':
+            logging.basicConfig(level=numeric_level, filename=filename, filemode='w')
 
     logging.basicConfig(level=numeric_level)
 

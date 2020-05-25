@@ -1,5 +1,6 @@
 import os
 import copy
+import logging
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -9,7 +10,9 @@ from robotic_skin.calibration.optimizer import (
 )
 from robotic_skin.calibration.kinematic_chain import construct_kinematic_chain
 from robotic_skin.calibration.data_logger import DataLogger
+from robotic_skin.calibration.loss import L2Loss
 from robotic_skin.calibration.evaluator import Evaluator
+from robotic_skin.calibration.error_functions import MaxAccelerationErrorFunction
 from robotic_skin.calibration.stop_conditions import (
     CombinedStopCondition,
     DeltaXStopCondition,
@@ -26,25 +29,39 @@ def initialize_optimizers_and_loggers(args, robotic_configs, imu_mappings, datad
     optimizers = []
     data_loggers = []
     # Our Method
+    # stop_conditions = {
+    #     'Orientation': DeltaXStopCondition(threshold=0.00001),
+    #     'Position': CombinedStopCondition(
+    #         s1=DeltaXStopCondition(),
+    #         s2=MaxCountStopCondition(count_limit=700)
+    #     )
+    # }
+    kinematic_chain = construct_kinematic_chain(
+        robot_configs, imu_mappings, args.test, args.optimizeall)
+    data_logger = DataLogger(datadir, args.robot, args.method, overwrite=True)
+    optimizer = OurMethodOptimizer(
+        kinematic_chain, evaluator, data_logger,
+        args.optimizeall, args.error_functions, args.stop_conditions)
+    optimizers.append(optimizer)
+    data_loggers.append(data_logger)
+
+    error_functions = {'Position': MaxAccelerationErrorFunction(L2Loss())}
     stop_conditions = {
-        'Orientation': DeltaXStopCondition(threshold=0.00001),
-        'Position': CombinedStopCondition(
-            s1=DeltaXStopCondition(),
-            s2=MaxCountStopCondition(count_limit=700)
-        )
+        'Position': DeltaXStopCondition(),
+        'Orientation': DeltaXStopCondition()
     }
     kinematic_chain = construct_kinematic_chain(
         robot_configs, imu_mappings, args.test, args.optimizeall)
-    data_logger = DataLogger(datadir, args.robot, args.method)
+    data_logger = DataLogger(datadir, args.robot, args.method, overwrite=True)
     optimizer = OurMethodOptimizer(
         kinematic_chain, evaluator, data_logger,
-        args.optimizeall, args.error_functions, stop_conditions)
+        args.optimizeall, error_functions, stop_conditions)
     optimizers.append(optimizer)
     data_loggers.append(data_logger)
 
     kinematic_chain = construct_kinematic_chain(
         robot_configs, imu_mappings, args.test, args.optimizeall)
-    data_logger = DataLogger(datadir, args.robot, args.method)
+    data_logger = DataLogger(datadir, args.robot, args.method, overwrite=True)
     optimizer = MittendorferMethodOptimizer(
         kinematic_chain, evaluator, data_logger,
         args.optimizeall, args.error_functions, args.stop_conditions, apply_normal_mittendorfer=True)
@@ -53,7 +70,7 @@ def initialize_optimizers_and_loggers(args, robotic_configs, imu_mappings, datad
 
     kinematic_chain = construct_kinematic_chain(
         robot_configs, imu_mappings, args.test, args.optimizeall)
-    data_logger = DataLogger(datadir, args.robot, args.method)
+    data_logger = DataLogger(datadir, args.robot, args.method, overwrite=True)
     optimizer = MittendorferMethodOptimizer(
         kinematic_chain, evaluator, data_logger,
         args.optimizeall, args.error_functions, args.stop_conditions, apply_normal_mittendorfer=False)
@@ -72,6 +89,7 @@ def run_optimizations(measured_data, optimizers, data_loggers, method_names, n_n
         utils.add_outlier(data, 'constant', sigma=noise_sigma, outlier_ratio=outlier_ratio)
         utils.add_outlier(data, 'dynamic', sigma=noise_sigma, outlier_ratio=outlier_ratio)
         for j, (optimizer, data_logger) in enumerate(zip(optimizers, data_loggers)):
+            logging.info(f'Optimizer: {method_names[j]}, sigma={noise_sigma}, Outlier: {outlier_ratio}')
             optimizer.optimize(data)
             ave_euclidean_distance[i, j] = data_logger.average_euclidean_distance
 
@@ -79,12 +97,11 @@ def run_optimizations(measured_data, optimizers, data_loggers, method_names, n_n
     return ave_euclidean_distance
 
 
-def plot_performance(data_logger, method_names, ave_euclidean_distance, n_noise, sigma, filename, title):
-    colors = ['-b', '-r', '-g']
+def plot_performance(data_logger, method_names, colors, ave_euclidean_distance, n_noise, sigma, filename, title):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     noise = sigma * np.arange(n_noise)
-    for i, (data_logger, color, method_name) in enumerate(zip(data_loggers, colors, method_names)):
+    for i, (data_logger, method_name, color) in enumerate(zip(data_loggers, method_names, colors)):
         ax.plot(noise, ave_euclidean_distance[:, i], color, label=method_name)
     ax.set_title(title)
     ax.set_xlabel("Noise sigma")
@@ -105,12 +122,13 @@ if __name__ == '__main__':
     datadir = utils.parse_datadir(args.datadir)
     measured_data, imu_mappings = utils.load_data(args.robot, datadir)
 
-    method_names = ['OM', 'MM', 'mMM']
-    outlier_ratios = [0.1, 1.0]
+    method_names = ['OM', 'OmMM', 'MM', 'mMM']
+    colors = ['-b', '-r', '-g', '-m']
+    outlier_ratios = [0.1, 0.5, 1.0]
+    sigmas = [1, 0.5, 0.1]
     n_noise = 10
-    sigma = 0.1
 
-    for outlier_ratio in outlier_ratios:
+    for outlier_ratio, sigma in zip(outlier_ratios, sigmas):
         optimizers, data_loggers = initialize_optimizers_and_loggers(
             args,
             robot_configs,
@@ -118,6 +136,9 @@ if __name__ == '__main__':
             datadir,
             evaluator
         )
+
+        if len(method_names) != len(optimizers):
+            raise ValueError('Lengths of method_names and optimizers do not much')
 
         ave_euclidean_distance = run_optimizations(
             measured_data,
@@ -134,6 +155,7 @@ if __name__ == '__main__':
         plot_performance(
             data_loggers,
             method_names,
+            colors,
             ave_euclidean_distance,
             n_noise,
             sigma,

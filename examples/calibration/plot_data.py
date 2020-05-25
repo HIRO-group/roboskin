@@ -16,6 +16,10 @@ def is_last(i, n):
 
 def plot_side_by_side(y1: np.ndarray, y2: np.ndarray,
                       xlabel: str, title1: str, title2: str):
+    if y1.size == 0 or y2.size == 0:
+        print('Data cannot be empty')
+        return
+
     if y1.shape != y2.shape:
         raise ValueError('Arguments must be same size')
 
@@ -68,9 +72,11 @@ if __name__ == '__main__':
     # utils.add_noise(data_noise, 'static', sigma=2)
     # utils.add_noise(data_noise, 'dynamic', sigma=1)
     # utils.add_noise(data_noise, 'constant', sigma=2)
-    utils.add_outlier(data_noise, 'static', sigma=2)
-    utils.add_outlier(data_noise, 'dynamic', sigma=1)
-    utils.add_outlier(data_noise, 'constant', sigma=2)
+    sigma = 1.0
+    outlier_ratio = 0.5
+    utils.add_outlier(data_noise, 'static', sigma=sigma, outlier_ratio=outlier_ratio)
+    utils.add_outlier(data_noise, 'dynamic', sigma=sigma, outlier_ratio=outlier_ratio)
+    utils.add_outlier(data_noise, 'constant', sigma=sigma, outlier_ratio=outlier_ratio)
 
     n_noise = 10
     noise_sigmas = 0.1 * np.arange(n_noise)
@@ -127,6 +133,7 @@ if __name__ == '__main__':
                 d_n = data_noise.constant[pose_names[i]][joint][imu][0]
                 accelerations = d[:, 4:7]
                 accelerations_noise = d_n[:, 4:7]
+                print(f'{pose_names[i]}, {joint}, {imu}')
                 plot_side_by_side(
                     y1=accelerations,
                     y2=accelerations_noise,

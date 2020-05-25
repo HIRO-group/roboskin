@@ -1,8 +1,7 @@
-import logging
+# import logging
 import numpy as np
 import robotic_skin.const as C
 import pyquaternion as pyqt
-from robotic_skin.calibration.utils.io import n2s
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 
 
@@ -274,8 +273,8 @@ class ConstantRotationErrorFunction(ErrorFunction):
                                                         d_joint=d_joint,
                                                         i_su=i_su, curr_w=curr_w)
 
-                    logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t' +
-                                  f'Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}')
+                    # logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t' +
+                    #               f'Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}')
 
                     error2 = self.loss(model_accel, meas_accel)
 
