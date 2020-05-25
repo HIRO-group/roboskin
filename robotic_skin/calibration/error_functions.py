@@ -338,8 +338,8 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                                                         apply_normal_mittendorfer=self.apply_normal_mittendorfer,
                                                         analytical=False)
 
-                logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t' +
-                              f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
+                # logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t' +
+                #               f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
                 error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
                 e2 += error
                 n_data += 1
