@@ -16,7 +16,6 @@ class DataLogger():
         self.average_euclidean_distance = 0.0
         self.start_timers = {}
         self.elapsed_times = {}
-        self.total_elapsed_time = None
         self.overwrite = overwrite
 
     def start_timer(self, timer_name):

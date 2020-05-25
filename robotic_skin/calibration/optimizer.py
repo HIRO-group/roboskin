@@ -395,7 +395,7 @@ class MittendorferMethodOptimizer(MixedIncrementalOptimizer):
             e2=MaxAccelerationErrorFunction(
                 loss=L2Loss(),
                 apply_normal_mittendorfer=apply_normal_mittendorfer)
-            )
+        )
         stop_condition = DeltaXStopCondition()
 
         if isinstance(error_function_, ErrorFunction):

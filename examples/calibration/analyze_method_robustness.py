@@ -25,13 +25,6 @@ def initialize_optimizers_and_loggers(args, robotic_configs, imu_mappings, datad
     optimizers = []
     data_loggers = []
     # Our Method
-    # stop_conditions = {
-    #     'Orientation': DeltaXStopCondition(threshold=0.00001),
-    #     'Position': CombinedStopCondition(
-    #         s1=DeltaXStopCondition(),
-    #         s2=MaxCountStopCondition(count_limit=700)
-    #     )
-    # }
     kinematic_chain = construct_kinematic_chain(
         robot_configs, imu_mappings, args.test, args.optimizeall)
     data_logger = DataLogger(datadir, args.robot, args.method, overwrite=True)
@@ -78,6 +71,7 @@ def initialize_optimizers_and_loggers(args, robotic_configs, imu_mappings, datad
 def run_optimizations(measured_data, optimizers, data_loggers, method_names, n_noise=10, sigma=0.1, outlier_ratio=1):
     noise_sigmas = sigma * np.arange(n_noise)
     ave_euclidean_distance = np.zeros((n_noise, len(method_names)))
+    total_time = np.zeros((n_noise, len(method_names)))
 
     for i, noise_sigma in enumerate(noise_sigmas):
         data = copy.deepcopy(measured_data)
@@ -88,12 +82,13 @@ def run_optimizations(measured_data, optimizers, data_loggers, method_names, n_n
             logging.info(f'Optimizer: {method_names[j]}, sigma={noise_sigma}, Outlier: {outlier_ratio}')
             optimizer.optimize(data)
             ave_euclidean_distance[i, j] = data_logger.average_euclidean_distance
+            total_time[i, j] = data_logger.elapsed_times['total']
 
     print(ave_euclidean_distance)
-    return ave_euclidean_distance
+    return ave_euclidean_distance, total_time
 
 
-def plot_performance(data_logger, method_names, colors, ave_euclidean_distance, n_noise, sigma, filename, title):
+def plot_performance(data_logger, method_names, colors, ave_euclidean_distance, total_time, n_noise, sigma, filename, title):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     noise = sigma * np.arange(n_noise)
@@ -105,6 +100,19 @@ def plot_performance(data_logger, method_names, colors, ave_euclidean_distance, 
     ax.legend(loc="upper left")
     ax.plot()
     filename = os.path.join(REPODIR, "images", filename)
+    plt.savefig(filename, format="png")
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    noise = sigma * np.arange(n_noise)
+    for i, (data_logger, method_name, color) in enumerate(zip(data_loggers, method_names, colors)):
+        ax.plot(noise, total_time[:, i], color, label=method_name)
+    ax.set_title(title)
+    ax.set_xlabel("Noise sigma")
+    ax.set_ylabel("Total Time Spend")
+    ax.legend(loc="upper left")
+    ax.plot()
+    filename = os.path.join(REPODIR, "images", 'time_' + filename)
     plt.savefig(filename, format="png")
 
 
@@ -136,7 +144,7 @@ if __name__ == '__main__':
         if len(method_names) != len(optimizers):
             raise ValueError('Lengths of method_names and optimizers do not much')
 
-        ave_euclidean_distance = run_optimizations(
+        ave_euclidean_distance, total_time = run_optimizations(
             measured_data,
             optimizers,
             data_loggers,
@@ -146,13 +154,14 @@ if __name__ == '__main__':
             outlier_ratio=outlier_ratio
         )
 
-        filename = f"ave_l2_norm_graph_{0}_{(n_noise-1)*sigma}_{outlier_ratio}.png"
+        filename = f"ave_l2_norm_graph_{0}_{(n_noise-1)*sigma}_{outlier_ratio}_loss1.png"
         title = f"Ave. L2 norms (sigma={0}-{(n_noise-1)*sigma}, outliers={outlier_ratio})"
         plot_performance(
             data_loggers,
             method_names,
             colors,
             ave_euclidean_distance,
+            total_time,
             n_noise,
             sigma,
             filename,
