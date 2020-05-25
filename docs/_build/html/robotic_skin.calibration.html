@@ -37,7 +37,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="robotic_skin.calibration.utils package" href="robotic_skin.calibration.utils.html" />
-    <link rel="prev" title="robotic_skin.algorithm package" href="robotic_skin.algorithm.html" /> 
+    <link rel="prev" title="robotic_skin package" href="robotic_skin.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,11 +85,13 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="robotic_skin.html">robotic_skin package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="robotic_skin.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="robotic_skin.algorithm.html">robotic_skin.algorithm package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">robotic_skin.calibration package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.convert_to_lowertriangular_matrix">robotic_skin.calibration.convert_to_lowertriangular_matrix module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.data_logger">robotic_skin.calibration.data_logger module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.error_functions">robotic_skin.calibration.error_functions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.evaluator">robotic_skin.calibration.evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration.kinematic_chain">robotic_skin.calibration.kinematic_chain module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#robotic-skin-calibration-loss-module">robotic_skin.calibration.loss module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#robotic-skin-calibration-optimizer-module">robotic_skin.calibration.optimizer module</a></li>
@@ -191,11 +193,221 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
+<div class="section" id="module-robotic_skin.calibration.convert_to_lowertriangular_matrix">
+<span id="robotic-skin-calibration-convert-to-lowertriangular-matrix-module"></span><h2>robotic_skin.calibration.convert_to_lowertriangular_matrix module<a class="headerlink" href="#module-robotic_skin.calibration.convert_to_lowertriangular_matrix" title="Permalink to this headline">¶</a></h2>
+<p>This is a python file containing a test case and a class to convert any matrix which is convertible Lower Triangular(LT)
+Matrix to Lower Triangular Matrix
+Algorithm:
+<a href="#id1"><span class="problematic" id="id2">*</span></a>) As this is a binary matrix, and also lower triangular, the total sum of elements should be at max n(n+1)/2, else it
+can’t be a LT matrix
+<a href="#id3"><span class="problematic" id="id4">*</span></a>) There can only be one reference segment, hence only one zero row array, else the algorithm will throw an exception
+<a href="#id5"><span class="problematic" id="id6">*</span></a>) You are only allowed to switch rows and columns to get the LT matrix
+Custom Sort Row:</p>
+<blockquote>
+<div><p><a href="#id7"><span class="problematic" id="id8">*</span></a>) Arrange the rows in ascending order of number of ones present in the row
+<a href="#id9"><span class="problematic" id="id10">*</span></a>) If there is a tie in number of ones, then you assume the row as a binary number, with MSB at first and then the
+number you get, convert it to a floating point number and add it to the row sum. This mainly signifies as a weight
+value to the row sum which are same, so that argsort can give preference. Finally the row sum is arranged in
+ascending order</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Custom Sort Column:</dt><dd><p><a href="#id11"><span class="problematic" id="id12">*</span></a>) Arrange the columns in the descending order of number of ones in the column
+<a href="#id13"><span class="problematic" id="id14">*</span></a>) <a href="#id15"><span class="problematic" id="id16">*</span></a>) Arrange the rows in ascending order of number of ones present in the row
+<a href="#id17"><span class="problematic" id="id18">*</span></a>) If there is a tie in number of ones, then you assume the row as a binary number, with MSB at first and then the
+number you get, convert it to a floating point number and add it to the row sum. This mainly signifies as a weight
+value to the row sum which are same, so that argsort can give preference. Finally the row sum is arranged in
+descending order</p>
+</dd>
+</dl>
+<p># TODO: Next PR, I will add more examples of why this approach is correct. I derived some in my IPad</p>
+<dl class="py class">
+<dt id="robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.convert_to_lowertriangular_matrix.</code><code class="sig-name descname">ConvertToLT</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_matrix</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is a class to convert LT convertible matrix to LT matrix</p>
+<dl class="py method">
+<dt id="robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.convert_to_floating_point">
+<code class="sig-name descname">convert_to_floating_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">my_number</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.convert_to_floating_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.convert_to_floating_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to convert some number like 768 to 0.768. Basically used to add weight value
+:param my_number: Input Number
+:type my_number: int</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>floating point number from the input number</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.find_zero_ndarray">
+<code class="sig-name descname">find_zero_ndarray</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.find_zero_ndarray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.find_zero_ndarray" title="Permalink to this definition">¶</a></dt>
+<dd><p>As this is a binary matrix, with values only 0 and 1, equating min value and max value to 0, we can say
+the array is a zero array
+:param input_array: Input matrix is the matrix we want to find out whether it’s a zero array or not.
+:type input_array: np.ndarray</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if the array is a zero array, otherwise False</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.get_lt_matrix_infos">
+<code class="sig-name descname">get_lt_matrix_infos</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.get_lt_matrix_infos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.get_lt_matrix_infos" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is just used to return values in the order
+bool: Whether the matrix output generated is an LT matrix or not
+np.ndarray: The LT matrix, if not possible the near LT matrix. Basically whatever the output generated</p>
+<blockquote>
+<div><p>from the algorithm</p>
+</div></blockquote>
+<p>int: The reference segment Accelerometer ID
+np.ndarray: The accelerometer ID’s in the order of their arrangement on the robotic arm
+np.ndarray: The Joint ID’s in the order of their arrangement on the robotic arm
+:returns:
+:rtype: bool, np.ndarray, int, np.ndarray, np.ndarray</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.is_lower_triangular_fn">
+<code class="sig-name descname">is_lower_triangular_fn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.is_lower_triangular_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.is_lower_triangular_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Directly copied from: <a class="reference external" href="https://www.geeksforgeeks.org/program-check-matrix-lower-triangular/">https://www.geeksforgeeks.org/program-check-matrix-lower-triangular/</a>
+And also checked. Will output if input matrix input_array is a lower triangular matrix or not
+:param input_array: The matrix in question, whether it’s lower triangular or not
+:type input_array: np.ndarray</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if numpy array inputted is lower triangular, else False</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.is_matrix_lt_convertible">
+<code class="sig-name descname">is_matrix_lt_convertible</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.is_matrix_lt_convertible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.is_matrix_lt_convertible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assuming that passed triangle is binary matrix, this will only work in that case
+:param input_array:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.is_square_matrix">
+<code class="sig-name descname">is_square_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.is_square_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.is_square_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function which raises an exception, if the output matrix isn’t square matrix
+:param input_array:
+:type input_array: Input Matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>It doesn’t return any value, but throws an exception if the passes matrix isn’t a square matrix</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.main_algorithm">
+<code class="sig-name descname">main_algorithm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.main_algorithm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.main_algorithm" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the main algorithm implementation. The algorithm details are at the top of the file.
+:returns:
+:rtype: None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.numpyarray_toint">
+<code class="sig-name descname">numpyarray_toint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">my_array</span></em>, <em class="sig-param"><span class="n">reverse</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.numpyarray_toint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.numpyarray_toint" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will convert a numpy 1D array which is considered a binary number into a decimal number
+:param my_array: Input array
+:type my_array: np.ndarray
+:param reverse: if reverse MSB is considered first, else last
+:type reverse: bool</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Decimal number</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.sort_columns_in_descending_order">
+<code class="sig-name descname">sort_columns_in_descending_order</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.sort_columns_in_descending_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.sort_columns_in_descending_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort columns of input matrix. The algorithm is specified at the top.
+:param input_array:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.sort_rows_in_ascending_order">
+<code class="sig-name descname">sort_rows_in_ascending_order</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.sort_rows_in_ascending_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.sort_rows_in_ascending_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort rows of input matrix. Algorithm at the top.
+References:
+# Stackoverflow links: <a class="reference external" href="https://stackoverflow.com/questions/52216526/sort-array-columns-based-upon-sum/52216674">https://stackoverflow.com/questions/52216526/sort-array-columns-based-upon-sum/52216674</a>
+# <a class="reference external" href="https://stackoverflow.com/questions/7235785/sorting-numpy-array-according-to-the-sum">https://stackoverflow.com/questions/7235785/sorting-numpy-array-according-to-the-sum</a>
+:param input_array: the input array we pass into the function, for it to have it’s rows sorted
+:type input_array: np.ndarray</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The array with its rows sorted</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-robotic_skin.calibration.data_logger">
+<span id="robotic-skin-calibration-data-logger-module"></span><h2>robotic_skin.calibration.data_logger module<a class="headerlink" href="#module-robotic_skin.calibration.data_logger" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="robotic_skin.calibration.data_logger.DataLogger">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.data_logger.</code><code class="sig-name descname">DataLogger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">savedir</span></em>, <em class="sig-param"><span class="n">robot</span></em>, <em class="sig-param"><span class="n">method</span></em>, <em class="sig-param"><span class="n">overwrite</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/data_logger.html#DataLogger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.data_logger.DataLogger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="robotic_skin.calibration.data_logger.DataLogger.add_best">
+<code class="sig-name descname">add_best</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/data_logger.html#DataLogger.add_best"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.data_logger.DataLogger.add_best" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.data_logger.DataLogger.add_trial">
+<code class="sig-name descname">add_trial</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">global_step</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/data_logger.html#DataLogger.add_trial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.data_logger.DataLogger.add_trial" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.data_logger.DataLogger.end_timer">
+<code class="sig-name descname">end_timer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timer_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/data_logger.html#DataLogger.end_timer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.data_logger.DataLogger.end_timer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.data_logger.DataLogger.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/data_logger.html#DataLogger.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.data_logger.DataLogger.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.data_logger.DataLogger.start_timer">
+<code class="sig-name descname">start_timer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timer_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/data_logger.html#DataLogger.start_timer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.data_logger.DataLogger.start_timer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-robotic_skin.calibration.error_functions">
 <span id="robotic-skin-calibration-error-functions-module"></span><h2>robotic_skin.calibration.error_functions module<a class="headerlink" href="#module-robotic_skin.calibration.error_functions" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="robotic_skin.calibration.error_functions.CombinedErrorFunction">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">CombinedErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#CombinedErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.CombinedErrorFunction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">CombinedErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#CombinedErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.CombinedErrorFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="robotic_skin.calibration.error_functions.ErrorFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.error_functions.ErrorFunction</span></code></a></p>
 <dl class="py method">
 <dt id="robotic_skin.calibration.error_functions.CombinedErrorFunction.initialize">
@@ -261,7 +473,7 @@ estimation models.</p>
 <code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">estimate_acceleration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">d_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">max_w</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">apply_normal_mittendorfer</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">analytical</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#estimate_acceleration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.estimate_acceleration" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Compute an acceleration value from positions.
-.. math:: <a href="#id1"><span class="problematic" id="id2">`</span></a>a =</p>
+.. math:: <a href="#id19"><span class="problematic" id="id20">`</span></a>a =</p>
 </div></blockquote>
 <p>rac{f({Delta t}) + f({Delta t) - 2 f(0)}{h^2}`</p>
 <blockquote>
@@ -295,6 +507,20 @@ estimation of acceleration</p>
 </dd>
 </dl>
 </div></blockquote>
+</dd></dl>
+
+</div>
+<div class="section" id="module-robotic_skin.calibration.evaluator">
+<span id="robotic-skin-calibration-evaluator-module"></span><h2>robotic_skin.calibration.evaluator module<a class="headerlink" href="#module-robotic_skin.calibration.evaluator" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="robotic_skin.calibration.evaluator.Evaluator">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.evaluator.</code><code class="sig-name descname">Evaluator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">true_su_pose</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/evaluator.html#Evaluator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.evaluator.Evaluator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="robotic_skin.calibration.evaluator.Evaluator.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T</span></em>, <em class="sig-param"><span class="n">i_su</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/evaluator.html#Evaluator.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.evaluator.Evaluator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>
@@ -411,6 +637,11 @@ or 10 (all dh params)</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt id="robotic_skin.calibration.kinematic_chain.construct_kinematic_chain">
+<code class="sig-prename descclassname">robotic_skin.calibration.kinematic_chain.</code><code class="sig-name descname">construct_kinematic_chain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">robot_configs</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">imu_mappings</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">test_code</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">optimize_all</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain.html#construct_kinematic_chain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain.construct_kinematic_chain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="robotic-skin-calibration-loss-module">
 <h2>robotic_skin.calibration.loss module<a class="headerlink" href="#robotic-skin-calibration-loss-module" title="Permalink to this headline">¶</a></h2>
@@ -420,6 +651,24 @@ or 10 (all dh params)</p>
 </div>
 <div class="section" id="module-robotic_skin.calibration.stop_conditions">
 <span id="robotic-skin-calibration-stop-conditions-module"></span><h2>robotic_skin.calibration.stop_conditions module<a class="headerlink" href="#module-robotic_skin.calibration.stop_conditions" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="robotic_skin.calibration.stop_conditions.CombinedStopCondition">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.stop_conditions.</code><code class="sig-name descname">CombinedStopCondition</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/stop_conditions.html#CombinedStopCondition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.stop_conditions.CombinedStopCondition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.stop_conditions.StopCondition" title="robotic_skin.calibration.stop_conditions.StopCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.stop_conditions.StopCondition</span></code></a></p>
+<p>Stop condition base class</p>
+<dl class="py method">
+<dt id="robotic_skin.calibration.stop_conditions.CombinedStopCondition.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/stop_conditions.html#CombinedStopCondition.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.stop_conditions.CombinedStopCondition.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.stop_conditions.CombinedStopCondition.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">e</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/stop_conditions.html#CombinedStopCondition.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.stop_conditions.CombinedStopCondition.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>return e, x</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt id="robotic_skin.calibration.stop_conditions.DeltaXStopCondition">
 <em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.stop_conditions.</code><code class="sig-name descname">DeltaXStopCondition</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">windowsize</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">threshold</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">retval</span><span class="o">=</span><span class="default_value">1e-05</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/stop_conditions.html#DeltaXStopCondition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.stop_conditions.DeltaXStopCondition" title="Permalink to this definition">¶</a></dt>
@@ -435,7 +684,26 @@ until the updates are very small.</p>
 <dl class="py method">
 <dt id="robotic_skin.calibration.stop_conditions.DeltaXStopCondition.update">
 <code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">e</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/stop_conditions.html#DeltaXStopCondition.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.stop_conditions.DeltaXStopCondition.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>return e, x</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="robotic_skin.calibration.stop_conditions.MaxCountStopCondition">
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.stop_conditions.</code><code class="sig-name descname">MaxCountStopCondition</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">count_limit</span><span class="o">=</span><span class="default_value">1000</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/stop_conditions.html#MaxCountStopCondition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.stop_conditions.MaxCountStopCondition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.stop_conditions.StopCondition" title="robotic_skin.calibration.stop_conditions.StopCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.stop_conditions.StopCondition</span></code></a></p>
+<p>Stop condition base class</p>
+<dl class="py method">
+<dt id="robotic_skin.calibration.stop_conditions.MaxCountStopCondition.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/stop_conditions.html#MaxCountStopCondition.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.stop_conditions.MaxCountStopCondition.initialize" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.stop_conditions.MaxCountStopCondition.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">e</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/stop_conditions.html#MaxCountStopCondition.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.stop_conditions.MaxCountStopCondition.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>return e, x</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -447,7 +715,8 @@ until the updates are very small.</p>
 <dl class="py method">
 <dt id="robotic_skin.calibration.stop_conditions.PassThroughStopCondition.update">
 <code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">e</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/stop_conditions.html#PassThroughStopCondition.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.stop_conditions.PassThroughStopCondition.update" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>return e, x</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -464,7 +733,8 @@ until the updates are very small.</p>
 <dl class="py method">
 <dt id="robotic_skin.calibration.stop_conditions.StopCondition.update">
 <code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">e</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/stop_conditions.html#StopCondition.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.stop_conditions.StopCondition.update" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>return e, x</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -638,7 +908,7 @@ returns 4x4 matrix of the form</p>
         <a href="robotic_skin.calibration.utils.html" class="btn btn-neutral float-right" title="robotic_skin.calibration.utils package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="robotic_skin.algorithm.html" class="btn btn-neutral float-left" title="robotic_skin.algorithm package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="robotic_skin.html" class="btn btn-neutral float-left" title="robotic_skin package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
