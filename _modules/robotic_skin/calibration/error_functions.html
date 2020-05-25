@@ -145,11 +145,10 @@
            <div itemprop="articleBody">
             
   <h1>Source code for robotic_skin.calibration.error_functions</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="c1"># import logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">robotic_skin.const</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">pyquaternion</span> <span class="k">as</span> <span class="nn">pyqt</span>
-<span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils.io</span> <span class="kn">import</span> <span class="n">n2s</span>
 <span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils.quaternion</span> <span class="kn">import</span> <span class="n">np_to_pyqt</span>
 
 
@@ -421,8 +420,8 @@
                                                         <span class="n">d_joint</span><span class="o">=</span><span class="n">d_joint</span><span class="p">,</span>
                                                         <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span> <span class="n">curr_w</span><span class="o">=</span><span class="n">curr_w</span><span class="p">)</span>
 
-                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[Pose</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s1">, Joint</span><span class="si">{</span><span class="n">d_joint</span><span class="si">}</span><span class="s1">, SU</span><span class="si">{</span><span class="n">i_su</span><span class="si">}</span><span class="s1">@Joint</span><span class="si">{</span><span class="n">i_joint</span><span class="si">}</span><span class="s1">, Data</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s1">]</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span>
-                                  <span class="sa">f</span><span class="s1">&#39;Model: </span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">model_accel</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s1"> SU: </span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">meas_accel</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="c1"># logging.debug(f&#39;[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t&#39; +</span>
+                    <span class="c1">#               f&#39;Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}&#39;)</span>
 
                     <span class="n">error2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">model_accel</span><span class="p">,</span> <span class="n">meas_accel</span><span class="p">)</span>
 
@@ -486,8 +485,8 @@
                                                         <span class="n">apply_normal_mittendorfer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">apply_normal_mittendorfer</span><span class="p">,</span>
                                                         <span class="n">analytical</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[Pose</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s1">, Joint</span><span class="si">{</span><span class="n">d_joint</span><span class="si">}</span><span class="s1">, SU</span><span class="si">{</span><span class="n">i_su</span><span class="si">}</span><span class="s1">@Joint</span><span class="si">{</span><span class="n">i_joint</span><span class="si">}</span><span class="s1">]</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span>
-                              <span class="sa">f</span><span class="s1">&#39;Model: </span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">max_accel_model</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s1"> SU: </span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">max_accel_train</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="c1"># logging.debug(f&#39;[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t&#39; +</span>
+                <span class="c1">#               f&#39;Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}&#39;)</span>
                 <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">max_accel_train</span> <span class="o">-</span> <span class="n">max_accel_model</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
                 <span class="n">e2</span> <span class="o">+=</span> <span class="n">error</span>
                 <span class="n">n_data</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -496,12 +495,13 @@
 
 
 <div class="viewcode-block" id="CombinedErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.CombinedErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">CombinedErrorFunction</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">ErrorFunction</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">ErrorFunction</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Only ErrorFunction class is allowed&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CombinedErrorFunction.initialize"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.CombinedErrorFunction.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">error_function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span><span class="p">:</span>

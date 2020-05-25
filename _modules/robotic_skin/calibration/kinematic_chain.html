@@ -150,6 +150,56 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 <span class="kn">from</span> <span class="nn">.transformation_matrix</span> <span class="kn">import</span> <span class="n">TransformationMatrix</span> <span class="k">as</span> <span class="n">TM</span>
 
+<span class="n">BOUNDS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+    <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">],</span>    <span class="c1"># th</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>        <span class="c1"># d</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>        <span class="c1"># a     (radius)</span>
+    <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]])</span>   <span class="c1"># alpha</span>
+<span class="n">BOUNDS_SU</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+    <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">],</span>    <span class="c1"># th</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>        <span class="c1"># d</span>
+    <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">],</span>    <span class="c1"># th</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>        <span class="c1"># d</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>        <span class="c1"># a     # 0 gives error</span>
+    <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]])</span>   <span class="c1"># alpha</span>
+
+
+<div class="viewcode-block" id="construct_kinematic_chain"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.kinematic_chain.construct_kinematic_chain">[docs]</a><span class="k">def</span> <span class="nf">construct_kinematic_chain</span><span class="p">(</span><span class="n">robot_configs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">imu_mappings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+                              <span class="n">test_code</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">optimize_all</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">su_joint_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">joints</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">imu_str</span><span class="p">,</span> <span class="n">link_str</span> <span class="ow">in</span> <span class="n">imu_mappings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">su_joint_dict</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">imu_str</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">link_str</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">joints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">link_str</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">joints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">joints</span><span class="p">)</span>
+
+    <span class="n">bound_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;link&#39;</span><span class="p">:</span> <span class="n">BOUNDS</span><span class="p">,</span> <span class="s1">&#39;su&#39;</span><span class="p">:</span> <span class="n">BOUNDS_SU</span><span class="p">}</span>
+
+    <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dh_parameter&#39;</span><span class="p">,</span> <span class="s1">&#39;su_dh_parameter&#39;</span><span class="p">,</span> <span class="s1">&#39;eval_poses&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">robot_configs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Keys </span><span class="si">{</span><span class="n">keys</span><span class="si">}</span><span class="s1"> should exist in robot yaml file&#39;</span><span class="p">)</span>
+
+    <span class="n">linkdh_dict</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">optimize_all</span> <span class="k">else</span> <span class="n">robot_configs</span><span class="p">[</span><span class="s1">&#39;dh_parameter&#39;</span><span class="p">]</span>
+    <span class="n">sudh_dict</span> <span class="o">=</span> <span class="n">robot_configs</span><span class="p">[</span><span class="s1">&#39;su_dh_parameter&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">test_code</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">eval_poses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">robot_configs</span><span class="p">[</span><span class="s1">&#39;eval_poses&#39;</span><span class="p">])</span>
+
+    <span class="n">kinematic_chain</span> <span class="o">=</span> <span class="n">KinematicChain</span><span class="p">(</span>
+        <span class="n">n_joint</span><span class="o">=</span><span class="n">joints</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+        <span class="n">su_joint_dict</span><span class="o">=</span><span class="n">su_joint_dict</span><span class="p">,</span>
+        <span class="n">bound_dict</span><span class="o">=</span><span class="n">bound_dict</span><span class="p">,</span>
+        <span class="n">linkdh_dict</span><span class="o">=</span><span class="n">linkdh_dict</span><span class="p">,</span>
+        <span class="n">sudh_dict</span><span class="o">=</span><span class="n">sudh_dict</span><span class="p">,</span>
+        <span class="n">eval_poses</span><span class="o">=</span><span class="n">eval_poses</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">optimize_all</span><span class="p">:</span>
+        <span class="n">linkdh0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">robot_configs</span><span class="p">[</span><span class="s1">&#39;dh_parameter&#39;</span><span class="p">][</span><span class="s1">&#39;joint1&#39;</span><span class="p">])</span>
+        <span class="n">su0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">linkdh0</span><span class="p">,</span> <span class="n">su0</span><span class="p">]</span>
+        <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">kinematic_chain</span></div>
+
 
 <div class="viewcode-block" id="KinematicChain"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.kinematic_chain.KinematicChain">[docs]</a><span class="k">class</span> <span class="nc">KinematicChain</span><span class="p">():</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_joint</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">su_joint_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>  <span class="c1"># noqa: E999</span>

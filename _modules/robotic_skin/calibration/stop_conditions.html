@@ -145,7 +145,8 @@
            <div itemprop="articleBody">
             
   <h1>Source code for robotic_skin.calibration.stop_conditions</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
 <div class="viewcode-block" id="StopCondition"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.stop_conditions.StopCondition">[docs]</a><span class="k">class</span> <span class="nc">StopCondition</span><span class="p">():</span>
@@ -159,7 +160,62 @@
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="StopCondition.update"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.stop_conditions.StopCondition.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        return e, x</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="CombinedStopCondition"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.stop_conditions.CombinedStopCondition">[docs]</a><span class="k">class</span> <span class="nc">CombinedStopCondition</span><span class="p">(</span><span class="n">StopCondition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stop condition base class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">StopCondition</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Only ErrorFunction class is allowed&#39;</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CombinedStopCondition.initialize"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.stop_conditions.CombinedStopCondition.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="CombinedStopCondition.update"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.stop_conditions.CombinedStopCondition.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">stop_condition</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span><span class="p">:</span>
+            <span class="n">e</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">stop_condition</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">e</span><span class="p">,</span> <span class="n">x</span></div></div>
+
+
+<div class="viewcode-block" id="MaxCountStopCondition"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.stop_conditions.MaxCountStopCondition">[docs]</a><span class="k">class</span> <span class="nc">MaxCountStopCondition</span><span class="p">(</span><span class="n">StopCondition</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stop condition base class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">count_limit</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count_limit</span> <span class="o">=</span> <span class="n">count_limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="MaxCountStopCondition.initialize"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.stop_conditions.MaxCountStopCondition.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="MaxCountStopCondition.update"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.stop_conditions.MaxCountStopCondition.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+
+        <span class="k">if</span> <span class="n">e</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_e</span> <span class="o">=</span> <span class="n">e</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_limit</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Reached Count Limit of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">count_limit</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span>
+
+        <span class="k">return</span> <span class="n">e</span><span class="p">,</span> <span class="n">x</span></div></div>
 
 
 <div class="viewcode-block" id="PassThroughStopCondition"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.stop_conditions.PassThroughStopCondition">[docs]</a><span class="k">class</span> <span class="nc">PassThroughStopCondition</span><span class="p">(</span><span class="n">StopCondition</span><span class="p">):</span>
@@ -170,7 +226,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
 <div class="viewcode-block" id="PassThroughStopCondition.update"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.stop_conditions.PassThroughStopCondition.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">e</span></div></div>
+        <span class="k">return</span> <span class="n">e</span><span class="p">,</span> <span class="n">x</span></div></div>
 
 
 <div class="viewcode-block" id="DeltaXStopCondition"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.stop_conditions.DeltaXStopCondition">[docs]</a><span class="k">class</span> <span class="nc">DeltaXStopCondition</span><span class="p">(</span><span class="n">StopCondition</span><span class="p">):</span>
@@ -204,9 +260,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">xdiffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xdiffs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdiff</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xdiffs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">windowsize</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xdiffs</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">windowsize</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">retval</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Reached DeltaX less than a threshold of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">retval</span><span class="p">,</span> <span class="n">x</span>
 
-        <span class="k">return</span> <span class="n">e</span></div></div>
+        <span class="k">return</span> <span class="n">e</span><span class="p">,</span> <span class="n">x</span></div></div>
 </pre></div>
 
            </div>
