@@ -9,7 +9,7 @@ from robotic_skin.calibration.utils import n2s
 def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su,
                           joint_angular_velocity, joint_angular_acceleration=0,
                           max_angular_velocity=0, current_time=0, method='analytical'):
-    """
+    r"""
     Compute an acceleration value from positions.
     .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`
 
@@ -88,7 +88,7 @@ def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su,
 
 
 def centripetal_acceleration(r, w):
-    """
+    r"""
     .. math:: `a = \omega \times \omega \times r`
 
     Arguments
@@ -161,7 +161,7 @@ def compute_acceleration_analytically(inert_w_body, inert_r_body, inert_alpha_bo
 
     else:
         raise KeyError(f'Coordinate name "{coordinate}" is invalid\n' +
-                       f'Please choose from "body", "inertial", or "world"')
+                       'Please choose from "body", "inertial", or "world"')
 
 
 def compute_2nd_order_derivative(x_func, t=0, dt=0.001):
@@ -417,7 +417,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
                 max_accel_train = data[:3]
 
-                curr_w = data[5]
+                joint_angular_velocity = data[5]
                 # A is used as amplitude of pose pattern
                 max_angular_velocity = data[4]
                 poses = data[7:14]

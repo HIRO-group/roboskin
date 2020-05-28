@@ -66,7 +66,8 @@ def plot_side_by_side(y1: np.ndarray, y2: np.ndarray,
         plt.show()
 
 
-def plot_methods_at_once(y_dict: dict, ylabels: List[str], xlabel: str, x: np.ndarray = None, show=True):
+def plot_methods_at_once(y_dict: dict, ylabels: List[str], xlabel: str,
+                         x: np.ndarray = None, show=True):  # noqa:C901
     if not isinstance(y_dict, dict):
         raise ValueError('y_dict be a dictionary')
     if len(y_dict) == 0:
@@ -137,7 +138,6 @@ def verify_if_noise_is_added_correctly(args):
 
     # Variables
     n_noise = 10
-    noise_sigmas = 0.1 * np.arange(n_noise)
 
     pose_names = list(data.constant.keys())
     joint_names = list(data.constant[pose_names[0]].keys())
@@ -231,8 +231,8 @@ def verify_estimated_accelerations_for_dynamic_datacollection(args):
     for i_su, su in enumerate(imu_names):
         for i_pose, pose in enumerate(pose_names):
             j_joint = kinematic_chain.su_joint_dict[i_su]
-            for i_joint in range(max(0, j_joint-2), j_joint+1):
             # for i_joint, joint in enumerate(joint_names):
+            for i_joint in range(max(0, j_joint-2), j_joint+1):
                 joint = joint_names[i_joint]
                 d = data.dynamic[pose][joint][su]
                 measured_As = d[:, :3]
