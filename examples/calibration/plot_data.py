@@ -66,8 +66,8 @@ def plot_side_by_side(y1: np.ndarray, y2: np.ndarray,
         plt.show()
 
 
-def plot_methods_at_once(y_dict: dict, ylabels: List[str], xlabel: str,
-                         x: np.ndarray = None, show=True):  # noqa:C901
+def plot_methods_at_once(y_dict: dict, ylabels: List[str], xlabel: str,  # noqa:C901
+                         x: np.ndarray = None, show=True):
     if not isinstance(y_dict, dict):
         raise ValueError('y_dict be a dictionary')
     if len(y_dict) == 0:
@@ -135,9 +135,6 @@ def verify_if_noise_is_added_correctly(args):
     utils.add_outlier(data_noise, 'static', sigma=sigma, outlier_ratio=outlier_ratio)
     utils.add_outlier(data_noise, 'dynamic', sigma=sigma, outlier_ratio=outlier_ratio)
     utils.add_outlier(data_noise, 'constant', sigma=sigma, outlier_ratio=outlier_ratio)
-
-    # Variables
-    n_noise = 10
 
     pose_names = list(data.constant.keys())
     joint_names = list(data.constant[pose_names[0]].keys())
