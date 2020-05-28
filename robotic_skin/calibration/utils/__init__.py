@@ -17,6 +17,11 @@ from .io import (
     add_outlier
 )
 
+from .filter import (
+    hampel_filter_forloop,
+    low_pass_filter
+)
+
 __all__ = [
     "tf_to_pyqt",
     "pyqt_to_tf",
@@ -32,4 +37,6 @@ __all__ = [
     "parse_datadir",
     "add_noise",
     "add_outlier",
+    "hampel_filter_forloop",
+    "low_pass_filter"
 ]
