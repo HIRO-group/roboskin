@@ -9,7 +9,7 @@ from robotic_skin.calibration.utils import n2s
 def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su,
                           joint_angular_velocity, joint_angular_acceleration=0,
                           max_angular_velocity=0, current_time=0, method='analytical'):
-    """
+    r"""
     Compute an acceleration value from positions.
     .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`
 
@@ -88,7 +88,7 @@ def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su,
 
 
 def centripetal_acceleration(r, w):
-    """
+    r"""
     .. math:: `a = \omega \times \omega \times r`
 
     Arguments

@@ -231,8 +231,8 @@ def verify_estimated_accelerations_for_dynamic_datacollection(args):
     for i_su, su in enumerate(imu_names):
         for i_pose, pose in enumerate(pose_names):
             j_joint = kinematic_chain.su_joint_dict[i_su]
-            for i_joint in range(max(0, j_joint-2), j_joint+1):
             # for i_joint, joint in enumerate(joint_names):
+            for i_joint in range(max(0, j_joint-2), j_joint+1):
                 joint = joint_names[i_joint]
                 d = data.dynamic[pose][joint][su]
                 measured_As = d[:, :3]
