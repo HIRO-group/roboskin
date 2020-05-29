@@ -113,7 +113,6 @@ def plot_methods_at_once(y_dict: dict, ylabels: List[str], xlabel: str,  # noqa:
         ax.set_ylim([y_min, y_max])
 
         if is_first(i_row):
-            ax.set_title(f'n_data: {n_data}')
             ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left',
                       mode='expand', ncol=len(methods))
 
@@ -224,12 +223,15 @@ def verify_estimated_accelerations_for_dynamic_datacollection(args):
     print(pose_names, joint_names, imu_names)
 
     methods = ['analytical', 'mittendorfer', 'normal_mittendorfer']
+    methods = ['analytical', 'mittendorfer']
+    # methods = ['mittendorfer']
 
-    for i_su, su in enumerate(imu_names):
-        for i_pose, pose in enumerate(pose_names):
-            j_joint = kinematic_chain.su_joint_dict[i_su]
-            # for i_joint, joint in enumerate(joint_names):
-            for i_joint in range(max(0, j_joint-2), j_joint+1):
+    for i_pose, pose in enumerate(pose_names):
+        for i_joint, joint in enumerate(joint_names):
+            for i_su, su in enumerate(imu_names):
+                attached_joint = kinematic_chain.su_joint_dict[i_su]
+                if i_joint > attached_joint:
+                    break
                 joint = joint_names[i_joint]
                 d = data.dynamic[pose][joint][su]
                 measured_As = d[:, :3]
@@ -273,18 +275,17 @@ def verify_estimated_accelerations_for_dynamic_datacollection(args):
                     y_dict=y_dict,
                     ylabels=['ax', 'ay', 'az'],
                     xlabel='Time [s]',
-                    x=time,
-                    show=False)
+                    x=time)
 
-                measured_As = np.hstack((measured_As, additions))
-                estimate_As = np.hstack((estimate_As, additions))
-                plot_side_by_side(
-                    y1=measured_As,
-                    y2=estimate_As,
-                    xlabel='Time',
-                    title1=f'Measured @ [{pose},{joint}{su}]',
-                    title2=f'Estimated w/ max_w={max_angular_velocity}'
-                )
+                # measured_As = np.hstack((measured_As, additions))
+                # estimate_As = np.hstack((estimate_As, additions))
+                # plot_side_by_side(
+                #     y1=measured_As,
+                #     y2=estimate_As,
+                #     xlabel='Time',
+                #     title1=f'Measured @ [{pose},{joint}{su}]',
+                #     title2=f'Estimated w/ max_w={max_angular_velocity}'
+                # )
 
 
 if __name__ == '__main__':

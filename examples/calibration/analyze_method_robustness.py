@@ -53,7 +53,7 @@ def initialize_optimizers_and_loggers(args, robotic_configs, imu_mappings, datad
     data_logger = DataLogger(datadir, args.robot, args.method, overwrite=True)
     optimizer = MittendorferMethodOptimizer(
         kinematic_chain, evaluator, data_logger,
-        args.optimizeall, args.error_functions, args.stop_conditions, apply_normal_mittendorfer=True)
+        args.optimizeall, args.error_functions, args.stop_conditions, method='normal_mittendorfer')
     optimizers.append(optimizer)
     data_loggers.append(data_logger)
 
@@ -62,7 +62,7 @@ def initialize_optimizers_and_loggers(args, robotic_configs, imu_mappings, datad
     data_logger = DataLogger(datadir, args.robot, args.method, overwrite=True)
     optimizer = MittendorferMethodOptimizer(
         kinematic_chain, evaluator, data_logger,
-        args.optimizeall, args.error_functions, args.stop_conditions, apply_normal_mittendorfer=False)
+        args.optimizeall, args.error_functions, args.stop_conditions, method='mittendorfer')
     optimizers.append(optimizer)
     data_loggers.append(data_logger)
     return optimizers, data_loggers

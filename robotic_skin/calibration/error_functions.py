@@ -2,8 +2,9 @@
 import numpy as np
 import robotic_skin.const as C
 import pyquaternion as pyqt
+import matplotlib.pyplot as plt
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
-from robotic_skin.calibration.utils import n2s
+# from robotic_skin.calibration.utils import n2s
 
 
 def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su,
@@ -61,29 +62,22 @@ def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su,
         coordinate='body')
 
     if method == 'analytical':
-        print(f'[Analytical] g={n2s(su_g, 3)}, cen={n2s(su_Ac)}, tan={n2s(su_At)}')
         return su_g + su_Ac + su_At
 
     # The following will run if method is mittendorfer's method
-    rs_At = compute_tangential_acceleration_numerically(
+    su_At = compute_tangential_acceleration_numerically(
         kinematic_chain=kinematic_chain,
         i_rotate_joint=i_rotate_joint,
         i_su=i_su,
+        joint_angular_velocity=joint_angular_velocity,
         max_angular_velocity=max_angular_velocity,
         current_time=current_time)
 
-    # Rotate Tangential Acceleration
-    # defined in RS to SU coordinate.
-    su_At = np.dot(rs_T_su.R.T, rs_At)
-
     if method == 'normal_mittendorfer':
-        print(f'[Normal] g={n2s(su_g)}, tan={n2s(su_At)}')
-        return su_At
+        # return su_At
+        return su_g + su_At
 
     # Every joint rotates along its own z axis, one joint moves at a time
-    # rotate into su frame
-    print(f'[Mittendorfer] g={n2s(su_g)}, cen={n2s(su_Ac)}, tan={n2s(su_At)}')
-    su_At[2] = 0.0
     return su_g + su_Ac + su_At
 
 
@@ -170,7 +164,8 @@ def compute_2nd_order_derivative(x_func, t=0, dt=0.001):
 
 
 def compute_tangential_acceleration_numerically(kinematic_chain, i_rotate_joint, i_su,
-                                                max_angular_velocity, current_time):
+                                                joint_angular_velocity, max_angular_velocity,
+                                                current_time):
     """
     Returns tangential acceleration in RS coordinate.
     The acceleration is computed by taking 2nd derivative of the position.
@@ -192,8 +187,7 @@ def compute_tangential_acceleration_numerically(kinematic_chain, i_rotate_joint,
     `current_time`: float`
         Current Time
     """
-
-    def compute_su_position(t):
+    def current_su_transformation_matrix(angle):
         """
         Returns position of the current skin unit
 
@@ -202,18 +196,66 @@ def compute_tangential_acceleration_numerically(kinematic_chain, i_rotate_joint,
         `t`: `float`
             Given Time t
         """
-        angle = (max_angular_velocity / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ * t))
         dof_T_dof, rs_T_dof = kinematic_chain.get_current_TMs()
         kinematic_chain.add_a_pose(
             i_joint=i_rotate_joint,
             pose=angle,
             dof_T_dof=dof_T_dof,
             rs_T_dof=rs_T_dof)
-        T = kinematic_chain._compute_su_TM(i_su, dof_T_dof, rs_T_dof)
+        return kinematic_chain._compute_su_TM(
+            i_su=i_su,
+            dof_T_dof=dof_T_dof,
+            rs_T_dof=rs_T_dof,
+            start_joint=i_rotate_joint)
+
+    def su_position_in_sinmotion(t):
+        angle = (max_angular_velocity / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ * t))
+        T = current_su_transformation_matrix(angle)
         return T.position
 
     # Compute the Acceleration from 3 close positions
-    return compute_2nd_order_derivative(x_func=compute_su_position, t=current_time)
+    dof_A = compute_2nd_order_derivative(x_func=su_position_in_sinmotion, t=current_time)
+    # Compute current Angle during sinuosoidal motion
+    angle = (max_angular_velocity / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ * current_time))
+    # Get current transformation matrix of SU defined in dof coordinate
+    dof_T_su = current_su_transformation_matrix(angle=angle)
+    # Tangential Vector (to the circular motion)
+    e_t = np.cross([0, 0, 1], dof_T_su.position)
+    e_t = e_t / np.linalg.norm(e_t)
+
+    # Only retrieve the tangential element of dof_A,
+    # because dof_A also includes unnecessary centripetal acceleration
+    dof_At = e_t * np.dot(e_t, dof_A)
+    su_At = np.dot(dof_T_su.R.T, dof_At)
+
+    # plot_projected_acceleration(dof_A, e_r, e_t, dof_At, dof_Ac)
+    return su_At
+
+
+def plot_projected_acceleration(dof_A, e_r, e_t, dof_At, dof_Ac):
+    origin = np.zeros(2)
+    fig = plt.figure(1)
+    ax = fig.add_subplot(111)
+    circle = plt.Circle((0, 0), 1.0, color='black', fill=False)
+
+    radius = np.vstack((origin, e_r[:2]))
+    tangent = np.vstack((e_r[:2], e_r[:2] + e_t[:2]))
+    accelerations = np.vstack((e_r[:2], e_r[:2] + dof_A[:2]))
+    At = np.vstack((e_r[:2], e_r[:2] + dof_At[:2]))
+    Ac = np.vstack((e_r[:2], e_r[:2] + dof_Ac[:2]))
+
+    ax.plot(At[:, 0], At[:, 1], label='At')
+    ax.plot(Ac[:, 0], Ac[:, 1], label='Ac')
+    ax.plot(radius[:, 0], radius[:, 1], label='e_r', color='grey', lw=1, alpha=0.7)
+    ax.plot(tangent[:, 0], tangent[:, 1], label='e_t', color='grey', lw=1, alpha=0.7)
+    ax.plot(accelerations[:, 0], accelerations[:, 1], label='estimated accelerations')
+    ax.add_artist(circle)
+    ax.axis('equal')
+    ax.set_xlim([-2, 2])
+    ax.set_ylim([-2, 2])
+    ax.legend()
+
+    plt.show()
 
 
 class ErrorFunction():
@@ -413,30 +455,45 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         for p in range(self.n_dynamic_pose):
             for d_joint in range(max(0, i_joint-2), i_joint+1):
                 # max acceleration (x,y,z) of the data
-                data = self.data.dynamic[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]][0]
+                data = self.data.dynamic[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]]
 
-                max_accel_train = data[:3]
+                max_accel_trains = data[:, :3]
+                joints = data[:, 3:10]
+                times = data[:, 10]
+                joint_angular_accelerations = data[:, 11]
+                max_angular_velocity = data[0, 12]
+                joint_angular_velocities = data[:, 13]
 
-                joint_angular_velocity = data[5]
-                # A is used as amplitude of pose pattern
-                max_angular_velocity = data[4]
-                poses = data[7:14]
+                n_eval = 4
+                for i in range(n_eval):
+                    n_data = data.shape[0]
+                    if n_data <= i:
+                        break
 
-                # kinematic_chain.set_poses(joints)
-                kinematic_chain.set_poses(poses, end_joint=i_joint)
-                # use mittendorfer's original or modified based on condition
-                max_accel_model = estimate_acceleration(kinematic_chain=kinematic_chain,
-                                                        i_rotate_joint=d_joint,
-                                                        i_su=i_su,
-                                                        joint_angular_velocity=joint_angular_velocity,
-                                                        max_angular_velocity=max_angular_velocity,
-                                                        method=self.method)
+                    idx = i*int(n_data/n_eval)
+                    max_accel_train = max_accel_trains[idx, :]
+                    poses = joints[idx, :]
+                    time = times[idx]
+                    joint_angular_acceleration = joint_angular_accelerations[idx]
+                    joint_angular_velocity = joint_angular_velocities[idx]
 
-                # logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t' +
-                #               f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
-                error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
-                e2 += error
-                n_data += 1
+                    # kinematic_chain.set_poses(joints)
+                    kinematic_chain.set_poses(poses, end_joint=i_joint)
+                    # use mittendorfer's original or modified based on condition
+                    max_accel_model = estimate_acceleration(kinematic_chain=kinematic_chain,
+                                                            i_rotate_joint=d_joint,
+                                                            i_su=i_su,
+                                                            joint_angular_velocity=joint_angular_velocity,
+                                                            joint_angular_acceleration=joint_angular_acceleration,
+                                                            max_angular_velocity=max_angular_velocity,
+                                                            current_time=time,
+                                                            method=self.method)
+
+                    # logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t' +
+                    #             f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
+                    error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
+                    e2 += error
+                    n_data += 1
 
         return e2/n_data
 
