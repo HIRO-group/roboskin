@@ -1,10 +1,10 @@
-# import logging
+import logging
 import numpy as np
 import robotic_skin.const as C
 import pyquaternion as pyqt
 import matplotlib.pyplot as plt
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
-# from robotic_skin.calibration.utils import n2s
+from robotic_skin.calibration.utils import n2s
 
 
 def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su,
@@ -232,32 +232,6 @@ def compute_tangential_acceleration_numerically(kinematic_chain, i_rotate_joint,
     return su_At
 
 
-def plot_projected_acceleration(dof_A, e_r, e_t, dof_At, dof_Ac):
-    origin = np.zeros(2)
-    fig = plt.figure(1)
-    ax = fig.add_subplot(111)
-    circle = plt.Circle((0, 0), 1.0, color='black', fill=False)
-
-    radius = np.vstack((origin, e_r[:2]))
-    tangent = np.vstack((e_r[:2], e_r[:2] + e_t[:2]))
-    accelerations = np.vstack((e_r[:2], e_r[:2] + dof_A[:2]))
-    At = np.vstack((e_r[:2], e_r[:2] + dof_At[:2]))
-    Ac = np.vstack((e_r[:2], e_r[:2] + dof_Ac[:2]))
-
-    ax.plot(At[:, 0], At[:, 1], label='At')
-    ax.plot(Ac[:, 0], Ac[:, 1], label='Ac')
-    ax.plot(radius[:, 0], radius[:, 1], label='e_r', color='grey', lw=1, alpha=0.7)
-    ax.plot(tangent[:, 0], tangent[:, 1], label='e_t', color='grey', lw=1, alpha=0.7)
-    ax.plot(accelerations[:, 0], accelerations[:, 1], label='estimated accelerations')
-    ax.add_artist(circle)
-    ax.axis('equal')
-    ax.set_xlim([-2, 2])
-    ax.set_ylim([-2, 2])
-    ax.legend()
-
-    plt.show()
-
-
 class ErrorFunction():
     """
     Error Function class used to evaluate kinematics
@@ -464,7 +438,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 max_angular_velocity = data[0, 12]
                 joint_angular_velocities = data[:, 13]
 
-                n_eval = 4
+                n_eval = 8
                 for i in range(n_eval):
                     n_data = data.shape[0]
                     if n_data <= i:
@@ -489,8 +463,8 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                                                             current_time=time,
                                                             method=self.method)
 
-                    # logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t' +
-                    #             f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
+                    logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t' +
+                                f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
                     error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
                     e2 += error
                     n_data += 1
