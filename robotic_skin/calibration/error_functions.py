@@ -2,7 +2,6 @@ import logging
 import numpy as np
 import robotic_skin.const as C
 import pyquaternion as pyqt
-import matplotlib.pyplot as plt
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 from robotic_skin.calibration.utils import n2s
 
@@ -464,7 +463,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                                                             method=self.method)
 
                     logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t' +
-                                f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
+                                  f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
                     error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
                     e2 += error
                     n_data += 1
