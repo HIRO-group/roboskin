@@ -271,6 +271,7 @@ def verify_estimated_accelerations_for_dynamic_datacollection(args):
                 additions = np.array(additions)
                 print(np.max(joint_angular_velocities))
                 print(f'{su}, {pose}, {joint_names[i_joint]}')
+
                 plot_methods_at_once(
                     y_dict=y_dict,
                     ylabels=['ax', 'ay', 'az'],
