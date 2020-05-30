@@ -5,6 +5,19 @@ from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
 
 
+def max_angle_func(t: int):
+    """
+    Computes current joint angle at time t
+    joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.
+
+    Parameters
+    ------------
+    `t`: `int`
+        Current time t
+    """
+    return (C.MAX_ANGULAR_VELOCITY / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ * t))
+
+
 class ErrorFunction():
     """
     Error Function class used to evaluate kinematics
@@ -237,7 +250,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                         joint_angular_velocity=joint_angular_velocity,
                         joint_angular_acceleration=joint_angular_acceleration,
                         current_time=time,
-                        angle_func=self.angle_func,
+                        angle_func=max_angle_func,
                         method=self.method)
 
                     # logging.debug(f'[{pose}, {joint}, {su}@Joint{i_joint}]\t' +
@@ -247,18 +260,6 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     n_data += 1
 
         return e2/n_data
-
-    def angle_func(self, t: int):
-        """
-        Computes current joint angle at time t
-        joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.
-
-        Parameters
-        ------------
-        `t`: `int`
-            Current time t
-        """
-        return (C.MAX_ANGULAR_VELOCITY / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ * t))
 
 
 class CombinedErrorFunction(ErrorFunction):

@@ -5,8 +5,9 @@ import numpy as np
 from typing import List
 import matplotlib.pyplot as plt
 
-from robotic_skin.calibration.error_functions import estimate_acceleration
+from robotic_skin.calibration.error_functions import max_angle_func
 from robotic_skin.calibration.kinematic_chain import construct_kinematic_chain
+from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
 from robotic_skin.calibration import utils
 
 REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -198,20 +199,14 @@ def plot_in_one_graph(y_dict: dict, ylabels: List[str], xlabel: str,  # noqa:C90
     plt.close()
 
 
-def verify_if_noise_is_added_correctly(args):
-    datadir = utils.parse_datadir(args.datadir)
-    data, _ = utils.load_data(args.robot, datadir)
-    data_noise = copy.deepcopy(data)
+def verify_noise_added_correctly(data, pose_names: List[str],
+                                 joint_names: List[str], imu_names: List[str],
+                                 sigma: float = 1.0, outlier_ratio: float = 0.5):
 
     # Add Noise
-    sigma = 1.0
-    outlier_ratio = 0.5
     data_types = ['static', 'dynamic', 'constant']
+    data_noise = copy.deepcopy(data)
     utils.add_outlier(data_noise, data_types, sigma=sigma, outlier_ratio=outlier_ratio)
-
-    pose_names = list(data.constant.keys())
-    joint_names = list(data.constant[pose_names[0]].keys())
-    imu_names = list(data.constant[pose_names[0]][joint_names[0]].keys())
 
     n_dynamic_pose = len(list(data.dynamic.keys()))
     n_constant_pose = len(list(data.constant.keys()))
@@ -279,11 +274,9 @@ def verify_if_noise_is_added_correctly(args):
                     title2='Accelerations + Noise')
 
 
-def verify_estimated_accelerations_for_dynamic_datacollection(args):
-    # Preparation for the initialization of KinematicChain
-    robot_configs = utils.load_robot_configs(args.configdir, args.robot)
-    datadir = utils.parse_datadir(args.datadir)
-    data, imu_mappings = utils.load_data(args.robot, datadir)
+def verify_acceleration_estimate(data, pose_names: List[str],
+                                 joint_names: List[str], imu_names: List[str],
+                                 robot_configs: dict, imu_mappings: dict):
     # Initialize KinematicChain
     kinematic_chain = construct_kinematic_chain(
         robot_configs=robot_configs,
@@ -291,14 +284,16 @@ def verify_estimated_accelerations_for_dynamic_datacollection(args):
         test_code=True,
         optimize_all=False)
 
-    # Data Keys
-    pose_names = list(data.dynamic.keys())
-    joint_names = list(data.dynamic[pose_names[0]].keys())
-    imu_names = list(data.dynamic[pose_names[0]][joint_names[0]].keys())
-    print(pose_names, joint_names, imu_names)
-
     # Methods to Compare
     methods = ['analytical', 'mittendorfer']
+
+    indices = {
+        'measured': np.arange(1, 4),
+        'joints': np.arange(3, 11),
+        'time': 10,
+        'angaccel': 11,
+        'angvel': 13
+    }
 
     for i_su, su in enumerate(imu_names):
         # joint which i_su th SU is attached to
@@ -307,40 +302,25 @@ def verify_estimated_accelerations_for_dynamic_datacollection(args):
             # Consider 2 previous joints
             for rotate_joint in range(max(0, i_joint-2), i_joint+1):
                 joint = joint_names[rotate_joint]
-
-                # Break up the data
-                d = data.dynamic[pose][joint][su]
-                measured_As = d[:, :3]
-                joints = d[:, 3:10]
-                time = d[:, 10]
-                joint_angular_accelerations = d[:, 11]
-                max_angular_velocity = d[0, 12]
-                joint_angular_velocities = d[:, 13]
-
-                # Prepare for plotting
-                y_dict = {'Measured': measured_As}
                 print(f'[{su}_{pose}_{joint}]')
 
-                n_data = d.shape[0]
+                # Break up the data
+                each_data = data.dynamic[pose][joint][su]
+
+                # Prepare for plotting
+                measured_As = each_data[:, indices['measured']]
+                y_dict = {'Measured': measured_As}
+                # Run Estimate_Acceleration for each method
                 for method in methods:
-                    estimate_As = []
-                    for i_data in range(n_data):
-                        # First Set current Pose (joints)
-                        kinematic_chain.set_poses(joints[i_data], end_joint=i_joint)
-                        # Estimate current acceleration wrt the data
-                        estimate_A = estimate_acceleration(
-                            kinematic_chain=kinematic_chain,
-                            i_rotate_joint=rotate_joint,
-                            i_su=i_su,
-                            joint_angular_velocity=joint_angular_velocities[i_data],
-                            joint_angular_acceleration=joint_angular_accelerations[i_data],
-                            max_angular_velocity=max_angular_velocity,
-                            current_time=time[i_data],
-                            method=method)
-                        estimate_As.append(estimate_A)
-                    estimate_As = np.array(estimate_As)
                     # Store to a dictionary
-                    y_dict[method] = estimate_As
+                    y_dict[method] = estimate_acceleration_batch(
+                        kinematic_chain=kinematic_chain,
+                        data=each_data,
+                        rotate_joint=rotate_joint,
+                        i_joint=i_joint,
+                        i_su=i_su,
+                        inds=indices,
+                        method=method)
 
                 # Plot all methods in a same graph
                 plot_in_one_graph(
@@ -348,18 +328,34 @@ def verify_estimated_accelerations_for_dynamic_datacollection(args):
                     ylabels=['ax', 'ay', 'az'],
                     xlabel='Time [s]',
                     title=f'{joint}_{su}_{pose}',
-                    x=time,
+                    x=each_data[:, indices['time']],
                     show=True,
                     save=False)
 
-                # Plot 2 Comparative Methods side by side
-                # plot_side_by_side(
-                #     y1=measured_As,
-                #     y2=estimate_As,
-                #     xlabel='Time',
-                #     title1=f'Measured @ [{pose},{joint}{su}]',
-                #     title2=f'Estimated w/ max_w={max_angular_velocity}'
-                # )
+
+def estimate_acceleration_batch(kinematic_chain, data: np.ndarray,
+                                rotate_joint: int, i_joint: int,
+                                i_su: int, inds: dict, method: str):
+
+    estimate_As = []
+
+    # Go through all the data points
+    for d in data:
+        # First Set current Pose (joints)
+        kinematic_chain.set_poses(d[inds['joints']], end_joint=i_joint)
+        # Estimate current acceleration wrt the data
+        estimate_A = estimate_acceleration(
+            kinematic_chain=kinematic_chain,
+            i_rotate_joint=rotate_joint,
+            i_su=i_su,
+            joint_angular_velocity=d[inds['angvel']],
+            joint_angular_acceleration=d[inds['angaccel']],
+            current_time=d[inds['time']],
+            angle_func=max_angle_func,
+            method=method)
+        estimate_As.append(estimate_A)
+
+    return np.array(estimate_As)
 
 
 if __name__ == '__main__':
@@ -374,7 +370,21 @@ if __name__ == '__main__':
                         help="Please provide a path to the config directory")
     args = parser.parse_args()
 
+    # Preparation for the initialization of KinematicChain
+    robot_configs = utils.load_robot_configs(args.configdir, args.robot)
+    datadir = utils.parse_datadir(args.datadir)
+    data, imu_mappings = utils.load_data(args.robot, datadir)
+
+    # Data Keys
+    pose_names = list(data.dynamic.keys())
+    joint_names = list(data.dynamic[pose_names[0]].keys())
+    imu_names = list(data.dynamic[pose_names[0]][joint_names[0]].keys())
+    print(pose_names, joint_names, imu_names)
+
     if args.run == 'verify_noise':
-        verify_if_noise_is_added_correctly(args)
+        verify_noise_added_correctly(
+            data, pose_names, joint_names, imu_names)
     else:
-        verify_estimated_accelerations_for_dynamic_datacollection(args)
+        verify_acceleration_estimate(
+            data, pose_names, joint_names, imu_names,
+            robot_configs, imu_mappings)
