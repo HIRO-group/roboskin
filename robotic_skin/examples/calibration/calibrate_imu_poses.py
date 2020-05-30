@@ -11,7 +11,7 @@ from robotic_skin.calibration.data_logger import DataLogger
 from robotic_skin.calibration.evaluator import Evaluator
 from robotic_skin.calibration import utils
 
-REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 CONFIGDIR = os.path.join(REPODIR, 'config')
 
 

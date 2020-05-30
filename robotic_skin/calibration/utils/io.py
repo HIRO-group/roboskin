@@ -7,7 +7,7 @@ import numpy as np
 from collections import namedtuple
 
 
-def n2s(x, precision=2):
+def n2s(x, precision=3):
     """
     converts numpy array to string.
 

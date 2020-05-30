@@ -143,6 +143,10 @@ class KinematicChain():
         self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
         self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
 
+        self.temp_poses = None
+        self.dof_Tt_dof = None
+        self.rs_Tt_dof = None
+
         # Construct Transformation Matrices for each SU from its previous joint
         self.dof_T_vdof, self.vdof_T_su, self.dof_T_su = \
             self.__predefined_or_rand_sus(sudh_dict, bound_dict)
@@ -226,6 +230,9 @@ class KinematicChain():
 
     def set_poses(self, poses: np.ndarray,
                   start_joint: int = 0, end_joint: int = None) -> None:
+        """
+        Set Current Poses.
+        """
         assert isinstance(poses, np.ndarray)
         assert poses.size == self.n_joint
         if end_joint is None:
@@ -235,34 +242,33 @@ class KinematicChain():
         # Compute dof_Tc_dof and update rs_Tc_dof
         self.dof_Tc_dof = self.__apply_poses(
             self.current_poses, self.dof_T0_dof, self.rs_Tc_dof, start_joint, end_joint)
+        # Set temporary Ts to None
+        self.dof_Tt_dof = None
+        self.rs_Tt_dof = None
+        self.temp_poses = None
 
-    def add_a_pose(self, i_joint: int, pose: float,
-                   dof_T_dof: List[TM], rs_T_dof: List[TM]) -> None:
+    def init_temp_TM(self, i_joint: int, additional_pose: float) -> None:
         """
-        It adds a pose to the current poses dof_Tc_dof, rs_Tc_dof
-
-        Use this function to add 1 pose only.
-        If you want to add multiple poses, use set_n_poses
-
-        i_joint: int
-            ith Joint starts from 0 to n-1
-        pose: float
-            Angle [rad]
+        Initialize a temporary Transformation Matrices by adding
+        an extra joint angle to Current Tranformation Matrices.
+        Current Pose will not be updated.
         """
-        assert isinstance(i_joint, int)
-        assert isinstance(pose, float)
-        assert 0 <= i_joint <= self.n_joint-1, \
-            print(f'i_joint Should be in between 0 and {self.n_joint-1}')
+        self.temp_poses = copy.deepcopy(self.current_poses)
+        self.dof_Tt_dof = copy.deepcopy(self.dof_Tc_dof)
+        self.rs_Tt_dof = copy.deepcopy(self.rs_Tc_dof)
 
         # Update current poses and copy them to temporary poses
-        dof_T_dof[i_joint] = dof_T_dof[i_joint](theta=pose)
-        self.__update_chains(dof_T_dof, rs_T_dof, start_joint=i_joint)
+        self.temp_poses[i_joint] += additional_pose
+        self.dof_Tt_dof[i_joint] = self.dof_Tt_dof[i_joint](theta=additional_pose)
+        self.__update_chains(self.dof_Tt_dof, self.rs_Tt_dof, start_joint=i_joint)
 
-    def get_current_TMs(self):
-        return copy.deepcopy(self.dof_Tc_dof), copy.deepcopy(self.rs_Tc_dof)
+    def add_temp_pose(self, i_joint: int, additional_pose: float) -> None:
+        self.temp_poses[i_joint] += additional_pose
+        self.dof_Tt_dof[i_joint] = self.dof_Tt_dof[i_joint](theta=additional_pose)
+        self.__update_chains(self.dof_Tt_dof, self.rs_Tt_dof, start_joint=i_joint)
 
-    def _compute_joint_TM(self, i_joint: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
-                          start_joint: int = 0) -> TM:
+    def __compute_joint_TM(self, i_joint: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
+                          start_joint: int) -> TM:
         """
         i_joint should also start from 0 to n-1.
         """
@@ -271,7 +277,7 @@ class KinematicChain():
         assert start_joint <= i_joint, \
             print(f'i_joint={i_joint} should be >= than start_joint {start_joint}')
 
-        if start_joint == 0:
+        if start_joint == -1:
             return rs_T_dof[i_joint]
 
         T = dof_T_dof[start_joint]
@@ -279,21 +285,25 @@ class KinematicChain():
             T = T * dof_T_dof[i]
         return T
 
-    def compute_joint_TM(self, i_joint: int, pose_type: str, start_joint: int = 0) -> TM:
+    def compute_joint_TM(self, i_joint: int, pose_type: str, start_joint: int = -1) -> TM:
         """
         Get a TransformationMatrix to the i_joint th joint
         """
         if pose_type == 'orgin':
-            return self._compute_joint_TM(i_joint, self.dof_T0_dof, self.rs_T0_dof, start_joint)
-        if pose_type == 'eval':
-            return self._compute_joint_TM(i_joint, self.dof_Te_dof, self.rs_Te_dof, start_joint)
-        if pose_type == 'current':
-            return self._compute_joint_TM(i_joint, self.dof_Tc_dof, self.rs_Tc_dof, start_joint)
+            return self.__compute_joint_TM(i_joint, self.dof_T0_dof, self.rs_T0_dof, start_joint)
+        elif pose_type == 'eval':
+            return self.__compute_joint_TM(i_joint, self.dof_Te_dof, self.rs_Te_dof, start_joint)
+        elif pose_type == 'current':
+            return self.__compute_joint_TM(i_joint, self.dof_Tc_dof, self.rs_Tc_dof, start_joint)
+        elif pose_type == 'temp':
+            if self.dof_Tt_dof is None or self.rs_Tt_dof is None:
+                raise ValueError('Temprary Pose is not set')
+            return self.__compute_joint_TM(i_joint, self.dof_Tt_dof, self.rs_Tt_dof, start_joint)
         else:
             raise ValueError(f'Not such pose as {pose_type}')
 
-    def _compute_su_TM(self, i_su: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
-                       start_joint: int = 0) -> TM:
+    def __compute_su_TM(self, i_su: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
+                       start_joint: int) -> TM:
         """
         i_su should also start from 0 to m-1.
         """
@@ -307,7 +317,7 @@ class KinematicChain():
             print(f'i_joint {i_joint} which i_su {i_su} is attached to \
                     should be larger than or equal to start_joint {start_joint}')
 
-        if start_joint == 0:
+        if start_joint == -1:
             return rs_T_dof[i_joint] * self.dof_T_su[i_su]
 
         T = TM.from_numpy(np.zeros(4))
@@ -315,16 +325,20 @@ class KinematicChain():
             T = T * dof_T_dof[j]
         return T * self.dof_T_su[i_su]
 
-    def compute_su_TM(self, i_su: int, pose_type: str, start_joint: int = 0) -> TM:
+    def compute_su_TM(self, i_su: int, pose_type: str, start_joint: int = -1) -> TM:
         """
         Get a TransformationMatrix to the i_su th su
         """
         if pose_type == 'origin':
-            return self._compute_su_TM(i_su, self.dof_T0_dof, self.rs_T0_dof, start_joint)
-        if pose_type == 'eval':
-            return self._compute_su_TM(i_su, self.dof_Te_dof, self.rs_Te_dof, start_joint)
-        if pose_type == 'current':
-            return self._compute_su_TM(i_su, self.dof_Tc_dof, self.rs_Tc_dof, start_joint)
+            return self.__compute_su_TM(i_su, self.dof_T0_dof, self.rs_T0_dof, start_joint)
+        elif pose_type == 'eval':
+            return self.__compute_su_TM(i_su, self.dof_Te_dof, self.rs_Te_dof, start_joint)
+        elif pose_type == 'current':
+            return self.__compute_su_TM(i_su, self.dof_Tc_dof, self.rs_Tc_dof, start_joint)
+        elif pose_type == 'temp':
+            if self.dof_Tt_dof is None or self.rs_Tt_dof is None:
+                raise ValueError('Temprary Pose is not set')
+            return self.__compute_su_TM(i_su, self.dof_Tt_dof, self.rs_Tt_dof, start_joint)
         else:
             raise ValueError(f'There is no such pose_type as {pose_type}')
 

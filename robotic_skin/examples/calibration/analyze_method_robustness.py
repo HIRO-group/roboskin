@@ -17,7 +17,7 @@ from robotic_skin.calibration.stop_conditions import DeltaXStopCondition
 from robotic_skin.calibration import utils
 from calibrate_imu_poses import parse_arguments
 
-REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 CONFIGDIR = os.path.join(REPODIR, 'config')
 
 
