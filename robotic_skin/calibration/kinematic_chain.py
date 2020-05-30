@@ -252,6 +252,17 @@ class KinematicChain():
         Initialize a temporary Transformation Matrices by adding
         an extra joint angle to Current Tranformation Matrices.
         Current Pose will not be updated.
+        The temporary pose/TM will be reset once init_temp_TM or set_poses are called.
+
+        TODO: Allow multiple additional poses
+
+        Parameters
+        -----------
+        `i_joint`: `int`
+            i_joint th joint
+        `additional_pose`: `float`
+            Additional pose added to the pose (copied from the current pose).
+            Current pose will not be updated.
         """
         self.temp_poses = copy.deepcopy(self.current_poses)
         self.dof_Tt_dof = copy.deepcopy(self.dof_Tc_dof)
@@ -263,6 +274,14 @@ class KinematicChain():
         self.__update_chains(self.dof_Tt_dof, self.rs_Tt_dof, start_joint=i_joint)
 
     def add_temp_pose(self, i_joint: int, additional_pose: float) -> None:
+        """
+        Add a pose to the temporary pose/TM
+        It does not initialize the temporary pose
+        nor overwrite the current pose.
+        The temporary pose/TM will be reset once init_temp_TM or set_poses are called.
+
+        TODO: Allow multiple additional poses
+        """
         self.temp_poses[i_joint] += additional_pose
         self.dof_Tt_dof[i_joint] = self.dof_Tt_dof[i_joint](theta=additional_pose)
         self.__update_chains(self.dof_Tt_dof, self.rs_Tt_dof, start_joint=i_joint)

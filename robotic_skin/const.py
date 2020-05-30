@@ -19,6 +19,7 @@ LOCAL_STOP = 1e-10              #
 GLOBAL_XTOL = 1e-2
 PATTERN_FREQ = 1                # Hz
 PATTERN_A = 0.4                 # rad/s
+MAX_ANGULAR_VELOCITY = 1.5      # rad/s
 T = 0.5                         # s
 GLOBAL_OPTIMIZER = nlopt.G_MLSL_LDS
 LOCAL_OPTIMIZER = nlopt.LN_NELDERMEAD
