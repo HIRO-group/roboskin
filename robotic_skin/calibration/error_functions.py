@@ -1,9 +1,9 @@
-import logging
+# import logging
 import numpy as np
 import robotic_skin.const as C
 import pyquaternion as pyqt
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
-from robotic_skin.calibration.utils import n2s
+# from robotic_skin.calibration.utils import n2s
 
 
 def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su,
@@ -439,14 +439,15 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     # kinematic_chain.set_poses(joints)
                     kinematic_chain.set_poses(poses, end_joint=i_joint)
                     # use mittendorfer's original or modified based on condition
-                    estimate_A = estimate_acceleration(kinematic_chain=kinematic_chain,
-                                                            i_rotate_joint=rotate_joint,
-                                                            i_su=i_su,
-                                                            joint_angular_velocity=joint_angular_velocity,
-                                                            joint_angular_acceleration=joint_angular_acceleration,
-                                                            max_angular_velocity=max_angular_velocity,
-                                                            current_time=time,
-                                                            method=self.method)
+                    estimate_A = estimate_acceleration(
+                        kinematic_chain=kinematic_chain,
+                        i_rotate_joint=rotate_joint,
+                        i_su=i_su,
+                        joint_angular_velocity=joint_angular_velocity,
+                        joint_angular_acceleration=joint_angular_acceleration,
+                        max_angular_velocity=max_angular_velocity,
+                        current_time=time,
+                        method=self.method)
 
                     # logging.debug(f'[{pose}, {joint}, {su}@Joint{i_joint}]\t' +
                     #               f'Model: {n2s(estimate_A, 4)} SU: {n2s(measured_A, 4)}')

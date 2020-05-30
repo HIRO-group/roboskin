@@ -268,7 +268,7 @@ class KinematicChain():
         self.__update_chains(self.dof_Tt_dof, self.rs_Tt_dof, start_joint=i_joint)
 
     def __compute_joint_TM(self, i_joint: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
-                          start_joint: int) -> TM:
+                           start_joint: int) -> TM:
         """
         i_joint should also start from 0 to n-1.
         """
@@ -303,7 +303,7 @@ class KinematicChain():
             raise ValueError(f'Not such pose as {pose_type}')
 
     def __compute_su_TM(self, i_su: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
-                       start_joint: int) -> TM:
+                        start_joint: int) -> TM:
         """
         i_su should also start from 0 to m-1.
         """

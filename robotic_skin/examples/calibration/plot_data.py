@@ -242,60 +242,59 @@ def verify_estimated_accelerations_for_dynamic_datacollection(args):
         i_joint = kinematic_chain.su_joint_dict[i_su]
         for pose in pose_names:
             for rotate_joint in range(max(0, i_joint-2), i_joint+1):
-                # if rotate_joint == 0:
-                    joint = joint_names[rotate_joint]
+                joint = joint_names[rotate_joint]
 
-                    d = data.dynamic[pose][joint][su]
-                    measured_As = d[:, :3]
-                    joints = d[:, 3:10]
-                    time = d[:, 10]
-                    joint_angular_accelerations = d[:, 11]
-                    max_angular_velocity = d[0, 12]
-                    joint_angular_velocities = d[:, 13]
+                d = data.dynamic[pose][joint][su]
+                measured_As = d[:, :3]
+                joints = d[:, 3:10]
+                time = d[:, 10]
+                joint_angular_accelerations = d[:, 11]
+                max_angular_velocity = d[0, 12]
+                joint_angular_velocities = d[:, 13]
 
-                    y_dict = {'Measured': measured_As}
-                    print(f'[{su}_{pose}_{joint}]')
+                y_dict = {'Measured': measured_As}
+                print(f'[{su}_{pose}_{joint}]')
 
-                    n_data = d.shape[0]
-                    for method in methods:
-                        estimate_As = []
-                        additions = []
-                        for i_data in range(n_data):
-                            kinematic_chain.set_poses(joints[i_data], end_joint=i_joint)
-                            estimate_A = estimate_acceleration(
-                                kinematic_chain=kinematic_chain,
-                                i_rotate_joint=rotate_joint,
-                                i_su=i_su,
-                                joint_angular_velocity=joint_angular_velocities[i_data],
-                                joint_angular_acceleration=joint_angular_accelerations[i_data],
-                                max_angular_velocity=max_angular_velocity,
-                                current_time=time[i_data],
-                                method=method)
-                            estimate_As.append(estimate_A)
-                            additions.append([joint_angular_velocities[i_data], joint_angular_accelerations[i_data]])
-                        estimate_As = np.array(estimate_As)
-                        y_dict[method] = estimate_As
+                n_data = d.shape[0]
+                for method in methods:
+                    estimate_As = []
+                    additions = []
+                    for i_data in range(n_data):
+                        kinematic_chain.set_poses(joints[i_data], end_joint=i_joint)
+                        estimate_A = estimate_acceleration(
+                            kinematic_chain=kinematic_chain,
+                            i_rotate_joint=rotate_joint,
+                            i_su=i_su,
+                            joint_angular_velocity=joint_angular_velocities[i_data],
+                            joint_angular_acceleration=joint_angular_accelerations[i_data],
+                            max_angular_velocity=max_angular_velocity,
+                            current_time=time[i_data],
+                            method=method)
+                        estimate_As.append(estimate_A)
+                        additions.append([joint_angular_velocities[i_data], joint_angular_accelerations[i_data]])
+                    estimate_As = np.array(estimate_As)
+                    y_dict[method] = estimate_As
 
-                    additions = np.array(additions)
+                additions = np.array(additions)
 
-                    plot_methods_at_once(
-                        y_dict=y_dict,
-                        ylabels=['ax', 'ay', 'az'],
-                        xlabel='Time [s]',
-                        title=f'{joint}_{su}_{pose}',
-                        x=time,
-                        show=True,
-                        save=False)
+                plot_methods_at_once(
+                    y_dict=y_dict,
+                    ylabels=['ax', 'ay', 'az'],
+                    xlabel='Time [s]',
+                    title=f'{joint}_{su}_{pose}',
+                    x=time,
+                    show=True,
+                    save=False)
 
-                    # measured_As = np.hstack((measured_As, additions))
-                    # estimate_As = np.hstack((estimate_As, additions))
-                    # plot_side_by_side(
-                    #     y1=measured_As,
-                    #     y2=estimate_As,
-                    #     xlabel='Time',
-                    #     title1=f'Measured @ [{pose},{joint}{su}]',
-                    #     title2=f'Estimated w/ max_w={max_angular_velocity}'
-                    # )
+                # measured_As = np.hstack((measured_As, additions))
+                # estimate_As = np.hstack((estimate_As, additions))
+                # plot_side_by_side(
+                #     y1=measured_As,
+                #     y2=estimate_As,
+                #     xlabel='Time',
+                #     title1=f'Measured @ [{pose},{joint}{su}]',
+                #     title2=f'Estimated w/ max_w={max_angular_velocity}'
+                # )
 
 
 if __name__ == '__main__':
