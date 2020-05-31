@@ -15,7 +15,7 @@ from robotic_skin.calibration.evaluator import Evaluator
 from robotic_skin.calibration.error_functions import MaxAccelerationErrorFunction
 from robotic_skin.calibration.stop_conditions import DeltaXStopCondition
 from robotic_skin.calibration import utils
-from calibrate_imu_poses import parse_arguments
+from robotic_skin.examples.calibration.calibrate_imu_poses import parse_arguments
 
 REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 CONFIGDIR = os.path.join(REPODIR, 'config')
@@ -31,20 +31,6 @@ def initialize_optimizers_and_loggers(args, robotic_configs, imu_mappings, datad
     optimizer = OurMethodOptimizer(
         kinematic_chain, evaluator, data_logger,
         args.optimizeall, args.error_functions, args.stop_conditions)
-    optimizers.append(optimizer)
-    data_loggers.append(data_logger)
-
-    error_functions = {'Position': MaxAccelerationErrorFunction(L2Loss())}
-    stop_conditions = {
-        'Position': DeltaXStopCondition(),
-        'Orientation': DeltaXStopCondition()
-    }
-    kinematic_chain = construct_kinematic_chain(
-        robot_configs, imu_mappings, args.test, args.optimizeall)
-    data_logger = DataLogger(datadir, args.robot, args.method, overwrite=True)
-    optimizer = OurMethodOptimizer(
-        kinematic_chain, evaluator, data_logger,
-        args.optimizeall, error_functions, stop_conditions)
     optimizers.append(optimizer)
     data_loggers.append(data_logger)
 
@@ -75,9 +61,7 @@ def run_optimizations(measured_data, optimizers, data_loggers, method_names, n_n
 
     for i, noise_sigma in enumerate(noise_sigmas):
         data = copy.deepcopy(measured_data)
-        utils.add_outlier(data, 'static', sigma=noise_sigma, outlier_ratio=outlier_ratio)
-        utils.add_outlier(data, 'constant', sigma=noise_sigma, outlier_ratio=outlier_ratio)
-        utils.add_outlier(data, 'dynamic', sigma=noise_sigma, outlier_ratio=outlier_ratio)
+        utils.add_outlier(data, ['static', 'constant', 'dynamic'], sigma=noise_sigma, outlier_ratio=outlier_ratio)
         for j, (optimizer, data_logger) in enumerate(zip(optimizers, data_loggers)):
             logging.info(f'Optimizer: {method_names[j]}, sigma={noise_sigma}, Outlier: {outlier_ratio}')
             optimizer.optimize(data)
@@ -126,8 +110,8 @@ if __name__ == '__main__':
     datadir = utils.parse_datadir(args.datadir)
     measured_data, imu_mappings = utils.load_data(args.robot, datadir)
 
-    method_names = ['OM', 'OmMM', 'MM', 'mMM']
-    colors = ['-b', '-r', '-g', '-m']
+    method_names = ['OM', 'MM', 'mMM']
+    colors = ['-b', '-r', '-g']
     outlier_ratios = [0.1, 0.5, 1.0]
     sigmas = [1, 0.5, 0.1]
     n_noise = 10
