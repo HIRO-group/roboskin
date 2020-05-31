@@ -10,10 +10,7 @@ from robotic_skin.calibration.optimizer import (
 )
 from robotic_skin.calibration.kinematic_chain import construct_kinematic_chain
 from robotic_skin.calibration.data_logger import DataLogger
-from robotic_skin.calibration.loss import L2Loss
 from robotic_skin.calibration.evaluator import Evaluator
-from robotic_skin.calibration.error_functions import MaxAccelerationErrorFunction
-from robotic_skin.calibration.stop_conditions import DeltaXStopCondition
 from robotic_skin.calibration import utils
 from robotic_skin.examples.calibration.calibrate_imu_poses import parse_arguments
 
