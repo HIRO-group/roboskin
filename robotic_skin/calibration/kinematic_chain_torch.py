@@ -1,7 +1,7 @@
 import copy
 import numpy as np
 from typing import List
-from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
+from transformation_matrix import TransformationMatrix as TM
 import torch
 
 
@@ -80,8 +80,8 @@ class KinematicChainTorch():
         self.bound_dict = bound_dict
         self.linkdh_dict = linkdh_dict
         self.sudh_dict = sudh_dict
-        self.eval_poses = torch.zeros(n_joint) if eval_poses is None else eval_poses
-        self.current_poses = torch.zeros(self.n_joint)
+        self.eval_poses = torch.zeros(n_joint).cuda() if eval_poses is None else eval_poses
+        self.current_poses = torch.zeros(self.n_joint).cuda()
 
         # At Original Poses (joints == 0 rad)
         self.dof_T0_dof = self.__predefined_or_rand_dofs(linkdh_dict, bound_dict)
@@ -95,7 +95,7 @@ class KinematicChainTorch():
 
         # Construct Transformation Matrices for each SU from its previous joint
         self.dof_T_vdof, self.vdof_T_su, self.dof_T_su = \
-            self.__predefined_or_rand_sus(sudh_dict, bound_dict)
+            self.predefined_or_rand_sus(sudh_dict, bound_dict)
 
     def _copy_transmat_torch(self, transmats):
         """
@@ -119,7 +119,7 @@ class KinematicChainTorch():
             return [TM.from_list(linkdh_dict[f'joint{i+1}']).tensor()
                     for i in range(self.n_joint)]
 
-    def __predefined_or_rand_sus(self, sudh_dict: dict, bound_dict: dict) -> List[TM]:
+    def predefined_or_rand_sus(self, sudh_dict: dict, bound_dict: dict) -> List[TM]:
         dof_T_vdof = []
         vdof_T_su = []
         dof_T_su = []
@@ -174,7 +174,7 @@ class KinematicChainTorch():
         based on `poses` and specified start and end joints,
         applies a pose.
         """
-        poses = torch.tensor(poses)
+        poses = torch.tensor(poses).cuda()
         assert isinstance(poses, torch.Tensor)
         assert len(dof_T_dof) == len(poses)
         if end_joint is None:
@@ -197,7 +197,7 @@ class KinematicChainTorch():
         Resets current and temporary poses to 0s.
         Origin and Evaluation Poses will never be changed.
         """
-        self.current_poses = torch.zeros(self.n_joint)
+        self.current_poses = torch.zeros(self.n_joint).cuda()
         self.dof_Tc_dof = self._copy_transmat_torch(self.dof_T0_dof)
         self.rs_Tc_dof = self._copy_transmat_torch(self.rs_T0_dof)
         # self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
@@ -208,9 +208,9 @@ class KinematicChainTorch():
         """
         sets poses from start_joint to end_joint.
         """
-        poses = torch.tensor(poses)
+        poses = torch.tensor(poses).cuda()
         assert isinstance(poses, torch.Tensor)
-        assert poses.size == self.n_joint
+        assert poses.shape[0] == self.n_joint
         if end_joint is None:
             end_joint = self.n_joint - 1
         # Set current pose
@@ -329,7 +329,7 @@ class KinematicChainTorch():
             DH Parameters of the i_su th SU (from its previous DoF)
         """
         assert 0 <= i_su <= self.n_su-1
-        assert params.size == 6
+        assert params.shape[0] == 6
 
         self.dof_T_vdof[i_su] = TM.from_numpy(params[:2], ['theta', 'd']).tensor()
         self.vdof_T_su[i_su] = TM.from_numpy(params[2:]).tensor()
@@ -391,7 +391,7 @@ class KinematicChainTorch():
                                 self.vdof_T_su[i_su].parameters))  # 4
 
             bounds = self.bound_dict['su']
-            assert params.size == 6
+            assert params.shape[0] == 6
             assert bounds.shape == (6, 2)
 
         return params, bounds
@@ -410,7 +410,8 @@ class KinematicChainTorch():
         parmas: np.array
             DH Parameters
         """
-        params = torch.tensor(params)
+        if type(params) != torch.Tensor:
+            params = torch.tensor(params).cuda()
         i_joint = self.su_joint_dict[i_su]
 
         if self.linkdh_dict is None:
