@@ -9,7 +9,7 @@ from robotic_skin.calibration.error_functions import (
     StaticErrorFunction,
     CombinedErrorFunction,
     MaxAccelerationErrorFunction,
-    ConstantRotationErrorFunction,
+    # ConstantRotationErrorFunction,
 )
 from robotic_skin.calibration.stop_conditions import (
     StopCondition,
@@ -45,11 +45,11 @@ def choose_optimizer(args, kinematic_chain, evaluator, data_logger, optimize_all
     elif args.method == 'MM':
         optimizer = MittendorferMethodOptimizer(
             kinematic_chain, evaluator, data_logger,
-            optimize_all, args.error_functions, args.stop_conditions, apply_normal_mittendorfer=True)
+            optimize_all, args.error_functions, args.stop_conditions, method='normal_mittendorfer')
     elif args.method == 'mMM':
         optimizer = MittendorferMethodOptimizer(
             kinematic_chain, evaluator, data_logger,
-            optimize_all, args.error_functions, args.stop_conditions, apply_normal_mittendorfer=False)
+            optimize_all, args.error_functions, args.stop_conditions, method='mittendorfer')
     else:
         raise ValueError(f'There is no such method name={args.method}')
 
@@ -388,13 +388,13 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
 class MittendorferMethodOptimizer(MixedIncrementalOptimizer):
     def __init__(self, kinematic_chain, evaluator, data_logger,
                  optimize_all, error_function_=None, stop_condition_=None,
-                 apply_normal_mittendorfer=True):
+                 method='mittendorfer'):
         error_function = CombinedErrorFunction(
             e1=StaticErrorFunction(
                 loss=L2Loss()),
             e2=MaxAccelerationErrorFunction(
                 loss=L2Loss(),
-                apply_normal_mittendorfer=apply_normal_mittendorfer)
+                method=method)
         )
         stop_condition = DeltaXStopCondition()
 
@@ -411,7 +411,7 @@ class OurMethodOptimizer(SeparateIncrementalOptimizer):
     def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all,
                  error_functions_=None, stop_conditions_=None):
         error_functions = {
-            'Position': ConstantRotationErrorFunction(L2Loss()),
+            'Position': MaxAccelerationErrorFunction(L2Loss(), method='mittendorfer'),
             'Orientation': StaticErrorFunction(L2Loss())}
         stop_conditions = {
             'Position': DeltaXStopCondition(),

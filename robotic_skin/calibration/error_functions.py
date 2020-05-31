@@ -1,128 +1,21 @@
-# import logging
 import numpy as np
-import robotic_skin.const as C
 import pyquaternion as pyqt
+import robotic_skin.const as C
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
+from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
 
 
-def current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t):
+def max_angle_func(t: int):
     """
-    Returns position of the current skin unit
+    Computes current joint angle at time t
+    joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.
 
-    Arguments
-    ---------
-    `kinematic_chain`: `robotic_skin.calibration.kinematic_chain.KinematicChain`
-        Robot's Kinematic Chain
-    `curr_w`: `int`
-        Angular velocity
-    'max_w': 'int'
-        Maximum angular velocity
-    `i`: `int`
-        imu `i`
-    'd_joint': 'int'
-        dof 'd'
-    """
-    angle = (max_w / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ*t))
-    dof_T_dof, rs_T_dof = kinematic_chain.get_current_TMs()
-    kinematic_chain.add_a_pose(
-        i_joint=d_joint,
-        pose=angle,
-        dof_T_dof=dof_T_dof,
-        rs_T_dof=rs_T_dof)
-    T = kinematic_chain._compute_su_TM(i_su, dof_T_dof, rs_T_dof)
-    return T.position
-
-
-def estimate_acceleration(kinematic_chain, d_joint, i_su, curr_w, max_w=0,
-                          apply_normal_mittendorfer=False, analytical=True):
-    """
-    Compute an acceleration value from positions.
-    .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`
-
-    This equation came from Taylor Expansion to get the second derivative from f(t).
-    .. math:: f(t+{\Delta t}) = f(t) + hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)
-    .. math:: f(t-{\Delta t}) = f(t) - hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)
-
-    Add both equations and plug t=0 to get the above equation
-
-    Arguments
+    Parameters
     ------------
-    `kinematic_chain`: `robotic_skin.calibration.kinematic_chain.KinematicChain`
-        Robot's Kinematic Chain
-    `d_joint`: `int`
-        dof `d`
-    `i`: `int`
-        imu `i`
-    `curr_w`: `int`
-        Angular velocity
-    'max_w': 'int'
-        Maximum angular velocity
-    apply_normal_mittendorfer: bool
-        determines if we resort to the normal method
-        mittendorfer uses (which we modified due to some possible missing terms)
-    analytical: bool
-        determines if we are returning the analytical or numerical
-        estimation of acceleration
+    `t`: `int`
+        Current time t
     """
-    rs_T_su = kinematic_chain.compute_su_TM(
-        i_su=i_su, pose_type='current')
-
-    dof_T_su = kinematic_chain.compute_su_TM(
-        start_joint=d_joint,
-        i_su=i_su,
-        pose_type='current')
-
-    # Every joint rotates along its own z axis
-    w_dofd = np.array([0, 0, curr_w])
-    a_dofd = np.cross(w_dofd, np.cross(w_dofd, dof_T_su.position))
-
-    a_centric_su = np.dot(dof_T_su.R.T, a_dofd)
-
-    # Gravity vector
-    gravity = np.array([0, 0, 9.81])
-
-    # rotation matrix of reference segment to skin unit
-    su_R_rs = rs_T_su.R.T
-
-    # If the analytical boolean is true
-    # Calculate analytical acceleration estimation
-    if analytical:
-        # Gravity vector of skin unit
-        g_su = np.dot(su_R_rs, gravity)
-
-        # Acceleration of skin unit
-        a_su = a_centric_su + g_su
-
-        return a_su
-
-    # The following will run if analytical boolean is false
-
-    # Compute Acceleration at RS frame
-    # dt should be small value, recommended to use 1/(1000 * freq)
-    dt = 1.0 / 1000.0
-
-    positions = []
-    for t in [dt, -dt, 0]:
-        curr_position = current_su_position(kinematic_chain, curr_w, max_w, i_su, d_joint, t)
-        positions.append(curr_position)
-
-    # get acceleration and include gravity
-    a_rs = ((positions[0] + positions[1] - 2*positions[2]) / (dt**2))
-
-    a_rs += gravity
-
-    # If necessary, we can change a_rs and a_su  for non-analytical
-    # back to accel_rs and accel_su
-    a_tan_su = np.dot(su_R_rs, a_rs)
-
-    if apply_normal_mittendorfer:
-        return a_tan_su
-
-    # Every joint rotates along its own z axis, one joint moves at a time
-    # rotate into su frame
-    a_su = a_centric_su + a_tan_su
-    # estimate acceleration of skin unit
-    return a_su
+    return (C.MAX_ANGULAR_VELOCITY / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ * t))
 
 
 class ErrorFunction():
@@ -150,7 +43,7 @@ class ErrorFunction():
         self.n_joint = len(self.joint_names)
         self.n_sensor = self.n_joint
 
-    def __call__(self, kinematic_chain, i_su):
+    def __call__(self, kinematic_chain, inert_su):
         """
         __call__ is to be used on returning an error value.
         """
@@ -265,13 +158,14 @@ class ConstantRotationErrorFunction(ErrorFunction):
                     idx = i*int(n_data/n_eval)
                     meas_accel = meas_accels[idx, :]
                     poses = joints[idx, :]
-                    curr_w = angular_velocities[idx]
+                    angular_velocity = angular_velocities[idx]
 
                     # TODO: parse start_joint. Currently, there is a bug
                     kinematic_chain.set_poses(poses, end_joint=i_joint)
                     model_accel = estimate_acceleration(kinematic_chain=kinematic_chain,
-                                                        d_joint=d_joint,
-                                                        i_su=i_su, curr_w=curr_w)
+                                                        i_rotate_joint=d_joint,
+                                                        i_su=i_su,
+                                                        joint_angular_velocity=angular_velocity)
 
                     # logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t' +
                     #               f'Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}')
@@ -289,9 +183,9 @@ class MaxAccelerationErrorFunction(ErrorFunction):
     Compute errors between estimated and measured max acceleration for sensor i
 
     """
-    def __init__(self, loss, apply_normal_mittendorfer=False):
+    def __init__(self, loss, method='normal_mittendorfer'):
         super().__init__(loss)
-        self.apply_normal_mittendorfer = apply_normal_mittendorfer
+        self.method = method
 
     def __call__(self, kinematic_chain, i_su):
         """
@@ -318,31 +212,52 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
         e2 = 0.0
         n_data = 0
-        for p in range(self.n_dynamic_pose):
-            for d_joint in range(max(0, i_joint-2), i_joint+1):
+        for i_pose in range(self.n_dynamic_pose):
+            for rotate_joint in range(max(0, i_joint-2), i_joint+1):
                 # max acceleration (x,y,z) of the data
-                max_accel_train = self.data.dynamic[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]][0][:3]
+                su = self.imu_names[i_su]
+                pose = self.pose_names[i_pose]
+                joint = self.joint_names[rotate_joint]
 
-                curr_w = self.data.dynamic[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]][0][5]
-                # A is used as amplitude of pose pattern
-                A = self.data.dynamic[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]][0][4]
-                poses = self.data.dynamic[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]][0][7:14]
+                data = self.data.dynamic[pose][joint][su]
+                measured_As = data[:, :3]
+                joints = data[:, 3:10]
+                times = data[:, 10]
+                joint_angular_accelerations = data[:, 11]
+                # max_angular_velocity = data[0, 12]
+                joint_angular_velocities = data[:, 13]
 
-                # kinematic_chain.set_poses(joints)
-                kinematic_chain.set_poses(poses, end_joint=i_joint)
-                # use mittendorfer's original or modified based on condition
-                max_accel_model = estimate_acceleration(kinematic_chain=kinematic_chain,
-                                                        d_joint=d_joint,
-                                                        i_su=i_su, curr_w=curr_w,
-                                                        max_w=A,
-                                                        apply_normal_mittendorfer=self.apply_normal_mittendorfer,
-                                                        analytical=False)
+                n_eval = 4
+                for i_eval in range(n_eval):
+                    n_data = data.shape[0]
+                    if n_data <= i_eval:
+                        break
 
-                # logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}]\t' +
-                #               f'Model: {n2s(max_accel_model, 4)} SU: {n2s(max_accel_train, 4)}')
-                error = np.sum(np.abs(max_accel_train - max_accel_model)**2)
-                e2 += error
-                n_data += 1
+                    idx = i_eval * int(n_data/n_eval)
+                    measured_A = measured_As[idx, :]
+                    poses = joints[idx, :]
+                    time = times[idx]
+                    joint_angular_acceleration = joint_angular_accelerations[idx]
+                    joint_angular_velocity = joint_angular_velocities[idx]
+
+                    # kinematic_chain.set_poses(joints)
+                    kinematic_chain.set_poses(poses, end_joint=i_joint)
+                    # use mittendorfer's original or modified based on condition
+                    estimate_A = estimate_acceleration(
+                        kinematic_chain=kinematic_chain,
+                        i_rotate_joint=rotate_joint,
+                        i_su=i_su,
+                        joint_angular_velocity=joint_angular_velocity,
+                        joint_angular_acceleration=joint_angular_acceleration,
+                        current_time=time,
+                        angle_func=max_angle_func,
+                        method=self.method)
+
+                    # logging.debug(f'[{pose}, {joint}, {su}@Joint{i_joint}]\t' +
+                    #               f'Model: {n2s(estimate_A, 4)} SU: {n2s(measured_A, 4)}')
+                    error = np.sum(np.abs(measured_A - estimate_A)**2)
+                    e2 += error
+                    n_data += 1
 
         return e2/n_data
 

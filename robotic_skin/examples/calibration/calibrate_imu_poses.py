@@ -11,7 +11,7 @@ from robotic_skin.calibration.data_logger import DataLogger
 from robotic_skin.calibration.evaluator import Evaluator
 from robotic_skin.calibration import utils
 
-REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 CONFIGDIR = os.path.join(REPODIR, 'config')
 
 
@@ -56,10 +56,6 @@ if __name__ == '__main__':
 
     robot_configs = utils.load_robot_configs(args.configdir, args.robot)
     measured_data, imu_mappings = utils.load_data(args.robot, datadir)
-    noise_sigma = 8
-    outlier_ratio = 0.1
-    utils.add_outlier(measured_data, 'dynamic', sigma=noise_sigma, outlier_ratio=outlier_ratio)
-    utils.add_outlier(measured_data, 'constant', sigma=noise_sigma, outlier_ratio=outlier_ratio)
 
     # Kinematic Chain of a robot
     kinematic_chain = construct_kinematic_chain(
