@@ -1,0 +1,579 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>robotic_skin.examples.calibration.plot_data &mdash; robotic_skin  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> robotic_skin
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../robotic_skin.html">robotic_skin package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">robotic_skin</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>robotic_skin.examples.calibration.plot_data</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for robotic_skin.examples.calibration.plot_data</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration.error_functions</span> <span class="kn">import</span> <span class="n">max_angle_func</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration.kinematic_chain</span> <span class="kn">import</span> <span class="n">construct_kinematic_chain</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils.rotational_acceleration</span> <span class="kn">import</span> <span class="n">estimate_acceleration</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration</span> <span class="kn">import</span> <span class="n">utils</span>
+
+<span class="n">REPODIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))))</span>
+<span class="n">IMGDIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">REPODIR</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">)</span>
+<span class="n">CONFIGDIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">REPODIR</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="is_first"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.is_first">[docs]</a><span class="k">def</span> <span class="nf">is_first</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns whether it&#39;s the first row/column</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="is_last"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.is_last">[docs]</a><span class="k">def</span> <span class="nf">is_last</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns whether it&#39;s the last row/column</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">i</span> <span class="o">==</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_side_by_side"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.plot_side_by_side">[docs]</a><span class="k">def</span> <span class="nf">plot_side_by_side</span><span class="p">(</span><span class="n">y1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                      <span class="n">title1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">title2</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                      <span class="n">ylabels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ax&#39;</span><span class="p">,</span> <span class="s1">&#39;ay&#39;</span><span class="p">,</span> <span class="s1">&#39;az&#39;</span><span class="p">],</span>
+                      <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot data side by side: `y1` on the left and `y2` on the right</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ----------</span>
+<span class="sd">    `y1`: `np.ndarray`</span>
+<span class="sd">        Data. This function mainly targets time series data</span>
+<span class="sd">        Shape = (length, data)</span>
+<span class="sd">    `y2`: `np.ndarray`</span>
+<span class="sd">        Data. This function mainly targets time series data</span>
+<span class="sd">        Shape = (length, data)</span>
+<span class="sd">    `title1`: `str`</span>
+<span class="sd">        Title of y1</span>
+<span class="sd">    `title2`: `str`</span>
+<span class="sd">        Title of y2</span>
+<span class="sd">    `xlabel`: `str`</span>
+<span class="sd">        Normally, t&#39;s Time [s] or No. Data Points</span>
+<span class="sd">    `ylabels`: `List[str]`</span>
+<span class="sd">        Data&#39;s label</span>
+<span class="sd">    `show`: `bool`</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">y1</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">y2</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;y1 and y2 cannot be empty&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">y1</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">y2</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;y1 and y2 must be same size&#39;</span><span class="p">)</span>
+
+    <span class="n">n_data</span> <span class="o">=</span> <span class="n">y1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">n_row</span> <span class="o">=</span> <span class="n">y1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_data</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ylabels</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n_row</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;num of ylabels must be </span><span class="si">{</span><span class="n">n_row</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+    <span class="c1"># For All Data/Rows</span>
+    <span class="k">for</span> <span class="n">i_row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_row</span><span class="p">):</span>
+        <span class="n">ax_left</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">n_row</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">i_row</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax_right</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">n_row</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">i_row</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span>
+        <span class="c1"># Compute y_min and y_max for the combined data y</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">y1</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">],</span> <span class="n">y2</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">]))</span>
+        <span class="n">y_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">y_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">y_range</span> <span class="o">=</span> <span class="n">y_max</span> <span class="o">-</span> <span class="n">y_min</span>
+        <span class="n">y_min</span> <span class="o">-=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">y_range</span>
+        <span class="n">y_max</span> <span class="o">+=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">y_range</span>
+        <span class="c1"># Plot Left</span>
+        <span class="n">ax_left</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y1</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">])</span>
+        <span class="n">ax_left</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">])</span>
+        <span class="n">ax_left</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabels</span><span class="p">[</span><span class="n">i_row</span><span class="p">])</span>
+        <span class="c1"># Plot Right</span>
+        <span class="n">ax_right</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y2</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">])</span>
+        <span class="n">ax_right</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">])</span>
+
+        <span class="c1"># Set Title at the top</span>
+        <span class="k">if</span> <span class="n">is_first</span><span class="p">(</span><span class="n">i_row</span><span class="p">):</span>
+            <span class="n">ax_left</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title1</span><span class="p">)</span>
+            <span class="n">ax_right</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title2</span><span class="p">)</span>
+        <span class="c1"># Set Xlabel at the bottom</span>
+        <span class="k">if</span> <span class="n">is_last</span><span class="p">(</span><span class="n">i_row</span><span class="p">,</span> <span class="n">n_row</span><span class="p">):</span>
+            <span class="n">ax_left</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+            <span class="n">ax_right</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="plot_in_one_graph"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.plot_in_one_graph">[docs]</a><span class="k">def</span> <span class="nf">plot_in_one_graph</span><span class="p">(</span><span class="n">y_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">ylabels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">xlabel</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># noqa:C901</span>
+                      <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                      <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot all y_dict data in 1 graph.</span>
+<span class="sd">    Each y_dict data is assumed to be 2 dimension.</span>
+<span class="sd">    Shape=(length, data)</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ----------</span>
+<span class="sd">    `x`: `np.ndarray`</span>
+<span class="sd">        x axis data</span>
+<span class="sd">    `xlabel`:</span>
+<span class="sd">        Normally it&#39;s Time [s] or No. Data Points</span>
+<span class="sd">    `y_dict`: `dict`</span>
+<span class="sd">        Data stored in a dictionary.</span>
+<span class="sd">        Keys are the names of the data. (Ex. Method names)</span>
+<span class="sd">        Values include the actual data.</span>
+<span class="sd">        This function mainly targets time series data</span>
+<span class="sd">        y_dict[&#39;key&#39;].shape = (length, data)</span>
+<span class="sd">    `ylabels`: `List[str]`</span>
+<span class="sd">        Labels of the data</span>
+<span class="sd">    `title`: `str`</span>
+<span class="sd">        Title</span>
+<span class="sd">    `show`: `bool`</span>
+<span class="sd">        Show plot</span>
+<span class="sd">    `save`: `bool`</span>
+<span class="sd">        Save plot</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;y_dict be a dictionary&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_dict</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">methods</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">y_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">y_dict</span><span class="p">[</span><span class="n">methods</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;y_dict&#39;s values must be np.ndarray&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Data is empty&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The dimension of each method&#39;s data should be 2&quot;</span><span class="p">)</span>
+
+    <span class="n">n_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">n_row</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_data</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">x</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ylabels</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n_row</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;len of ylabels should be the </span><span class="si">{</span><span class="n">n_row</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">i_row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_row</span><span class="p">):</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">n_row</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i_row</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Plot and combine all data at the same time</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="k">for</span> <span class="n">method</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">y_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">y</span><span class="p">,</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">]))</span>
+
+        <span class="c1"># Compute y_min and y_max for the combined data y</span>
+        <span class="n">y_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">y_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">y_range</span> <span class="o">=</span> <span class="n">y_max</span> <span class="o">-</span> <span class="n">y_min</span>
+        <span class="n">y_min</span> <span class="o">-=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">y_range</span>
+        <span class="n">y_max</span> <span class="o">+=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">y_range</span>
+        <span class="c1"># For all Row</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabels</span><span class="p">[</span><span class="n">i_row</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">])</span>
+        <span class="c1"># Set title at the top</span>
+        <span class="k">if</span> <span class="n">is_first</span><span class="p">(</span><span class="n">i_row</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span>
+        <span class="c1"># Set xlable at the bottom</span>
+        <span class="k">if</span> <span class="n">is_last</span><span class="p">(</span><span class="n">i_row</span><span class="p">,</span> <span class="n">n_row</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="c1"># Save to IMGDIR/plot_in_one_graph directory</span>
+    <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+        <span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">IMGDIR</span><span class="p">,</span> <span class="s1">&#39;plot_in_one_graph&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
+        <span class="n">savepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">title</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">savepath</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;image saved to </span><span class="si">{</span><span class="n">savepath</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="verify_noise_added_correctly"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.verify_noise_added_correctly">[docs]</a><span class="k">def</span> <span class="nf">verify_noise_added_correctly</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pose_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                                 <span class="n">joint_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">imu_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                                 <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">outlier_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">):</span>
+
+    <span class="c1"># Add Noise</span>
+    <span class="n">data_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;static&#39;</span><span class="p">,</span> <span class="s1">&#39;dynamic&#39;</span><span class="p">,</span> <span class="s1">&#39;constant&#39;</span><span class="p">]</span>
+    <span class="n">data_noise</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">add_outlier</span><span class="p">(</span><span class="n">data_noise</span><span class="p">,</span> <span class="n">data_types</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">outlier_ratio</span><span class="o">=</span><span class="n">outlier_ratio</span><span class="p">)</span>
+
+    <span class="n">n_dynamic_pose</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="n">n_constant_pose</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="n">n_static_pose</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+    <span class="c1"># Plot Static Acceleration Data vs. Noise Added</span>
+    <span class="c1"># Prepare Data (Append single data points to a list)</span>
+    <span class="n">accelerations</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">accelerations_noise</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_static_pose</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">imu</span> <span class="ow">in</span> <span class="n">imu_names</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">imu</span><span class="p">]</span>
+            <span class="n">d_n</span> <span class="o">=</span> <span class="n">data_noise</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">imu</span><span class="p">]</span>
+            <span class="n">accelerations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">])</span>
+            <span class="n">accelerations_noise</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d_n</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">])</span>
+    <span class="n">accelerations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">accelerations</span><span class="p">)</span>
+    <span class="n">accelerations_noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">accelerations_noise</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">accelerations</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># Plot</span>
+    <span class="n">plot_side_by_side</span><span class="p">(</span>
+        <span class="n">y1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">accelerations</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="n">y2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">accelerations_noise</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Data Points&#39;</span><span class="p">,</span>
+        <span class="n">title1</span><span class="o">=</span><span class="s1">&#39;Accelerations&#39;</span><span class="p">,</span>
+        <span class="n">title2</span><span class="o">=</span><span class="s1">&#39;Accelerations + Noise&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Plot Dynamic Acceleration Data vs. Noise Added</span>
+    <span class="c1"># Prepare Data (Append single data points to a list)</span>
+    <span class="n">accelerations</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">accelerations_noise</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dynamic_pose</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joint_names</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">imu</span> <span class="ow">in</span> <span class="n">imu_names</span><span class="p">:</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">joint</span><span class="p">][</span><span class="n">imu</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">d_n</span> <span class="o">=</span> <span class="n">data_noise</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">joint</span><span class="p">][</span><span class="n">imu</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">accelerations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+                <span class="n">accelerations_noise</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d_n</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">accelerations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">accelerations</span><span class="p">)</span>
+    <span class="n">accelerations_noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">accelerations_noise</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">accelerations</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># Plot</span>
+    <span class="n">plot_side_by_side</span><span class="p">(</span>
+        <span class="n">y1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">accelerations</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="n">y2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">accelerations_noise</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Data Points&#39;</span><span class="p">,</span>
+        <span class="n">title1</span><span class="o">=</span><span class="s1">&#39;Accelerations&#39;</span><span class="p">,</span>
+        <span class="n">title2</span><span class="o">=</span><span class="s1">&#39;Accelerations + Noise&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Plot Constant Acceleration Data vs. Noise Added</span>
+    <span class="c1"># Prepare Data</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_constant_pose</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joint_names</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">imu</span> <span class="ow">in</span> <span class="n">imu_names</span><span class="p">:</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">joint</span><span class="p">][</span><span class="n">imu</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">d_n</span> <span class="o">=</span> <span class="n">data_noise</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">joint</span><span class="p">][</span><span class="n">imu</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">accelerations</span> <span class="o">=</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span>
+                <span class="n">accelerations_noise</span> <span class="o">=</span> <span class="n">d_n</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">joint</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">imu</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="c1"># Plot</span>
+                <span class="n">plot_side_by_side</span><span class="p">(</span>
+                    <span class="n">y1</span><span class="o">=</span><span class="n">accelerations</span><span class="p">,</span>
+                    <span class="n">y2</span><span class="o">=</span><span class="n">accelerations_noise</span><span class="p">,</span>
+                    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Data Points&#39;</span><span class="p">,</span>
+                    <span class="n">title1</span><span class="o">=</span><span class="s1">&#39;Accelerations&#39;</span><span class="p">,</span>
+                    <span class="n">title2</span><span class="o">=</span><span class="s1">&#39;Accelerations + Noise&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="verify_acceleration_estimate"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.verify_acceleration_estimate">[docs]</a><span class="k">def</span> <span class="nf">verify_acceleration_estimate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pose_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                                 <span class="n">joint_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">imu_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                                 <span class="n">robot_configs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">imu_mappings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="c1"># Initialize KinematicChain</span>
+    <span class="n">kinematic_chain</span> <span class="o">=</span> <span class="n">construct_kinematic_chain</span><span class="p">(</span>
+        <span class="n">robot_configs</span><span class="o">=</span><span class="n">robot_configs</span><span class="p">,</span>
+        <span class="n">imu_mappings</span><span class="o">=</span><span class="n">imu_mappings</span><span class="p">,</span>
+        <span class="n">test_code</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">optimize_all</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Methods to Compare</span>
+    <span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;analytical&#39;</span><span class="p">,</span> <span class="s1">&#39;mittendorfer&#39;</span><span class="p">]</span>
+
+    <span class="n">indices</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;measured&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="s1">&#39;joints&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span>
+        <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="s1">&#39;angaccel&#39;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+        <span class="s1">&#39;angvel&#39;</span><span class="p">:</span> <span class="mi">13</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">su</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">imu_names</span><span class="p">):</span>
+        <span class="c1"># joint which i_su th SU is attached to</span>
+        <span class="n">i_joint</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">su_joint_dict</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">pose</span> <span class="ow">in</span> <span class="n">pose_names</span><span class="p">:</span>
+            <span class="c1"># Consider 2 previous joints</span>
+            <span class="k">for</span> <span class="n">rotate_joint</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i_joint</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="n">i_joint</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">joint</span> <span class="o">=</span> <span class="n">joint_names</span><span class="p">[</span><span class="n">rotate_joint</span><span class="p">]</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{</span><span class="n">su</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">pose</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">joint</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">)</span>
+
+                <span class="c1"># Break up the data</span>
+                <span class="n">each_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="n">pose</span><span class="p">][</span><span class="n">joint</span><span class="p">][</span><span class="n">su</span><span class="p">]</span>
+
+                <span class="c1"># Prepare for plotting</span>
+                <span class="n">measured_As</span> <span class="o">=</span> <span class="n">each_data</span><span class="p">[:,</span> <span class="n">indices</span><span class="p">[</span><span class="s1">&#39;measured&#39;</span><span class="p">]]</span>
+                <span class="n">y_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Measured&#39;</span><span class="p">:</span> <span class="n">measured_As</span><span class="p">}</span>
+                <span class="c1"># Run Estimate_Acceleration for each method</span>
+                <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">methods</span><span class="p">:</span>
+                    <span class="c1"># Store to a dictionary</span>
+                    <span class="n">y_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span> <span class="o">=</span> <span class="n">estimate_acceleration_batch</span><span class="p">(</span>
+                        <span class="n">kinematic_chain</span><span class="o">=</span><span class="n">kinematic_chain</span><span class="p">,</span>
+                        <span class="n">data</span><span class="o">=</span><span class="n">each_data</span><span class="p">,</span>
+                        <span class="n">rotate_joint</span><span class="o">=</span><span class="n">rotate_joint</span><span class="p">,</span>
+                        <span class="n">i_joint</span><span class="o">=</span><span class="n">i_joint</span><span class="p">,</span>
+                        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
+                        <span class="n">inds</span><span class="o">=</span><span class="n">indices</span><span class="p">,</span>
+                        <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+
+                <span class="c1"># Plot all methods in a same graph</span>
+                <span class="n">plot_in_one_graph</span><span class="p">(</span>
+                    <span class="n">y_dict</span><span class="o">=</span><span class="n">y_dict</span><span class="p">,</span>
+                    <span class="n">ylabels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ax&#39;</span><span class="p">,</span> <span class="s1">&#39;ay&#39;</span><span class="p">,</span> <span class="s1">&#39;az&#39;</span><span class="p">],</span>
+                    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Time [s]&#39;</span><span class="p">,</span>
+                    <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">joint</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">su</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">pose</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">each_data</span><span class="p">[:,</span> <span class="n">indices</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]],</span>
+                    <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="estimate_acceleration_batch"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.estimate_acceleration_batch">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration_batch</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                                <span class="n">rotate_joint</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">i_joint</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                <span class="n">i_su</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">inds</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+
+    <span class="n">estimate_As</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Go through all the data points</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="c1"># First Set current Pose (joints)</span>
+        <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_poses</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">inds</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">]],</span> <span class="n">end_joint</span><span class="o">=</span><span class="n">i_joint</span><span class="p">)</span>
+        <span class="c1"># Estimate current acceleration wrt the data</span>
+        <span class="n">estimate_A</span> <span class="o">=</span> <span class="n">estimate_acceleration</span><span class="p">(</span>
+            <span class="n">kinematic_chain</span><span class="o">=</span><span class="n">kinematic_chain</span><span class="p">,</span>
+            <span class="n">i_rotate_joint</span><span class="o">=</span><span class="n">rotate_joint</span><span class="p">,</span>
+            <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
+            <span class="n">joint_angular_velocity</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="n">inds</span><span class="p">[</span><span class="s1">&#39;angvel&#39;</span><span class="p">]],</span>
+            <span class="n">joint_angular_acceleration</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="n">inds</span><span class="p">[</span><span class="s1">&#39;angaccel&#39;</span><span class="p">]],</span>
+            <span class="n">current_time</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="n">inds</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]],</span>
+            <span class="n">angle_func</span><span class="o">=</span><span class="n">max_angle_func</span><span class="p">,</span>
+            <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+        <span class="n">estimate_As</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">estimate_A</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">estimate_As</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-dd&#39;</span><span class="p">,</span> <span class="s1">&#39;--datadir&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Please provide a path to the data directory&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="s1">&#39;--robot&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;panda&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Currently only &#39;panda&#39; and &#39;sawyer&#39; are supported&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="s1">&#39;--run&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Choose which plot to run&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-cd&#39;</span><span class="p">,</span> <span class="s1">&#39;--configdir&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">CONFIGDIR</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Please provide a path to the config directory&quot;</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c1"># Preparation for the initialization of KinematicChain</span>
+    <span class="n">robot_configs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_robot_configs</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">configdir</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">robot</span><span class="p">)</span>
+    <span class="n">datadir</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">parse_datadir</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">datadir</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">,</span> <span class="n">imu_mappings</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">robot</span><span class="p">,</span> <span class="n">datadir</span><span class="p">)</span>
+
+    <span class="c1"># Data Keys</span>
+    <span class="n">pose_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">joint_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">imu_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">joint_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">pose_names</span><span class="p">,</span> <span class="n">joint_names</span><span class="p">,</span> <span class="n">imu_names</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">run</span> <span class="o">==</span> <span class="s1">&#39;verify_noise&#39;</span><span class="p">:</span>
+        <span class="n">verify_noise_added_correctly</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">pose_names</span><span class="p">,</span> <span class="n">joint_names</span><span class="p">,</span> <span class="n">imu_names</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">verify_acceleration_estimate</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">pose_names</span><span class="p">,</span> <span class="n">joint_names</span><span class="p">,</span> <span class="n">imu_names</span><span class="p">,</span>
+            <span class="n">robot_configs</span><span class="p">,</span> <span class="n">imu_mappings</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Kandai Watanabe
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

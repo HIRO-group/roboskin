@@ -1,0 +1,46 @@
+robotic\_skin.examples.calibration package
+==========================================
+
+Submodules
+----------
+
+robotic\_skin.examples.calibration.analyze\_method\_robustness module
+---------------------------------------------------------------------
+
+.. automodule:: robotic_skin.examples.calibration.analyze_method_robustness
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+robotic\_skin.examples.calibration.calibrate\_imu\_poses module
+---------------------------------------------------------------
+
+.. automodule:: robotic_skin.examples.calibration.calibrate_imu_poses
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+robotic\_skin.examples.calibration.plot\_data module
+----------------------------------------------------
+
+.. automodule:: robotic_skin.examples.calibration.plot_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+robotic\_skin.examples.calibration.stats\_generator module
+----------------------------------------------------------
+
+.. automodule:: robotic_skin.examples.calibration.stats_generator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: robotic_skin.examples.calibration
+   :members:
+   :undoc-members:
+   :show-inheritance:

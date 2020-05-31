@@ -20,6 +20,14 @@ robotic\_skin.calibration.utils.quaternion module
    :undoc-members:
    :show-inheritance:
 
+robotic\_skin.calibration.utils.rotational\_acceleration module
+---------------------------------------------------------------
+
+.. automodule:: robotic_skin.calibration.utils.rotational_acceleration
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------

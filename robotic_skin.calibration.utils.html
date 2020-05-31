@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="robotic_skin.sensor package" href="robotic_skin.sensor.html" />
+    <link rel="next" title="robotic_skin.examples package" href="robotic_skin.examples.html" />
     <link rel="prev" title="robotic_skin.calibration package" href="robotic_skin.calibration.html" /> 
 </head>
 
@@ -100,6 +100,7 @@
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="robotic_skin.examples.html">robotic_skin.examples package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="robotic_skin.sensor.html">robotic_skin.sensor package</a></li>
 </ul>
 </li>
@@ -185,12 +186,12 @@
 <span id="robotic-skin-calibration-utils-io-module"></span><h2>robotic_skin.calibration.utils.io module<a class="headerlink" href="#module-robotic_skin.calibration.utils.io" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="robotic_skin.calibration.utils.io.add_noise">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.io.</code><code class="sig-name descname">add_noise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">data_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#add_noise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.io.add_noise" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.io.</code><code class="sig-name descname">add_noise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">data_types</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#add_noise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.io.add_noise" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt id="robotic_skin.calibration.utils.io.add_outlier">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.io.</code><code class="sig-name descname">add_outlier</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">data_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">outlier_ratio</span><span class="o">=</span><span class="default_value">0.25</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#add_outlier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.io.add_outlier" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.io.</code><code class="sig-name descname">add_outlier</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">data_types</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">outlier_ratio</span><span class="o">=</span><span class="default_value">0.25</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#add_outlier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.io.add_outlier" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -227,7 +228,7 @@
 
 <dl class="py function">
 <dt id="robotic_skin.calibration.utils.io.n2s">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.io.</code><code class="sig-name descname">n2s</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#n2s"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.io.n2s" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.io.</code><code class="sig-name descname">n2s</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#n2s"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.io.n2s" title="Permalink to this definition">¶</a></dt>
 <dd><p>converts numpy array to string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -340,6 +341,116 @@ q = (w, x, y, z)</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-robotic_skin.calibration.utils.rotational_acceleration">
+<span id="robotic-skin-calibration-utils-rotational-acceleration-module"></span><h2>robotic_skin.calibration.utils.rotational_acceleration module<a class="headerlink" href="#module-robotic_skin.calibration.utils.rotational_acceleration" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration.centripetal_acceleration">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration.</code><code class="sig-name descname">centripetal_acceleration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">w</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration.html#centripetal_acceleration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration.centripetal_acceleration" title="Permalink to this definition">¶</a></dt>
+<dd><div class="math notranslate nohighlight">
+\[`a = \omega \times \omega \times r`\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<cite>float</cite>) – Position vector r of the body in the inertial coordinate</p></li>
+<li><p><strong>w</strong> (<cite>float</cite>) – Angular Velocity of an axis in the inertial coordinate.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration.compute_2nd_order_derivative">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration.</code><code class="sig-name descname">compute_2nd_order_derivative</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_func</span></em>, <em class="sig-param"><span class="n">t</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">dt</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration.html#compute_2nd_order_derivative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration.compute_2nd_order_derivative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take 2nd order derivative of x_func
+This computation comes from the Taylor Expansion</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}x(t+dt) = x(t) + x'(t)*dt + 1/2 * x''(t)*dt^2\\x(t-dt) = x(t) - x'(t)*dt + 1/2 * x''(t)*dt^2\\x(t+dt) + x(t-dt) = 2*x(t) + x''(t)*dt^2\\x''(t) = \frac{x(t+dt) + x(t-dt) - 2*x(t)}{dt^2}\end{aligned}\end{align} \]</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration.compute_acceleration_analytically">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration.</code><code class="sig-name descname">compute_acceleration_analytically</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inert_w_body</span></em>, <em class="sig-param"><span class="n">inert_r_body</span></em>, <em class="sig-param"><span class="n">inert_alpha_body</span></em>, <em class="sig-param"><span class="n">body_R_inert</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">body_R_world</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">inert_R_world</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">coordinate</span><span class="o">=</span><span class="default_value">'body'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration.html#compute_acceleration_analytically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration.compute_acceleration_analytically" title="Permalink to this definition">¶</a></dt>
+<dd><p>There are 3 coordinates to remember.
+1. World Frame (Fixed to the world)
+2. Inertial Frame (each Rotating Joint Coordinate)
+3. Body Frame (SU Coordinate)</p>
+<p>We use the following notation <cite>coord1_variable_coord2</cite>.
+This represents a variable of coord2 defined in coord1.</p>
+<p>For example, SU’s linear accelerations can be represented as rs_A_su.
+It represents the acceleration A measured in SU coordinate defined in the world coordinate.
+This is what we can measure from the real IMU as well.</p>
+<p>We use the same notation for the rotation matrix <cite>coord1_R_coord2</cite>,
+but this represents how you can rotate soem vector from <cite>coord2 to `coord1</cite>.</p>
+<p>For example, if you want the gravity in the su coordinate,
+su_g = su_R_rs * rs_g
+As a result, the gravity defined in the RS frame is converted to the SU coordinate.</p>
+<p>The inverse of the Rotation Matrix is its transpose.
+Therefore, one can rotate it back to its original frame by
+rs_g = rs_R_su * su_g = su_R_rs.T * su_g</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration.compute_tangential_acceleration_numerically">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration.</code><code class="sig-name descname">compute_tangential_acceleration_numerically</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">i_rotate_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">current_time</span></em>, <em class="sig-param"><span class="n">angle_func</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration.html#compute_tangential_acceleration_numerically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration.compute_tangential_acceleration_numerically" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns tangential acceleration in RS coordinate.
+The acceleration is computed by taking 2nd derivative of the position.
+This small change in position in Rotating Coordinate is only in the
+tangential direction. Thus, you can only compute the tangential acceleration,
+from this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kinematic_chain</strong> (<cite>robotic_skin.calibration.kinematic_chain.KinematicChain</cite>) – Robot’s Kinematic Chain</p></li>
+<li><p><strong>'i_rotate_joint'</strong> (<em>'int'</em>) – dof ‘d’</p></li>
+<li><p><strong>i</strong> (<cite>int</cite>) – imu <cite>i</cite></p></li>
+<li><p><strong>current_time</strong> (<em>float`</em>) – Current Time</p></li>
+<li><p><strong>angle_func</strong> (<em>function</em>) – A function to compute the current angle at time t</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration.estimate_acceleration">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration.</code><code class="sig-name descname">estimate_acceleration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">i_rotate_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">joint_angular_velocity</span></em>, <em class="sig-param"><span class="n">joint_angular_acceleration</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">current_time</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">angle_func</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'analytical'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration.html#estimate_acceleration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration.estimate_acceleration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute an acceleration value from positions.
+.. math:: <cite>a = frac{f({Delta t}) + f({Delta t) - 2 f(0)}{h^2}</cite></p>
+<p>This equation came from Taylor Expansion to get the second derivative from f(t).
+.. math:: f(t+{Delta t}) = f(t) + hf^{prime}(t) + frac{h^2}{2}f^{primeprime}(t)
+.. math:: f(t-{Delta t}) = f(t) - hf^{prime}(t) + frac{h^2}{2}f^{primeprime}(t)</p>
+<p>Add both equations and plug t=0 to get the above equation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kinematic_chain</strong> (<cite>robotic_skin.calibration.kinematic_chain.KinematicChain</cite>) – Robot’s Kinematic Chain</p></li>
+<li><p><strong>i_rotate_joint</strong> (<cite>int</cite>) – dof <cite>d</cite></p></li>
+<li><p><strong>i_su</strong> (<cite>int</cite>) – <a href="#id1"><span class="problematic" id="id2">`</span></a>i`th SU</p></li>
+<li><p><strong>joint_angular_velocity</strong> (<cite>float</cite>) – Angular velocity</p></li>
+<li><p><strong>'max_angular_velocity'</strong> (<em>'float'</em>) – Maximum angular velocity</p></li>
+<li><p><strong>current_time</strong> (<cite>float</cite>) – Current Time</p></li>
+<li><p><strong>method</strong> (<cite>str</cite>) – Determines if we are using <cite>analytical</cite>, <cite>normal_mittendorfer</cite> or <cite>mittendorfer</cite>
+methods (which we modified due to some possible missing terms).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration.tangential_acceleration">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration.</code><code class="sig-name descname">tangential_acceleration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">alpha</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration.html#tangential_acceleration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration.tangential_acceleration" title="Permalink to this definition">¶</a></dt>
+<dd><div class="math notranslate nohighlight">
+\[`a = lpha        imes r`\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<cite>float</cite>) – Position vector r of the body in the inertial coordinate</p></li>
+<li><p><strong>alpha</strong> (<cite>float</cite>) – Angular Acceleration of an axis in the inertial coordinate.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
 <div class="section" id="module-robotic_skin.calibration.utils">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-robotic_skin.calibration.utils" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
@@ -431,7 +542,7 @@ Angle between quaternions in degrees</p>
 
 <dl class="py function">
 <dt id="robotic_skin.calibration.utils.n2s">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">n2s</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#n2s"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.n2s" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">n2s</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#n2s"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.n2s" title="Permalink to this definition">¶</a></dt>
 <dd><p>converts numpy array to string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -482,12 +593,12 @@ Angle between quaternions in degrees</p>
 
 <dl class="py function">
 <dt id="robotic_skin.calibration.utils.add_noise">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">add_noise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">data_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#add_noise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.add_noise" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">add_noise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">data_types</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#add_noise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.add_noise" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt id="robotic_skin.calibration.utils.add_outlier">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">add_outlier</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">data_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">outlier_ratio</span><span class="o">=</span><span class="default_value">0.25</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#add_outlier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.add_outlier" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.</code><code class="sig-name descname">add_outlier</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">data_types</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">outlier_ratio</span><span class="o">=</span><span class="default_value">0.25</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#add_outlier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.add_outlier" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -501,7 +612,7 @@ Angle between quaternions in degrees</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="robotic_skin.sensor.html" class="btn btn-neutral float-right" title="robotic_skin.sensor package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="robotic_skin.examples.html" class="btn btn-neutral float-right" title="robotic_skin.examples package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="robotic_skin.calibration.html" class="btn btn-neutral float-left" title="robotic_skin.calibration package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

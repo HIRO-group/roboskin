@@ -100,6 +100,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-robotic_skin.calibration">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="robotic_skin.examples.html">robotic_skin.examples package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="robotic_skin.sensor.html">robotic_skin.sensor package</a></li>
 </ul>
 </li>
@@ -184,6 +185,7 @@
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.utils.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.utils.html#module-robotic_skin.calibration.utils.io">robotic_skin.calibration.utils.io module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.utils.html#module-robotic_skin.calibration.utils.quaternion">robotic_skin.calibration.utils.quaternion module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.utils.html#module-robotic_skin.calibration.utils.rotational_acceleration">robotic_skin.calibration.utils.rotational_acceleration module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.utils.html#module-robotic_skin.calibration.utils">Module contents</a></li>
 </ul>
 </li>
@@ -439,7 +441,7 @@ estimation models.</p>
 
 <dl class="py class">
 <dt id="robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">MaxAccelerationErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span></em>, <em class="sig-param"><span class="n">apply_normal_mittendorfer</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#MaxAccelerationErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">MaxAccelerationErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'normal_mittendorfer'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#MaxAccelerationErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="robotic_skin.calibration.error_functions.ErrorFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.error_functions.ErrorFunction</span></code></a></p>
 <p>Compute errors between estimated and measured max acceleration for sensor i</p>
 </dd></dl>
@@ -452,61 +454,15 @@ estimation models.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="robotic_skin.calibration.error_functions.current_su_position">
-<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">current_su_position</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">max_w</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">d_joint</span></em>, <em class="sig-param"><span class="n">t</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#current_su_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.current_su_position" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns position of the current skin unit</p>
+<dt id="robotic_skin.calibration.error_functions.max_angle_func">
+<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">max_angle_func</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">t</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#max_angle_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.max_angle_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes current joint angle at time t
+joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>kinematic_chain</strong> (<cite>robotic_skin.calibration.kinematic_chain.KinematicChain</cite>) – Robot’s Kinematic Chain</p></li>
-<li><p><strong>curr_w</strong> (<cite>int</cite>) – Angular velocity</p></li>
-<li><p><strong>'max_w'</strong> (<em>'int'</em>) – Maximum angular velocity</p></li>
-<li><p><strong>i</strong> (<cite>int</cite>) – imu <cite>i</cite></p></li>
-<li><p><strong>'d_joint'</strong> (<em>'int'</em>) – dof ‘d’</p></li>
-</ul>
+<dd class="field-odd"><p><strong>t</strong> (<cite>int</cite>) – Current time t</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="robotic_skin.calibration.error_functions.estimate_acceleration">
-<code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">estimate_acceleration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">d_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">curr_w</span></em>, <em class="sig-param"><span class="n">max_w</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">apply_normal_mittendorfer</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">analytical</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#estimate_acceleration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.estimate_acceleration" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Compute an acceleration value from positions.
-.. math:: <a href="#id19"><span class="problematic" id="id20">`</span></a>a =</p>
-</div></blockquote>
-<p>rac{f({Delta t}) + f({Delta t) - 2 f(0)}{h^2}`</p>
-<blockquote>
-<div><p>This equation came from Taylor Expansion to get the second derivative from f(t).
-.. math:: f(t+{Delta t}) = f(t) + hf^{prime}(t) +</p>
-</div></blockquote>
-<dl>
-<dt>rac{h^2}{2}f^{primeprime}(t)</dt><dd><div class="math notranslate nohighlight">
-\[f(t-{\Delta t}) = f(t) - hf^{\prime}(t) +\]</div>
-</dd>
-</dl>
-<p>rac{h^2}{2}f^{primeprime}(t)</p>
-<blockquote>
-<div><p>Add both equations and plug t=0 to get the above equation</p>
-<dl class="simple">
-<dt><cite>kinematic_chain</cite>: <cite>robotic_skin.calibration.kinematic_chain.KinematicChain</cite></dt><dd><p>Robot’s Kinematic Chain</p>
-</dd>
-<dt><cite>d_joint</cite>: <cite>int</cite></dt><dd><p>dof <cite>d</cite></p>
-</dd>
-<dt><cite>i</cite>: <cite>int</cite></dt><dd><p>imu <cite>i</cite></p>
-</dd>
-<dt><cite>curr_w</cite>: <cite>int</cite></dt><dd><p>Angular velocity</p>
-</dd>
-<dt>‘max_w’: ‘int’</dt><dd><p>Maximum angular velocity</p>
-</dd>
-<dt>apply_normal_mittendorfer: bool</dt><dd><p>determines if we resort to the normal method
-mittendorfer uses (which we modified due to some possible missing terms)</p>
-</dd>
-<dt>analytical: bool</dt><dd><p>determines if we are returning the analytical or numerical
-estimation of acceleration</p>
-</dd>
-</dl>
-</div></blockquote>
 </dd></dl>
 
 </div>
@@ -531,35 +487,26 @@ estimation of acceleration</p>
 <em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.kinematic_chain.</code><code class="sig-name descname">KinematicChain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">su_joint_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">bound_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">linkdh_dict</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sudh_dict</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">eval_poses</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain.html#KinematicChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain.KinematicChain" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt id="robotic_skin.calibration.kinematic_chain.KinematicChain.add_a_pose">
-<code class="sig-name descname">add_a_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pose</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">dof_T_dof</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#robotic_skin.calibration.transformation_matrix.TransformationMatrix" title="robotic_skin.calibration.transformation_matrix.TransformationMatrix">robotic_skin.calibration.transformation_matrix.TransformationMatrix</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">rs_T_dof</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#robotic_skin.calibration.transformation_matrix.TransformationMatrix" title="robotic_skin.calibration.transformation_matrix.TransformationMatrix">robotic_skin.calibration.transformation_matrix.TransformationMatrix</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain.html#KinematicChain.add_a_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain.KinematicChain.add_a_pose" title="Permalink to this definition">¶</a></dt>
-<dd><p>It adds a pose to the current poses dof_Tc_dof, rs_Tc_dof</p>
-<p>Use this function to add 1 pose only.
-If you want to add multiple poses, use set_n_poses</p>
-<dl class="simple">
-<dt>i_joint: int</dt><dd><p>ith Joint starts from 0 to n-1</p>
-</dd>
-<dt>pose: float</dt><dd><p>Angle [rad]</p>
-</dd>
-</dl>
+<dt id="robotic_skin.calibration.kinematic_chain.KinematicChain.add_temp_pose">
+<code class="sig-name descname">add_temp_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">additional_pose</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain.html#KinematicChain.add_temp_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain.KinematicChain.add_temp_pose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a pose to the temporary pose/TM
+It does not initialize the temporary pose
+nor overwrite the current pose.
+The temporary pose/TM will be reset once init_temp_TM or set_poses are called.</p>
+<p>TODO: Allow multiple additional poses</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="robotic_skin.calibration.kinematic_chain.KinematicChain.compute_joint_TM">
-<code class="sig-name descname">compute_joint_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pose_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#robotic_skin.calibration.transformation_matrix.TransformationMatrix" title="robotic_skin.calibration.transformation_matrix.TransformationMatrix">robotic_skin.calibration.transformation_matrix.TransformationMatrix</a><a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain.html#KinematicChain.compute_joint_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain.KinematicChain.compute_joint_TM" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">compute_joint_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pose_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#robotic_skin.calibration.transformation_matrix.TransformationMatrix" title="robotic_skin.calibration.transformation_matrix.TransformationMatrix">robotic_skin.calibration.transformation_matrix.TransformationMatrix</a><a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain.html#KinematicChain.compute_joint_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain.KinematicChain.compute_joint_TM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a TransformationMatrix to the i_joint th joint</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="robotic_skin.calibration.kinematic_chain.KinematicChain.compute_su_TM">
-<code class="sig-name descname">compute_su_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pose_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#robotic_skin.calibration.transformation_matrix.TransformationMatrix" title="robotic_skin.calibration.transformation_matrix.TransformationMatrix">robotic_skin.calibration.transformation_matrix.TransformationMatrix</a><a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain.html#KinematicChain.compute_su_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain.KinematicChain.compute_su_TM" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">compute_su_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pose_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#robotic_skin.calibration.transformation_matrix.TransformationMatrix" title="robotic_skin.calibration.transformation_matrix.TransformationMatrix">robotic_skin.calibration.transformation_matrix.TransformationMatrix</a><a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain.html#KinematicChain.compute_su_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain.KinematicChain.compute_su_TM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a TransformationMatrix to the i_su th su</p>
 </dd></dl>
-
-<dl class="py method">
-<dt id="robotic_skin.calibration.kinematic_chain.KinematicChain.get_current_TMs">
-<code class="sig-name descname">get_current_TMs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain.html#KinematicChain.get_current_TMs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain.KinematicChain.get_current_TMs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="py method">
 <dt id="robotic_skin.calibration.kinematic_chain.KinematicChain.get_params_at">
@@ -574,6 +521,25 @@ If you want to add multiple poses, use set_n_poses</p>
 <li><p><strong>bounds</strong> (<em>np.array</em>) – Bounds of each DH parameter</p></li>
 </ul>
 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.kinematic_chain.KinematicChain.init_temp_TM">
+<code class="sig-name descname">init_temp_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">additional_pose</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain.html#KinematicChain.init_temp_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain.KinematicChain.init_temp_TM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a temporary Transformation Matrices by adding
+an extra joint angle to Current Tranformation Matrices.
+Current Pose will not be updated.
+The temporary pose/TM will be reset once init_temp_TM or set_poses are called.</p>
+<p>TODO: Allow multiple additional poses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i_joint</strong> (<cite>int</cite>) – i_joint th joint</p></li>
+<li><p><strong>additional_pose</strong> (<cite>float</cite>) – Additional pose added to the pose (copied from the current pose).
+Current pose will not be updated.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -619,7 +585,8 @@ or 10 (all dh params)</p>
 <dl class="py method">
 <dt id="robotic_skin.calibration.kinematic_chain.KinematicChain.set_poses">
 <code class="sig-name descname">set_poses</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poses</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">end_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain.html#KinematicChain.set_poses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain.KinematicChain.set_poses" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Set Current Poses.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt id="robotic_skin.calibration.kinematic_chain.KinematicChain.set_sudh">
