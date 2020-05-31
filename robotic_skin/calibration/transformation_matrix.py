@@ -116,7 +116,7 @@ class TransformationMatrix():
             [0, 0, 0, 1],
         ])
         if self.is_tensor:
-            return torch.from_numpy(mat).float().requires_grad_(True)
+            return torch.from_numpy(mat).double().requires_grad_(True)
         else:
             # standard np array.
             return mat
@@ -284,8 +284,8 @@ class TransformationMatrix():
         if type(self.matrix) == torch.Tensor:
             pass
         elif type(self.matrix) == np.ndarray:
-            self.params = torch.from_numpy(self.params).float().requires_grad_(True)
-            self.matrix = torch.from_numpy(self.matrix).float().requires_grad_(True)
+            self.params = torch.from_numpy(self.params).double().requires_grad_(True)
+            self.matrix = torch.from_numpy(self.matrix).double().requires_grad_(True)
         else:
             raise TypeError("self.matrix is of wrong type!")
 
