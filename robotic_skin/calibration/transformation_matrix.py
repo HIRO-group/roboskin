@@ -23,14 +23,31 @@ class TransformationMatrix():
             For DH Parameters, please refer to this video
             https://robotacademy.net.au/lesson/denavit-hartenberg-notation/
         """
-        params = np.array([theta, d, a, alpha], dtype=float)
-        # Only select provided keys (which are not None)
-        self.is_tensor = False
-        self.key_index = np.argwhere(~np.isnan(params)).flatten()
-        self.params = np.nan_to_num(params)
+        # if parameters are tensors, don't convert to np array
+        temp_params = np.array([theta, d, a, alpha], dtype=float)
+        if type(theta) == torch.Tensor:
+            if theta is None:
+                theta = torch.tensor(0.).double().cuda()
+            if d is None:
+                d = torch.tensor(0.).double().cuda()
+            if a is None:
+                a = torch.tensor(0.).double().cuda()
+            if alpha is None:
+                alpha = torch.tensor(0.).double().cuda()
+            temp_params = np.array([theta.cpu(), d.cpu(), a.cpu(), alpha.cpu()], dtype=float)
+
+            self.params = torch.cat((theta.view(-1), d.view(-1), a.view(-1), alpha.view(-1)))
+            self.is_tensor = True
+
+        else:
+            self.is_tensor = False
+            params = np.array([theta, d, a, alpha], dtype=float)
+            # Only select provided keys (which are not None)
+            self.params = np.nan_to_num(params)
+        self.key_index = np.argwhere(~np.isnan(temp_params)).flatten()
         self.matrix = self.transformation_matrix(*self.params)
-        qx = pyqt.Quaternion(axis=[1, 0, 0], angle=self.params[3])
-        qz = pyqt.Quaternion(axis=[0, 0, 1], angle=self.params[0])
+        qx = pyqt.Quaternion(axis=[1, 0, 0], angle=temp_params[3])
+        qz = pyqt.Quaternion(axis=[0, 0, 1], angle=temp_params[0])
         self.q = qx * qz
 
     def transformation_matrix(self, th, d, a, al):
@@ -109,17 +126,32 @@ class TransformationMatrix():
             [0, 0, 0, 1]
         ])
         """
-        mat = np.array([
-            [np.cos(th), -np.sin(th), 0, a],
-            [np.sin(th)*np.cos(al), np.cos(th)*np.cos(al), -np.sin(al), -d*np.sin(al)],
-            [np.sin(th)*np.sin(al), np.cos(th)*np.sin(al), np.cos(al), d*np.cos(al)],
-            [0, 0, 0, 1],
-        ])
         if self.is_tensor:
-            return torch.from_numpy(mat).double().requires_grad_(True)
+            # first concatenate to each row
+            # then stack for the whole transformation matrix.
+            x1 = torch.cat((torch.cos(th).view(-1), -torch.sin(th).view(-1),
+                            torch.tensor(0).double().cuda().view(-1), a.view(-1)))
+            x2 = torch.cat(((torch.sin(th)*torch.cos(al)).view(-1),
+                            (torch.cos(th)*torch.cos(al)).view(-1),
+                            -torch.sin(al).view(-1),
+                            ((-d*torch.sin(al)).view(-1))))
+            x3 = torch.cat(((torch.sin(th)*torch.sin(al)).view(-1),
+                            (torch.cos(th)*torch.sin(al)).view(-1),
+                            (torch.cos(al)).view(-1),
+                            (d*torch.cos(al)).view(-1)))
+            x4 = torch.tensor([0, 0, 0, 1]).double().cuda()
+            mat = torch.stack((x1, x2, x3, x4))
         else:
-            # standard np array.
-            return mat
+            mat = np.array([
+                [np.cos(th), -np.sin(th), 0, a],
+                [np.sin(th)*np.cos(al), np.cos(th)*np.cos(al), -np.sin(al), -d*np.sin(al)],
+                [np.sin(th)*np.sin(al), np.cos(th)*np.sin(al), np.cos(al), d*np.cos(al)],
+                [0, 0, 0, 1],
+            ])
+            if self.is_tensor:
+                return torch.from_numpy(mat).double().cuda().requires_grad_(True)
+                # standard np array.
+        return mat
 
     @classmethod
     def from_dict(cls, params_dict):
@@ -128,9 +160,9 @@ class TransformationMatrix():
     @classmethod
     def from_numpy(cls, params, keys=['theta', 'd', 'a', 'alpha']):
         n_params = len(keys)
-        if not isinstance(params, np.ndarray):
-            raise ValueError("'params' should be a np.array")
-        if params.size != n_params:
+        if not isinstance(params, np.ndarray) and not isinstance(params, torch.Tensor):
+            raise ValueError("'params' should be a np.array or torch.Tensor.")
+        if params.shape[0] != n_params:
             raise ValueError("Size of 'params' should be %i" % (n_params))
 
         d = {k: v for k, v in zip(keys, params)}
@@ -169,7 +201,6 @@ class TransformationMatrix():
         """
         new_matrix = self.mm_fnc(self.matrix, T.matrix)
         new_q = self.q * T.q
-
         T = TransformationMatrix()
         if self.is_tensor:
             T.tensor_()
@@ -259,8 +290,7 @@ class TransformationMatrix():
         generic copy function.
         """
         if self.is_tensor:
-            input = torch.tensor(input)
-            return torch.clone(input).requires_grad_(True)
+            return input.clone()
         else:
             return np.copy(input)
 
@@ -284,8 +314,8 @@ class TransformationMatrix():
         if type(self.matrix) == torch.Tensor:
             pass
         elif type(self.matrix) == np.ndarray:
-            self.params = torch.from_numpy(self.params).double().requires_grad_(True)
-            self.matrix = torch.from_numpy(self.matrix).double().requires_grad_(True)
+            self.params = torch.from_numpy(self.params).double().cuda().requires_grad_(True)
+            self.matrix = torch.from_numpy(self.matrix).double().cuda().requires_grad_(True)
         else:
             raise TypeError("self.matrix is of wrong type!")
 
