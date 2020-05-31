@@ -40,7 +40,7 @@ def check_data(y_dict: dict, ylabels: List[str]):
     if len(ylabels) != n_row:
         raise ValueError(f'len of ylabels should be the {n_row}')
 
-    return data, methods, n_data, n_row
+    return methods, n_data, n_row
 
 
 def is_first(i):
@@ -72,12 +72,12 @@ def calc_ylim(y, margin=0.1):
     return [y_min, y_max]
 
 
-def ylims_by_rows(data):
-    n_row = data.shape[1]
+def ylims_by_rows(y_dict):
+    n_row = list(y_dict.values())[0].shape[1]
     ylims = []
     for i_row in range(n_row):
         y = np.array([])
-        for each_y in data.values():
+        for each_y in y_dict.values():
             # Compute y_min and y_max for the combined data y
             y = np.hstack((y, each_y[:, i_row]))
         ylim = calc_ylim(y)
@@ -85,11 +85,7 @@ def ylims_by_rows(data):
     return ylims
 
 
-def set_captions(ax, data, xlabel, ylabels, title, i_row, n_col):
-    n_row = data.shape[1]
-
-    # compute ylim
-    ylims = ylims_by_rows(data)
+def set_captions(ax, xlabel, ylabels, title, ylims, i_row, n_row, n_col):
     ax.set_ylim(ylims[i_row])
 
     # Set ylabel at the most left
@@ -138,20 +134,23 @@ def plot_side_by_side(y_dict: dict, title: str,
     `show`: `bool`
 
     """
-    data, methods, n_data, n_row, = check_data(y_dict, ylabels)
+    methods, n_data, n_row, = check_data(y_dict, ylabels)
     n_method = len(methods)
     x = np.arange(n_data) if x is None else x
 
+    # compute ylim
+    ylims = ylims_by_rows(y_dict)
+
     fig = plt.figure(figsize=(10, 8))
-    fig.subtitle(title)
+    fig.suptitle(title)
 
     # For All Data/Rows
-    for i_row in range(n_row):
-        for method, each_y in data.items():
-            ax = fig.add_subplot(n_row, n_method, n_method*i_row+1)
+    for i_col, (method, each_y) in enumerate(y_dict.items()):
+        for i_row in range(n_row):
+            ax = fig.add_subplot(n_row, n_method, n_method*i_row+i_col+1)
             # Plot Left
             ax.plot(x, each_y[:, i_row])
-            set_captions(ax, data, xlabel, ylabels, method, i_row, n_method)
+            set_captions(ax, xlabel, ylabels, method, ylims, i_row, n_row, n_method)
 
     if show:
         plt.show()
@@ -191,18 +190,21 @@ def plot_in_one_graph(y_dict: dict, ylabels: List[str], xlabel: str,  # noqa:C90
     `save`: `bool`
         Save plot
     """
-    data, _, n_data, n_row, = check_data(y_dict, ylabels)
+    _, n_data, n_row, = check_data(y_dict, ylabels)
     x = np.arange(n_data) if x is None else x
+
+    # compute ylim
+    ylims = ylims_by_rows(y_dict)
 
     fig = plt.figure(figsize=(10, 8))
 
     for i_row in range(n_row):
         ax = fig.add_subplot(n_row, 1, i_row+1)
         # Plot and combine all data at the same time
-        for method, data in y_dict.items():
-            ax.plot(x, data[:, i_row], label=method)
+        for method, each_y in y_dict.items():
+            ax.plot(x, each_y[:, i_row], label=method)
 
-        set_captions(ax, data, xlabel, ylabels, title, i_row, 1)
+        set_captions(ax, xlabel, ylabels, title, ylims, i_row, n_row, 1)
         ax.legend(loc='best')
 
     if show:
@@ -301,8 +303,8 @@ def verify_acceleration_estimate(data, pose_names: List[str],
     methods = ['analytical', 'mittendorfer']
 
     indices = {
-        'measured': np.arange(1, 4),
-        'joints': np.arange(3, 11),
+        'measured': np.arange(0, 3),
+        'joints': np.arange(3, 10),
         'time': 10,
         'angaccel': 11,
         'angvel': 13
