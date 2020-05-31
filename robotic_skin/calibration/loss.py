@@ -26,7 +26,7 @@ class L1Loss(Loss):
         super().__init__()
 
     def __call__(self, x_estimated, x_target, axis=0):
-        x = x_estimated - x_target
+        x = np.abs(x_estimated - x_target)
         return np.mean(np.sum(x))
 
 
