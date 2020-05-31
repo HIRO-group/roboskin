@@ -20,8 +20,8 @@ from robotic_skin.calibration.stop_conditions import (
     StopCondition,
     DeltaXStopCondition,
 )
-from robotic_skin.calibration.loss import L2Loss, L1Loss
-from robotic_skin.calibration.utils.io import n2s
+from robotic_skin.calibration.loss import L2Loss, L1Loss, L2LossTorch
+from robotic_skin.calibration.utils.io import n2s, t2s
 
 
 def choose_optimizer(args, kinematic_chain, evaluator, data_logger, optimize_all):
@@ -57,7 +57,8 @@ def choose_optimizer(args, kinematic_chain, evaluator, data_logger, optimize_all
             optimize_all, args.error_functions, args.stop_conditions, method='mittendorfer')
 
     elif args.method == 'TM':
-        # method using pytorch's autograd
+        # method using pytorch's autograd, and optimization methods
+        # that require gradients.
         optimizer = TorchOptimizerBase(
             kinematic_chain, evaluator, data_logger,
             optimize_all, args.error_functions, args.stop_conditions)
@@ -181,9 +182,9 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
 
         error_function = CombinedErrorFunction(
             StaticErrorFunctionTorch(
-                loss=L2Loss()),
+                loss=L2LossTorch()),
             MaxAccelerationErrorFunctionTorch(
-                loss=L2Loss())
+                loss=L2LossTorch())
             )
         stop_condition = DeltaXStopCondition()
 
@@ -196,17 +197,114 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         super().__init__(kinematic_chain, evaluator, data_logger,
                          optimize_all, error_function, stop_condition)
 
-    def objective(self, params):
+    def vanilla_optimizer(self, params, bounds):
+        """
+        uses pytorch for vanilla SGD in order
+        to optimize the DH parameters.
+        """
+        # clone params
+        temp_params = params.clone()
+        min_loss = np.inf
+        best_params = temp_params
+        for _ in range(5):
+            arr = []
+            i = 0
+            # randomly intialize dh parameters within kinematic chain.
+            self.kinematic_chain.dof_T_vdof, self.kinematic_chain.vdof_T_su, self.kinematic_chain.dof_T_su = \
+                self.kinematic_chain.predefined_or_rand_sus(self.kinematic_chain.sudh_dict, self.kinematic_chain.bound_dict)
+            params, bounds = self.kinematic_chain.get_params_at(i_su=self.i_su)
+
+            while(1):
+                self.kinematic_chain.set_params_at(self.i_su, params)
+
+                params, _ = self.kinematic_chain.get_params_at(i_su=self.i_su)
+                params = params.cuda()
+                params_for_optim = torch.nn.Parameter(params).double()
+                clamped_params = torch.ones(6).double().cuda()
+                for idx, param in enumerate(params_for_optim):
+                    clamped_params[idx] = (torch.clamp(param, bounds[idx, 0], bounds[idx, 1]))
+                # use parameters in calculation of error
+
+                self.kinematic_chain.set_params_at(self.i_su, clamped_params.clone())
+                e = self.error_functions(self.kinematic_chain, self.i_su)
+                optimizer = torch.optim.SGD([params_for_optim], lr=0.001)
+                e.backward()
+                print("Error:", e.item())
+                if len(arr) > 0:
+                    arr.append(abs(prev_val - e.item()))
+                else:
+                    arr.append(e.item())
+                prev_val = e.item()
+                i += 1
+                if i >= 10:
+                    sum_val = np.sum(arr[i-10: i])
+                    if sum_val <= 0.1 and e.item() > 10:
+                        break
+                    if sum_val <= 0.0001:
+                        if e.item() < min_loss:
+                            min_loss = e.item()
+                            print(best_params)
+                            best_params = params_for_optim
+                        break
+
+                optimizer.step()
+                optimizer.zero_grad()
+
+        # res = self.stop_conditions.update(params, None, e)
+        res = e.item()
+        # Evaluate
+        self.kinematic_chain.set_params_at(self.i_su, best_params)
+
+        self.kinematic_chain.set_poses(np.zeros(7))
+        T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='current')
+        # T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
+        errors = self.evaluator.evaluate(i_su=self.i_su, T=T)
+        # Log
+        pos = T.position.cpu().detach().numpy()
+        quat = T.quaternion
+        params = params.cpu().detach().numpy()
+        self.data_logger.add_trial(
+            global_step=self.global_step,
+            params=params,
+            position=pos,
+            orientation=quat,
+            euclidean_distance=errors['position'],
+            quaternion_distance=errors['orientation'])
+        # print to terminal
+        logging.info(f'e={e:.5f}, res={res:.5f}, params:{n2s(params, 3)}' +
+                     f'P:{n2s(pos, 3)}, Q:{n2s(quat, 3)}')
+
+        self.local_step += 1
+        self.global_step += 1
+
+        return best_params
+
+    def get_gradients(self, params):
+        """
+        gets the gradients of each dh parameter (which are
+        set to `params`).
+        """
         self.kinematic_chain.set_params_at(self.i_su, params)
 
         params, _ = self.kinematic_chain.get_params_at(i_su=self.i_su)
-        optimizer = torch.optim.Adam([params], lr=0.01)
+        params = params.cuda()
+        params_for_optim = torch.nn.Parameter(params).double()
+        self.kinematic_chain.set_params_at(self.i_su, params_for_optim.clone())
         e = self.error_functions(self.kinematic_chain, self.i_su)
         e.backward()
-        optimizer.step()
+        # return gradient
+        return e.item(), params_for_optim.grad.cpu().detach().numpy()
 
-        res = self.stop_conditions.update(params, None, e)
+    def nlopt_objective(self, params, grad):
+        """
+        objective function *with* gradients already having been calculated.
+        """
+        error, gradients = self.get_gradients(params)
 
+        res = self.stop_conditions.update(params, None, error)
+        print(error, res)
+        for i in range(len(grad)):
+            grad[i] = gradients[i]
         # Evaluate
         T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
         errors = self.evaluator.evaluate(i_su=self.i_su, T=T)
@@ -219,8 +317,8 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
             euclidean_distance=errors['position'],
             quaternion_distance=errors['orientation'])
         # print to terminal
-        logging.info(f'e={e:.5f}, res={res:.5f}, params:{n2s(params, 3)}' +
-                     f'P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
+        logging.info(f'e={error:.5f}, res={res:.5f}, params:{n2s(params, 3)}' +
+                     f'P:{t2s(T.position)}, Q:{n2s(T.quaternion, 3)}')
 
         self.local_step += 1
         self.global_step += 1
@@ -232,9 +330,35 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         optimizes one skin unit, `i_su`.
         """
         params, bounds = self.kinematic_chain.get_params_at(i_su=i_su)
+
+        self.n_param = params.shape[0]
         self.i_su = i_su
         self.local_step = 0
+        self.stop_conditions.initialize()
 
+
+        opt = nlopt.opt(nlopt.GD_MLSL_LDS, self.n_param)
+
+        # The objective function only accepts x and grad arguments.
+        # This is the only way to pass other arguments to opt
+        # https://github.com/JuliaOpt/NLopt.jl/issues/27
+        self.previous_params = None
+        # 
+        opt.set_min_objective(self.nlopt_objective)
+        # Set boundaries
+        opt.set_lower_bounds(bounds[:, 0])
+        opt.set_upper_bounds(bounds[:, 1])
+        # set stopping threshold
+        opt.set_stopval(C.GLOBAL_STOP)
+
+        # Need to set a local optimizer for the global optimizer
+        local_opt = nlopt.opt(nlopt.LD_LBFGS, self.n_param)
+        opt.set_local_optimizer(local_opt)
+
+        # this is where most of the time is spent - in optimization
+        params = opt.optimize(params.cpu().detach().numpy())
+
+        # params = self.objective(params, bounds)
         self.n_param = params.shape[0]
         # optimize parameter, feet in data first.
         return params
@@ -255,7 +379,6 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         print(self.kinematic_chain.n_su)
         for i_su in range(1, self.kinematic_chain.n_su):
             print("Optimizing %ith SU ..." % (i_su))
-
             # optimize parameters wrt data
             params = self._optimize(i_su=i_su)
 
@@ -279,8 +402,6 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
             print('Quaternion:', T.quaternion)
             print('Euclidean distance: ', errors['position'])
             print('='*100)
-
-
 
 
 class MixedIncrementalOptimizer(IncrementalOptimizerBase):
