@@ -486,17 +486,17 @@ class KinematicChainTest(unittest.TestCase):
 
         # set_poses should affect the current
         # Joint TransformationMatrix
-        dof_T_dof, rs_T_dof = kinematic_chain.get_current_TMs()
+        kinematic_chain.init_temp_TM(
+            i_joint=0,
+            additional_pose=0.0)
         for i in range(n_joint):
-            # Add pose to each joint
-            kinematic_chain.add_a_pose(
-                i_joint=i,
-                pose=current_poses[i],
-                dof_T_dof=dof_T_dof,
-                rs_T_dof=rs_T_dof)
-
+            # Add pose to each joint and
             # Get TEMP SU Position
-            T = kinematic_chain._compute_su_TM(i, dof_T_dof, rs_T_dof)
+            kinematic_chain.add_temp_pose(
+                i_joint=i,
+                additional_pose=current_poses[i])
+            T = kinematic_chain.compute_su_TM(i, pose_type='temp')
+
             # Test SU Positions
             np.testing.assert_array_almost_equal(
                 x=T.position,

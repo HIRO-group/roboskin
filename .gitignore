@@ -1,4 +1,4 @@
-*.python-version	
+*.python-version
 **/*.egg-info
 **/*.pyc
 **/__pycache__/**
@@ -7,3 +7,6 @@
 robotic_skin/PandaDeployment/deployment_info.json
 **/stats.md
 **/l2_norm_graph.png
+log.log
+.vscode
+experiment

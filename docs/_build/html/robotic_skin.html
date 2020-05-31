@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="robotic_skin.algorithm package" href="robotic_skin.algorithm.html" />
+    <link rel="next" title="robotic_skin.calibration package" href="robotic_skin.calibration.html" />
     <link rel="prev" title="Welcome to robotic_skin’s documentation!" href="index.html" /> 
 </head>
 
@@ -85,8 +85,8 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">robotic_skin package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="robotic_skin.algorithm.html">robotic_skin.algorithm package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="robotic_skin.calibration.html">robotic_skin.calibration package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="robotic_skin.examples.html">robotic_skin.examples package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="robotic_skin.sensor.html">robotic_skin.sensor package</a></li>
 </ul>
 </li>
@@ -165,31 +165,45 @@
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="robotic_skin.algorithm.html">robotic_skin.algorithm package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="robotic_skin.algorithm.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="robotic_skin.algorithm.html#module-robotic_skin.algorithm.convert_to_lowertriangular_matrix">robotic_skin.algorithm.convert_to_lowertriangular_matrix module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="robotic_skin.algorithm.html#module-robotic_skin.algorithm">Module contents</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="robotic_skin.calibration.html">robotic_skin.calibration package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="robotic_skin.calibration.utils.html">robotic_skin.calibration.utils package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.utils.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.utils.html#module-robotic_skin.calibration.utils.io">robotic_skin.calibration.utils.io module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.utils.html#module-robotic_skin.calibration.utils.quaternion">robotic_skin.calibration.utils.quaternion module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.utils.html#module-robotic_skin.calibration.utils.rotational_acceleration">robotic_skin.calibration.utils.rotational_acceleration module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.utils.html#module-robotic_skin.calibration.utils">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.convert_to_lowertriangular_matrix">robotic_skin.calibration.convert_to_lowertriangular_matrix module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.data_logger">robotic_skin.calibration.data_logger module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.error_functions">robotic_skin.calibration.error_functions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.evaluator">robotic_skin.calibration.evaluator module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.kinematic_chain">robotic_skin.calibration.kinematic_chain module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#robotic-skin-calibration-loss-module">robotic_skin.calibration.loss module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#robotic-skin-calibration-optimizer-module">robotic_skin.calibration.optimizer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.stop_conditions">robotic_skin.calibration.stop_conditions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.transformation_matrix">robotic_skin.calibration.transformation_matrix module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="robotic_skin.examples.html">robotic_skin.examples package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="robotic_skin.examples.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="robotic_skin.examples.calibration.html">robotic_skin.examples.calibration package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="robotic_skin.examples.calibration.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="robotic_skin.examples.calibration.html#robotic-skin-examples-calibration-analyze-method-robustness-module">robotic_skin.examples.calibration.analyze_method_robustness module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="robotic_skin.examples.calibration.html#robotic-skin-examples-calibration-calibrate-imu-poses-module">robotic_skin.examples.calibration.calibrate_imu_poses module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="robotic_skin.examples.calibration.html#module-robotic_skin.examples.calibration.plot_data">robotic_skin.examples.calibration.plot_data module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="robotic_skin.examples.calibration.html#robotic-skin-examples-calibration-stats-generator-module">robotic_skin.examples.calibration.stats_generator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="robotic_skin.examples.calibration.html#module-robotic_skin.examples.calibration">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="robotic_skin.examples.html#module-robotic_skin.examples">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="robotic_skin.sensor.html">robotic_skin.sensor package</a><ul>
@@ -227,7 +241,7 @@ for HIRO’s robotic skin.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="robotic_skin.algorithm.html" class="btn btn-neutral float-right" title="robotic_skin.algorithm package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="robotic_skin.calibration.html" class="btn btn-neutral float-right" title="robotic_skin.calibration package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral float-left" title="Welcome to robotic_skin’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
