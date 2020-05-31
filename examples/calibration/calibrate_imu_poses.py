@@ -8,12 +8,13 @@ import argparse
 import numpy as np
 import pyquaternion as pyqt
 from datetime import datetime
+import torch
 
-from robotic_skin.calibration.kinematic_chain import (
-    KinematicChain,
-    KinematicChainTorch
-)
-from robotic_skin.calibration.optimizer import choose_optimizer
+# from robotic_skin.calibration.kinematic_chain import KinematicChain
+from kinematic_chain_torch import KinematicChainTorch
+# from robotic_skin.calibration.optimizer import choose_optimizer
+from optimizer import choose_optimizer
+
 from robotic_skin.calibration import utils
 
 
@@ -77,12 +78,17 @@ class Evaluator():
         self.true_su_pose = true_su_pose
 
     def evaluate(self, T, i_su):
+        orientation = T.q
+        position = T.position
+        if type(T.position) == torch.Tensor:
+            position = position.cpu().detach().numpy()
+
         euclidean_distance = np.linalg.norm(
-            T.position - self.true_su_pose[f'su{i_su+1}']['position'])
+            position - self.true_su_pose[f'su{i_su+1}']['position'])
 
         q_su = self.true_su_pose[f'su{i_su+1}']['rotation']
         quaternion_distance = pyqt.Quaternion.absolute_distance(
-            T.q, utils.np_to_pyqt(q_su))
+            orientation, utils.np_to_pyqt(q_su))
 
         return {'position': euclidean_distance,
                 'orientation': quaternion_distance}
@@ -256,7 +262,6 @@ if __name__ == '__main__':
         data_logger=data_logger,
         optimize_all=args.optimizeall)
     optimizer.optimize(measured_data)
-    exit()
 
     data_logger.save()
     print('Positions')

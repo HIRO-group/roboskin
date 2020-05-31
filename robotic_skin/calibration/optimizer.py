@@ -12,12 +12,16 @@ from robotic_skin.calibration.error_functions import (
     StaticErrorFunction,
     MaxAccelerationErrorFunction
 )
+from robotic_skin.calibration.error_functions_torch import (
+    StaticErrorFunctionTorch,
+    MaxAccelerationErrorFunctionTorch
+)
 from robotic_skin.calibration.stop_conditions import (
     StopCondition,
     PassThroughStopCondition,
     DeltaXStopCondition
 )
-from robotic_skin.calibration.loss import L2Loss
+from robotic_skin.calibration.loss import L2Loss, L1Loss
 from robotic_skin.calibration.utils.io import n2s
 
 
@@ -172,9 +176,9 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
                  optimize_all, error_function_=None, stop_condition_=None,):
 
         error_function = CombinedErrorFunction(
-            StaticErrorFunction(
+            StaticErrorFunctionTorch(
                 loss=L2Loss()),
-            MaxAccelerationErrorFunction(
+            MaxAccelerationErrorFunctionTorch(
                 loss=L2Loss())
             )
         stop_condition = DeltaXStopCondition()
@@ -471,6 +475,7 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
         T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
         errors = self.evaluator.evaluate(i_su=self.i_su, T=T)
         # Log
+        print(params)
         self.data_logger.add_trial(
             global_step=self.global_step,
             params=params,
@@ -514,7 +519,9 @@ class OurMethodOptimizer(SeparateIncrementalOptimizer):
     def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all,
                  error_functions_=None, stop_conditions_=None):
         error_functions = {
-            'Position': MaxAccelerationErrorFunction(L2Loss()),
+            'Position':
+            MaxAccelerationErrorFunction(
+                loss=L2Loss()),
             'Orientation': StaticErrorFunction(L2Loss())}
         stop_conditions = {
             'Position': DeltaXStopCondition(),
