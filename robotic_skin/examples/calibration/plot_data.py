@@ -15,6 +15,34 @@ IMGDIR = os.path.join(REPODIR, 'images')
 CONFIGDIR = os.path.join(REPODIR, 'config')
 
 
+def check_data(y_dict: dict, ylabels: List[str]):
+    if not isinstance(y_dict, dict):
+        raise ValueError('y_dict be a dictionary')
+    if len(y_dict) == 0:
+        return
+
+    methods = list(y_dict.keys())
+    data = y_dict[methods[0]]
+
+    if not isinstance(data, np.ndarray):
+        raise ValueError("y_dict's values must be np.ndarray")
+
+    if data.size == 0:
+        print('Data is empty')
+        return
+
+    if data.ndim != 2:
+        raise ValueError("The dimension of each method's data should be 2")
+
+    n_data = data.shape[0]
+    n_row = data.shape[1]
+
+    if len(ylabels) != n_row:
+        raise ValueError(f'len of ylabels should be the {n_row}')
+
+    return methods, n_data, n_row
+
+
 def is_first(i):
     """
     Returns whether it's the first row/column
@@ -29,10 +57,61 @@ def is_last(i, n):
     return i == (n - 1)
 
 
-def plot_side_by_side(y1: np.ndarray, y2: np.ndarray,
-                      title1: str, title2: str, xlabel: str,
+def is_left(n_row, n_col, i):
+    if i % n_col == 1:
+        return True
+    return False
+
+
+def calc_ylim(y, margin=0.1):
+    y_min = np.min(y)
+    y_max = np.max(y)
+    y_range = y_max - y_min
+    y_min -= margin * y_range
+    y_max += margin * y_range
+    return [y_min, y_max]
+
+
+def ylims_by_rows(y_dict):
+    n_row = list(y_dict.values())[0].shape[1]
+    ylims = []
+    for i_row in range(n_row):
+        y = np.array([])
+        for each_y in y_dict.values():
+            # Compute y_min and y_max for the combined data y
+            y = np.hstack((y, each_y[:, i_row]))
+        ylim = calc_ylim(y)
+        ylims.append(ylim)
+    return ylims
+
+
+def set_captions(ax, xlabel, ylabels, title, ylims, i_row, n_row, n_col):
+    ax.set_ylim(ylims[i_row])
+
+    # Set ylabel at the most left
+    if is_left(n_row, n_col, n_col*i_row+1):
+        ax.set_ylabel(ylabels[i_row])
+    # Set Title at the top
+    if is_first(i_row):
+        ax.set_title(title)
+    # Set xlabel at the bottom
+    if is_last(i_row, n_row):
+        ax.set_xlabel(xlabel)
+
+
+def savefig(dirname: str, filename: str):
+    dirname = os.path.join(IMGDIR, dirname)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    savepath = os.path.join(dirname, filename)
+    plt.savefig(savepath)
+    print(f'image saved to {savepath}')
+
+
+def plot_side_by_side(y_dict: dict, title: str,
+                      xlabel: str, x: np.ndarray = None,
                       ylabels: List[str] = ['ax', 'ay', 'az'],
-                      show=True):
+                      show=True, save=False):
     """
     Plot data side by side: `y1` on the left and `y2` on the right
 
@@ -55,52 +134,31 @@ def plot_side_by_side(y1: np.ndarray, y2: np.ndarray,
     `show`: `bool`
 
     """
-    if y1.size == 0 or y2.size == 0:
-        print('y1 and y2 cannot be empty')
-        return
+    methods, n_data, n_row, = check_data(y_dict, ylabels)
+    n_method = len(methods)
+    x = np.arange(n_data) if x is None else x
 
-    if y1.shape != y2.shape:
-        raise ValueError('y1 and y2 must be same size')
-
-    n_data = y1.shape[0]
-    n_row = y1.shape[1]
-    x = np.arange(n_data)
-
-    if len(ylabels) != n_row:
-        raise ValueError(f'num of ylabels must be {n_row}')
+    # compute ylim
+    ylims = ylims_by_rows(y_dict)
 
     fig = plt.figure(figsize=(10, 8))
+    fig.suptitle(title)
 
     # For All Data/Rows
-    for i_row in range(n_row):
-        ax_left = fig.add_subplot(n_row, 2, 2*i_row+1)
-        ax_right = fig.add_subplot(n_row, 2, 2*i_row+2)
-        # Compute y_min and y_max for the combined data y
-        y = np.hstack((y1[:, i_row], y2[:, i_row]))
-        y_min = np.min(y)
-        y_max = np.max(y)
-        y_range = y_max - y_min
-        y_min -= 0.1 * y_range
-        y_max += 0.1 * y_range
-        # Plot Left
-        ax_left.plot(x, y1[:, i_row])
-        ax_left.set_ylim([y_min, y_max])
-        ax_left.set_ylabel(ylabels[i_row])
-        # Plot Right
-        ax_right.plot(x, y2[:, i_row])
-        ax_right.set_ylim([y_min, y_max])
-
-        # Set Title at the top
-        if is_first(i_row):
-            ax_left.set_title(title1)
-            ax_right.set_title(title2)
-        # Set Xlabel at the bottom
-        if is_last(i_row, n_row):
-            ax_left.set_xlabel(xlabel)
-            ax_right.set_xlabel(xlabel)
+    for i_col, (method, each_y) in enumerate(y_dict.items()):
+        for i_row in range(n_row):
+            ax = fig.add_subplot(n_row, n_method, n_method*i_row+i_col+1)
+            # Plot Left
+            ax.plot(x, each_y[:, i_row])
+            set_captions(ax, xlabel, ylabels, method, ylims, i_row, n_row, n_method)
 
     if show:
         plt.show()
+
+    if save:
+        savefig(dirname='plot_side_by_side',
+                filename=title+'.png')
+    plt.close()
 
 
 def plot_in_one_graph(y_dict: dict, ylabels: List[str], xlabel: str,  # noqa:C901
@@ -132,75 +190,35 @@ def plot_in_one_graph(y_dict: dict, ylabels: List[str], xlabel: str,  # noqa:C90
     `save`: `bool`
         Save plot
     """
-    if not isinstance(y_dict, dict):
-        raise ValueError('y_dict be a dictionary')
-    if len(y_dict) == 0:
-        return
-
-    methods = list(y_dict.keys())
-    data = y_dict[methods[0]]
-
-    if not isinstance(data, np.ndarray):
-        raise ValueError("y_dict's values must be np.ndarray")
-
-    if data.size == 0:
-        print('Data is empty')
-        return
-
-    if data.ndim != 2:
-        raise ValueError("The dimension of each method's data should be 2")
-
-    n_data = data.shape[0]
-    n_row = data.shape[1]
+    _, n_data, n_row, = check_data(y_dict, ylabels)
     x = np.arange(n_data) if x is None else x
 
-    if len(ylabels) != n_row:
-        raise ValueError(f'len of ylabels should be the {n_row}')
+    # compute ylim
+    ylims = ylims_by_rows(y_dict)
 
     fig = plt.figure(figsize=(10, 8))
 
     for i_row in range(n_row):
         ax = fig.add_subplot(n_row, 1, i_row+1)
         # Plot and combine all data at the same time
-        y = np.array([])
-        for method, data in y_dict.items():
-            ax.plot(x, data[:, i_row], label=method)
-            y = np.hstack((y, data[:, i_row]))
+        for method, each_y in y_dict.items():
+            ax.plot(x, each_y[:, i_row], label=method)
 
-        # Compute y_min and y_max for the combined data y
-        y_min = np.min(y)
-        y_max = np.max(y)
-        y_range = y_max - y_min
-        y_min -= 0.1 * y_range
-        y_max += 0.1 * y_range
-        # For all Row
-        ax.set_ylabel(ylabels[i_row])
-        ax.set_ylim([y_min, y_max])
-        # Set title at the top
-        if is_first(i_row):
-            ax.set_title(title)
-            ax.legend(loc='best')
-        # Set xlable at the bottom
-        if is_last(i_row, n_row):
-            ax.set_xlabel(xlabel)
+        set_captions(ax, xlabel, ylabels, title, ylims, i_row, n_row, 1)
+        ax.legend(loc='best')
 
     if show:
         plt.show()
 
     # Save to IMGDIR/plot_in_one_graph directory
     if save:
-        dirname = os.path.join(IMGDIR, 'plot_in_one_graph')
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-        savepath = os.path.join(dirname, title + '.png')
-        plt.savefig(savepath)
-        print(f'image saved to {savepath}')
-
+        savefig(dirname='plot_in_one_graph',
+                filename=title+'.png')
     plt.close()
 
 
 def verify_noise_added_correctly(data, pose_names: List[str],
-                                 joint_names: List[str], imu_names: List[str],
+                                 joint_names: List[str], su_names: List[str],
                                  sigma: float = 1.0, outlier_ratio: float = 0.5):
 
     # Add Noise
@@ -217,61 +235,58 @@ def verify_noise_added_correctly(data, pose_names: List[str],
     accelerations = []
     accelerations_noise = []
     for i in range(n_static_pose):
-        for imu in imu_names:
-            d = data.static[pose_names[i]][imu]
-            d_n = data_noise.static[pose_names[i]][imu]
+        for su in su_names:
+            d = data.static[pose_names[i]][su]
+            d_n = data_noise.static[pose_names[i]][su]
             accelerations.append(d[4:7])
             accelerations_noise.append(d_n[4:7])
     accelerations = np.array(accelerations)
     accelerations_noise = np.array(accelerations_noise)
     index = np.argsort(accelerations, axis=0)
+
+    y_dict = {
+        'Accelerations': np.take_along_axis(accelerations, index, axis=0),
+        'Accelerations + Noise': np.take_along_axis(accelerations_noise, index, axis=0)}
     # Plot
     plot_side_by_side(
-        y1=np.take_along_axis(accelerations, index, axis=0),
-        y2=np.take_along_axis(accelerations_noise, index, axis=0),
-        xlabel='Data Points',
-        title1='Accelerations',
-        title2='Accelerations + Noise')
+        y_dict=y_dict,
+        title='Static Acceleration',
+        xlabel='Data Points')
 
     # Plot Dynamic Acceleration Data vs. Noise Added
     # Prepare Data (Append single data points to a list)
-    accelerations = []
-    accelerations_noise = []
     for i in range(n_dynamic_pose):
         for joint in joint_names:
-            for imu in imu_names:
-                d = data.dynamic[pose_names[i]][joint][imu][0]
-                d_n = data_noise.dynamic[pose_names[i]][joint][imu][0]
-                accelerations.append(d[:3])
-                accelerations_noise.append(d_n[:3])
-    accelerations = np.array(accelerations)
-    accelerations_noise = np.array(accelerations_noise)
-    index = np.argsort(accelerations, axis=0)
-    # Plot
-    plot_side_by_side(
-        y1=np.take_along_axis(accelerations, index, axis=0),
-        y2=np.take_along_axis(accelerations_noise, index, axis=0),
-        xlabel='Data Points',
-        title1='Accelerations',
-        title2='Accelerations + Noise')
+            for su in su_names:
+                accelerations = data.dynamic[pose_names[i]][joint][su][:, :3]
+                accelerations_noise = data_noise.dynamic[pose_names[i]][joint][su][:, :3]
+                y_dict = {
+                    'Accelerations': accelerations_noise,
+                    'Accelerations + Noise': accelerations_noise}
+                # Plot
+                plot_side_by_side(
+                    y_dict=y_dict,
+                    title=f'{joint}_{su}_{pose_names[i]}',
+                    xlabel='Data Points')
 
     # Plot Constant Acceleration Data vs. Noise Added
     # Prepare Data
     for i in range(n_constant_pose):
         for joint in joint_names:
-            for imu in imu_names:
-                d = data.constant[pose_names[i]][joint][imu][0]
-                d_n = data_noise.constant[pose_names[i]][joint][imu][0]
+            for su in su_names:
+                d = data.constant[pose_names[i]][joint][su][0]
+                d_n = data_noise.constant[pose_names[i]][joint][su][0]
                 accelerations = d[:, 4:7]
                 accelerations_noise = d_n[:, 4:7]
-                print(f'{pose_names[i]}, {joint}, {imu}')
+                print(f'{pose_names[i]}, {joint}, {su}')
+                y_dict = {
+                    'Accelerations': accelerations_noise,
+                    'Accelerations + Noise': accelerations_noise}
                 # Plot
                 plot_side_by_side(
-                    y1=accelerations,
-                    y2=accelerations_noise,
-                    xlabel='Data Points',
-                    title1='Accelerations',
-                    title2='Accelerations + Noise')
+                    y_dict=y_dict,
+                    title=f'{joint}_{su}_{pose_names[i]}',
+                    xlabel='Data Points')
 
 
 def verify_acceleration_estimate(data, pose_names: List[str],
@@ -288,8 +303,8 @@ def verify_acceleration_estimate(data, pose_names: List[str],
     methods = ['analytical', 'mittendorfer']
 
     indices = {
-        'measured': np.arange(1, 4),
-        'joints': np.arange(3, 11),
+        'measured': np.arange(0, 3),
+        'joints': np.arange(3, 10),
         'time': 10,
         'angaccel': 11,
         'angvel': 13
