@@ -26,9 +26,8 @@ class L1Loss(Loss):
         super().__init__()
 
     def __call__(self, x_estimated, x_target, axis=0):
-        torch.nn.L
         x = x_estimated - x_target
-        return np.mean(np.linalg.norm(x, axis=axis, ord=1))
+        return np.mean(np.sum(x))
 
 
 class L2Loss(Loss):
@@ -40,8 +39,8 @@ class L2Loss(Loss):
         super().__init__()
 
     def __call__(self, x_estimated, x_target, axis=0):
-        x = x_estimated - x_target
-        return np.mean(np.linalg.norm(x, axis=axis))
+        x = (x_estimated - x_target) ** 2
+        return np.mean(np.sum(x))
 
 
 class MeanSquareLoss(Loss):
