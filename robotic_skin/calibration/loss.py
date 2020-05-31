@@ -44,6 +44,9 @@ class L2Loss(Loss):
 
 
 class MeanSquareLoss(Loss):
+    """
+    mean square loss
+    """
     def __init__(self):
         super().__init__()
 
@@ -52,6 +55,9 @@ class MeanSquareLoss(Loss):
 
 
 class MeanAbsoluteLoss(Loss):
+    """
+    mean absolute loss
+    """
     def __init__(self):
         super().__init__()
 
@@ -60,6 +66,9 @@ class MeanAbsoluteLoss(Loss):
 
 
 class L1LossTorch(Loss):
+    """
+    pytorch's l1loss for tensors.
+    """
     def __init__(self):
         super().__init__()
 
@@ -70,6 +79,9 @@ class L1LossTorch(Loss):
 
 
 class L2LossTorch(Loss):
+    """
+    pytorch's l2loss for tensors.
+    """
     def __init__(self):
         super().__init__()
 
@@ -80,6 +92,9 @@ class L2LossTorch(Loss):
 
 
 class SmoothL1LossTorch(Loss):
+    """
+    pytorch's *smooth* l1loss for tensors.
+    """
     def __init__(self):
         super().__init__()
 
