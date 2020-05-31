@@ -162,6 +162,34 @@
 <span class="n">CONFIGDIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">REPODIR</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="check_data"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.check_data">[docs]</a><span class="k">def</span> <span class="nf">check_data</span><span class="p">(</span><span class="n">y_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">ylabels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;y_dict be a dictionary&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_dict</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">methods</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">y_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">y_dict</span><span class="p">[</span><span class="n">methods</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;y_dict&#39;s values must be np.ndarray&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Data is empty&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The dimension of each method&#39;s data should be 2&quot;</span><span class="p">)</span>
+
+    <span class="n">n_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">n_row</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ylabels</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n_row</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;len of ylabels should be the </span><span class="si">{</span><span class="n">n_row</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">methods</span><span class="p">,</span> <span class="n">n_data</span><span class="p">,</span> <span class="n">n_row</span></div>
+
+
 <div class="viewcode-block" id="is_first"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.is_first">[docs]</a><span class="k">def</span> <span class="nf">is_first</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns whether it&#39;s the first row/column</span>
@@ -176,10 +204,61 @@
     <span class="k">return</span> <span class="n">i</span> <span class="o">==</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="plot_side_by_side"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.plot_side_by_side">[docs]</a><span class="k">def</span> <span class="nf">plot_side_by_side</span><span class="p">(</span><span class="n">y1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-                      <span class="n">title1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">title2</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<div class="viewcode-block" id="is_left"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.is_left">[docs]</a><span class="k">def</span> <span class="nf">is_left</span><span class="p">(</span><span class="n">n_row</span><span class="p">,</span> <span class="n">n_col</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="n">n_col</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="calc_ylim"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.calc_ylim">[docs]</a><span class="k">def</span> <span class="nf">calc_ylim</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+    <span class="n">y_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">y_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">y_range</span> <span class="o">=</span> <span class="n">y_max</span> <span class="o">-</span> <span class="n">y_min</span>
+    <span class="n">y_min</span> <span class="o">-=</span> <span class="n">margin</span> <span class="o">*</span> <span class="n">y_range</span>
+    <span class="n">y_max</span> <span class="o">+=</span> <span class="n">margin</span> <span class="o">*</span> <span class="n">y_range</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ylims_by_rows"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.ylims_by_rows">[docs]</a><span class="k">def</span> <span class="nf">ylims_by_rows</span><span class="p">(</span><span class="n">y_dict</span><span class="p">):</span>
+    <span class="n">n_row</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">y_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">ylims</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i_row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_row</span><span class="p">):</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="k">for</span> <span class="n">each_y</span> <span class="ow">in</span> <span class="n">y_dict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="c1"># Compute y_min and y_max for the combined data y</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">y</span><span class="p">,</span> <span class="n">each_y</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">]))</span>
+        <span class="n">ylim</span> <span class="o">=</span> <span class="n">calc_ylim</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">ylims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ylim</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ylims</span></div>
+
+
+<div class="viewcode-block" id="set_captions"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.set_captions">[docs]</a><span class="k">def</span> <span class="nf">set_captions</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabels</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="n">i_row</span><span class="p">,</span> <span class="n">n_row</span><span class="p">,</span> <span class="n">n_col</span><span class="p">):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ylims</span><span class="p">[</span><span class="n">i_row</span><span class="p">])</span>
+
+    <span class="c1"># Set ylabel at the most left</span>
+    <span class="k">if</span> <span class="n">is_left</span><span class="p">(</span><span class="n">n_row</span><span class="p">,</span> <span class="n">n_col</span><span class="p">,</span> <span class="n">n_col</span><span class="o">*</span><span class="n">i_row</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabels</span><span class="p">[</span><span class="n">i_row</span><span class="p">])</span>
+    <span class="c1"># Set Title at the top</span>
+    <span class="k">if</span> <span class="n">is_first</span><span class="p">(</span><span class="n">i_row</span><span class="p">):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="c1"># Set xlabel at the bottom</span>
+    <span class="k">if</span> <span class="n">is_last</span><span class="p">(</span><span class="n">i_row</span><span class="p">,</span> <span class="n">n_row</span><span class="p">):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="savefig"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.savefig">[docs]</a><span class="k">def</span> <span class="nf">savefig</span><span class="p">(</span><span class="n">dirname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">IMGDIR</span><span class="p">,</span> <span class="n">dirname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
+    <span class="n">savepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">savepath</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;image saved to </span><span class="si">{</span><span class="n">savepath</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_side_by_side"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.plot_side_by_side">[docs]</a><span class="k">def</span> <span class="nf">plot_side_by_side</span><span class="p">(</span><span class="n">y_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                      <span class="n">xlabel</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                       <span class="n">ylabels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ax&#39;</span><span class="p">,</span> <span class="s1">&#39;ay&#39;</span><span class="p">,</span> <span class="s1">&#39;az&#39;</span><span class="p">],</span>
-                      <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                      <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot data side by side: `y1` on the left and `y2` on the right</span>
 
@@ -202,52 +281,31 @@
 <span class="sd">    `show`: `bool`</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">y1</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">y2</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;y1 and y2 cannot be empty&#39;</span><span class="p">)</span>
-        <span class="k">return</span>
+    <span class="n">methods</span><span class="p">,</span> <span class="n">n_data</span><span class="p">,</span> <span class="n">n_row</span><span class="p">,</span> <span class="o">=</span> <span class="n">check_data</span><span class="p">(</span><span class="n">y_dict</span><span class="p">,</span> <span class="n">ylabels</span><span class="p">)</span>
+    <span class="n">n_method</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">methods</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_data</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">x</span>
 
-    <span class="k">if</span> <span class="n">y1</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">y2</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;y1 and y2 must be same size&#39;</span><span class="p">)</span>
-
-    <span class="n">n_data</span> <span class="o">=</span> <span class="n">y1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">n_row</span> <span class="o">=</span> <span class="n">y1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_data</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ylabels</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n_row</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;num of ylabels must be </span><span class="si">{</span><span class="n">n_row</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="c1"># compute ylim</span>
+    <span class="n">ylims</span> <span class="o">=</span> <span class="n">ylims_by_rows</span><span class="p">(</span><span class="n">y_dict</span><span class="p">)</span>
 
     <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
 
     <span class="c1"># For All Data/Rows</span>
-    <span class="k">for</span> <span class="n">i_row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_row</span><span class="p">):</span>
-        <span class="n">ax_left</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">n_row</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">i_row</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">ax_right</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">n_row</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">i_row</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span>
-        <span class="c1"># Compute y_min and y_max for the combined data y</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">y1</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">],</span> <span class="n">y2</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">]))</span>
-        <span class="n">y_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-        <span class="n">y_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-        <span class="n">y_range</span> <span class="o">=</span> <span class="n">y_max</span> <span class="o">-</span> <span class="n">y_min</span>
-        <span class="n">y_min</span> <span class="o">-=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">y_range</span>
-        <span class="n">y_max</span> <span class="o">+=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">y_range</span>
-        <span class="c1"># Plot Left</span>
-        <span class="n">ax_left</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y1</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">])</span>
-        <span class="n">ax_left</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">])</span>
-        <span class="n">ax_left</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabels</span><span class="p">[</span><span class="n">i_row</span><span class="p">])</span>
-        <span class="c1"># Plot Right</span>
-        <span class="n">ax_right</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y2</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">])</span>
-        <span class="n">ax_right</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">])</span>
-
-        <span class="c1"># Set Title at the top</span>
-        <span class="k">if</span> <span class="n">is_first</span><span class="p">(</span><span class="n">i_row</span><span class="p">):</span>
-            <span class="n">ax_left</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title1</span><span class="p">)</span>
-            <span class="n">ax_right</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title2</span><span class="p">)</span>
-        <span class="c1"># Set Xlabel at the bottom</span>
-        <span class="k">if</span> <span class="n">is_last</span><span class="p">(</span><span class="n">i_row</span><span class="p">,</span> <span class="n">n_row</span><span class="p">):</span>
-            <span class="n">ax_left</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
-            <span class="n">ax_right</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i_col</span><span class="p">,</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">each_y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">y_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="k">for</span> <span class="n">i_row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_row</span><span class="p">):</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">n_row</span><span class="p">,</span> <span class="n">n_method</span><span class="p">,</span> <span class="n">n_method</span><span class="o">*</span><span class="n">i_row</span><span class="o">+</span><span class="n">i_col</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># Plot Left</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">each_y</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">])</span>
+            <span class="n">set_captions</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabels</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="n">i_row</span><span class="p">,</span> <span class="n">n_row</span><span class="p">,</span> <span class="n">n_method</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+        <span class="n">savefig</span><span class="p">(</span><span class="n">dirname</span><span class="o">=</span><span class="s1">&#39;plot_side_by_side&#39;</span><span class="p">,</span>
+                <span class="n">filename</span><span class="o">=</span><span class="n">title</span><span class="o">+</span><span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="plot_in_one_graph"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.plot_in_one_graph">[docs]</a><span class="k">def</span> <span class="nf">plot_in_one_graph</span><span class="p">(</span><span class="n">y_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">ylabels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">xlabel</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># noqa:C901</span>
@@ -279,75 +337,35 @@
 <span class="sd">    `save`: `bool`</span>
 <span class="sd">        Save plot</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;y_dict be a dictionary&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_dict</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span>
-
-    <span class="n">methods</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">y_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">y_dict</span><span class="p">[</span><span class="n">methods</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;y_dict&#39;s values must be np.ndarray&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Data is empty&#39;</span><span class="p">)</span>
-        <span class="k">return</span>
-
-    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The dimension of each method&#39;s data should be 2&quot;</span><span class="p">)</span>
-
-    <span class="n">n_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">n_row</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">n_data</span><span class="p">,</span> <span class="n">n_row</span><span class="p">,</span> <span class="o">=</span> <span class="n">check_data</span><span class="p">(</span><span class="n">y_dict</span><span class="p">,</span> <span class="n">ylabels</span><span class="p">)</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_data</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">x</span>
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ylabels</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n_row</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;len of ylabels should be the </span><span class="si">{</span><span class="n">n_row</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="c1"># compute ylim</span>
+    <span class="n">ylims</span> <span class="o">=</span> <span class="n">ylims_by_rows</span><span class="p">(</span><span class="n">y_dict</span><span class="p">)</span>
 
     <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
 
     <span class="k">for</span> <span class="n">i_row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_row</span><span class="p">):</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">n_row</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i_row</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
         <span class="c1"># Plot and combine all data at the same time</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
-        <span class="k">for</span> <span class="n">method</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">y_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
-            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">y</span><span class="p">,</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">method</span><span class="p">,</span> <span class="n">each_y</span> <span class="ow">in</span> <span class="n">y_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">each_y</span><span class="p">[:,</span> <span class="n">i_row</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
 
-        <span class="c1"># Compute y_min and y_max for the combined data y</span>
-        <span class="n">y_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-        <span class="n">y_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-        <span class="n">y_range</span> <span class="o">=</span> <span class="n">y_max</span> <span class="o">-</span> <span class="n">y_min</span>
-        <span class="n">y_min</span> <span class="o">-=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">y_range</span>
-        <span class="n">y_max</span> <span class="o">+=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">y_range</span>
-        <span class="c1"># For all Row</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabels</span><span class="p">[</span><span class="n">i_row</span><span class="p">])</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">])</span>
-        <span class="c1"># Set title at the top</span>
-        <span class="k">if</span> <span class="n">is_first</span><span class="p">(</span><span class="n">i_row</span><span class="p">):</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span>
-        <span class="c1"># Set xlable at the bottom</span>
-        <span class="k">if</span> <span class="n">is_last</span><span class="p">(</span><span class="n">i_row</span><span class="p">,</span> <span class="n">n_row</span><span class="p">):</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+        <span class="n">set_captions</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabels</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="n">i_row</span><span class="p">,</span> <span class="n">n_row</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
     <span class="c1"># Save to IMGDIR/plot_in_one_graph directory</span>
     <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
-        <span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">IMGDIR</span><span class="p">,</span> <span class="s1">&#39;plot_in_one_graph&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
-        <span class="n">savepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">title</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">savepath</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;image saved to </span><span class="si">{</span><span class="n">savepath</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-
+        <span class="n">savefig</span><span class="p">(</span><span class="n">dirname</span><span class="o">=</span><span class="s1">&#39;plot_in_one_graph&#39;</span><span class="p">,</span>
+                <span class="n">filename</span><span class="o">=</span><span class="n">title</span><span class="o">+</span><span class="s1">&#39;.png&#39;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="verify_noise_added_correctly"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.verify_noise_added_correctly">[docs]</a><span class="k">def</span> <span class="nf">verify_noise_added_correctly</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pose_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-                                 <span class="n">joint_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">imu_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                                 <span class="n">joint_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">su_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
                                  <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">outlier_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">):</span>
 
     <span class="c1"># Add Noise</span>
@@ -364,61 +382,58 @@
     <span class="n">accelerations</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">accelerations_noise</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_static_pose</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">imu</span> <span class="ow">in</span> <span class="n">imu_names</span><span class="p">:</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">imu</span><span class="p">]</span>
-            <span class="n">d_n</span> <span class="o">=</span> <span class="n">data_noise</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">imu</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">su</span> <span class="ow">in</span> <span class="n">su_names</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">su</span><span class="p">]</span>
+            <span class="n">d_n</span> <span class="o">=</span> <span class="n">data_noise</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">su</span><span class="p">]</span>
             <span class="n">accelerations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">])</span>
             <span class="n">accelerations_noise</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d_n</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">])</span>
     <span class="n">accelerations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">accelerations</span><span class="p">)</span>
     <span class="n">accelerations_noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">accelerations_noise</span><span class="p">)</span>
     <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">accelerations</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">y_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Accelerations&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">accelerations</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="s1">&#39;Accelerations + Noise&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">accelerations_noise</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)}</span>
     <span class="c1"># Plot</span>
     <span class="n">plot_side_by_side</span><span class="p">(</span>
-        <span class="n">y1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">accelerations</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
-        <span class="n">y2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">accelerations_noise</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
-        <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Data Points&#39;</span><span class="p">,</span>
-        <span class="n">title1</span><span class="o">=</span><span class="s1">&#39;Accelerations&#39;</span><span class="p">,</span>
-        <span class="n">title2</span><span class="o">=</span><span class="s1">&#39;Accelerations + Noise&#39;</span><span class="p">)</span>
+        <span class="n">y_dict</span><span class="o">=</span><span class="n">y_dict</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Static Acceleration&#39;</span><span class="p">,</span>
+        <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Data Points&#39;</span><span class="p">)</span>
 
     <span class="c1"># Plot Dynamic Acceleration Data vs. Noise Added</span>
     <span class="c1"># Prepare Data (Append single data points to a list)</span>
-    <span class="n">accelerations</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">accelerations_noise</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dynamic_pose</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joint_names</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">imu</span> <span class="ow">in</span> <span class="n">imu_names</span><span class="p">:</span>
-                <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">joint</span><span class="p">][</span><span class="n">imu</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">d_n</span> <span class="o">=</span> <span class="n">data_noise</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">joint</span><span class="p">][</span><span class="n">imu</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">accelerations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
-                <span class="n">accelerations_noise</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d_n</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
-    <span class="n">accelerations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">accelerations</span><span class="p">)</span>
-    <span class="n">accelerations_noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">accelerations_noise</span><span class="p">)</span>
-    <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">accelerations</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="c1"># Plot</span>
-    <span class="n">plot_side_by_side</span><span class="p">(</span>
-        <span class="n">y1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">accelerations</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
-        <span class="n">y2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">accelerations_noise</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
-        <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Data Points&#39;</span><span class="p">,</span>
-        <span class="n">title1</span><span class="o">=</span><span class="s1">&#39;Accelerations&#39;</span><span class="p">,</span>
-        <span class="n">title2</span><span class="o">=</span><span class="s1">&#39;Accelerations + Noise&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">su</span> <span class="ow">in</span> <span class="n">su_names</span><span class="p">:</span>
+                <span class="n">accelerations</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">joint</span><span class="p">][</span><span class="n">su</span><span class="p">][:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">accelerations_noise</span> <span class="o">=</span> <span class="n">data_noise</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">joint</span><span class="p">][</span><span class="n">su</span><span class="p">][:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">y_dict</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;Accelerations&#39;</span><span class="p">:</span> <span class="n">accelerations_noise</span><span class="p">,</span>
+                    <span class="s1">&#39;Accelerations + Noise&#39;</span><span class="p">:</span> <span class="n">accelerations_noise</span><span class="p">}</span>
+                <span class="c1"># Plot</span>
+                <span class="n">plot_side_by_side</span><span class="p">(</span>
+                    <span class="n">y_dict</span><span class="o">=</span><span class="n">y_dict</span><span class="p">,</span>
+                    <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">joint</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">su</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Data Points&#39;</span><span class="p">)</span>
 
     <span class="c1"># Plot Constant Acceleration Data vs. Noise Added</span>
     <span class="c1"># Prepare Data</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_constant_pose</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">joint_names</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">imu</span> <span class="ow">in</span> <span class="n">imu_names</span><span class="p">:</span>
-                <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">joint</span><span class="p">][</span><span class="n">imu</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">d_n</span> <span class="o">=</span> <span class="n">data_noise</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">joint</span><span class="p">][</span><span class="n">imu</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">su</span> <span class="ow">in</span> <span class="n">su_names</span><span class="p">:</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">joint</span><span class="p">][</span><span class="n">su</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">d_n</span> <span class="o">=</span> <span class="n">data_noise</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">joint</span><span class="p">][</span><span class="n">su</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">accelerations</span> <span class="o">=</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span>
                 <span class="n">accelerations_noise</span> <span class="o">=</span> <span class="n">d_n</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">joint</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">imu</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">joint</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">su</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">y_dict</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;Accelerations&#39;</span><span class="p">:</span> <span class="n">accelerations_noise</span><span class="p">,</span>
+                    <span class="s1">&#39;Accelerations + Noise&#39;</span><span class="p">:</span> <span class="n">accelerations_noise</span><span class="p">}</span>
                 <span class="c1"># Plot</span>
                 <span class="n">plot_side_by_side</span><span class="p">(</span>
-                    <span class="n">y1</span><span class="o">=</span><span class="n">accelerations</span><span class="p">,</span>
-                    <span class="n">y2</span><span class="o">=</span><span class="n">accelerations_noise</span><span class="p">,</span>
-                    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Data Points&#39;</span><span class="p">,</span>
-                    <span class="n">title1</span><span class="o">=</span><span class="s1">&#39;Accelerations&#39;</span><span class="p">,</span>
-                    <span class="n">title2</span><span class="o">=</span><span class="s1">&#39;Accelerations + Noise&#39;</span><span class="p">)</span></div>
+                    <span class="n">y_dict</span><span class="o">=</span><span class="n">y_dict</span><span class="p">,</span>
+                    <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">joint</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">su</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">pose_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Data Points&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="verify_acceleration_estimate"><a class="viewcode-back" href="../../../../robotic_skin.examples.calibration.html#robotic_skin.examples.calibration.plot_data.verify_acceleration_estimate">[docs]</a><span class="k">def</span> <span class="nf">verify_acceleration_estimate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pose_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
@@ -435,8 +450,8 @@
     <span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;analytical&#39;</span><span class="p">,</span> <span class="s1">&#39;mittendorfer&#39;</span><span class="p">]</span>
 
     <span class="n">indices</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;measured&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-        <span class="s1">&#39;joints&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span>
+        <span class="s1">&#39;measured&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;joints&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
         <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
         <span class="s1">&#39;angaccel&#39;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
         <span class="s1">&#39;angvel&#39;</span><span class="p">:</span> <span class="mi">13</span>
