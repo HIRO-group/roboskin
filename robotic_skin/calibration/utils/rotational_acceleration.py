@@ -87,7 +87,7 @@ def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su, method,
             return su_At
 
         if method == 'modified_mittendorfer':
-            su_g + su_Ac + su_At
+            return su_g + su_Ac + su_At
 
     su_At = remove_centripetal_component(rs_A, rs_T_dof, dof_T_su)
 

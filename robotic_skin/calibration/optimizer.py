@@ -398,7 +398,7 @@ class OurMethodOptimizer(SeparateIncrementalOptimizer):
             'Orientation': StaticErrorFunction(L2Loss())}
         stop_conditions = {
             'Position': DeltaXStopCondition(),
-            'Orientation': PassThroughStopCondition(),
+            'Orientation': DeltaXStopCondition(threshold=0.000001),
         }
 
         if isinstance(error_functions_, dict):
