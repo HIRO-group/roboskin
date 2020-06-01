@@ -227,12 +227,13 @@ def compute_tangential_acceleration_numerically_torch(kinematic_chain, i_rotate_
 
     # Compute a tangential vector
     # (Tangential to a circle at time t)
-    e_t = torch.cross([0, 0, 1], dof_T_su.position)
+    temp_tensor = torch.tensor([0, 0, 1]).double().cuda()
+    e_t = torch.cross(temp_tensor, dof_T_su.position)
     e_t = e_t / torch.norm(e_t)
 
     # Only retrieve the tangential element of dof_A,
     # because dof_A also includes unnecessary centripetal acceleration
-    dof_At = e_t * torch.mm(e_t, dof_A.view(3, 1)).view(-1)
+    dof_At = e_t * torch.mm(e_t.view(1, 3), dof_A.view(3, 1)).view(-1)
     su_At = torch.mm(dof_T_su.R.T, dof_At.view(3, 1)).view(-1)
 
     return su_At
