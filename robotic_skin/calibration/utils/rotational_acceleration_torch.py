@@ -1,9 +1,10 @@
 
 import torch
 
+
 def estimate_acceleration_torch(kinematic_chain, i_rotate_joint, i_su,
-                          joint_angular_velocity, joint_angular_acceleration=0,
-                          current_time=0, angle_func=None, method='analytical'):
+                                joint_angular_velocity, joint_angular_acceleration=0,
+                                current_time=0, angle_func=None, method='analytical'):
     r"""
     Compute an acceleration value from positions.
     .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`
@@ -114,8 +115,8 @@ def tangential_acceleration_torch(r, alpha):
 
 
 def compute_acceleration_analytically_torch(inert_w_body, inert_r_body, inert_alpha_body,
-                                      body_R_inert=None, body_R_world=None, inert_R_world=None,
-                                      coordinate='body'):
+                                            body_R_inert=None, body_R_world=None, inert_R_world=None,
+                                            coordinate='body'):
     """
     There are 3 coordinates to remember.
     1. World Frame (Fixed to the world)
@@ -163,7 +164,7 @@ def compute_acceleration_analytically_torch(inert_w_body, inert_r_body, inert_al
 
     else:
         raise ValueError(f'Coordinate name "{coordinate}" is invalid\n' +
-                       'Please choose from "body", "inertial", or "world"')
+                         'Please choose from "body", "inertial", or "world"')
 
 
 def compute_2nd_order_derivative_torch(x_func, t=0, dt=0.001):
@@ -185,7 +186,7 @@ def compute_2nd_order_derivative_torch(x_func, t=0, dt=0.001):
 
 
 def compute_tangential_acceleration_numerically_torch(kinematic_chain, i_rotate_joint, i_su,
-                                                current_time, angle_func):
+                                                      current_time, angle_func):
     """
     Returns tangential acceleration in RS coordinate.
     The acceleration is computed by taking 2nd derivative of the position.

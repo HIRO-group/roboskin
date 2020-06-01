@@ -64,7 +64,6 @@ class StaticErrorFunctionTorch(ErrorFunction):
 
         error_quaternion = torch.zeros(self.n_static_pose).double().cuda()
 
-
         for p in range(self.n_static_pose):
             poses = self.data.static[self.pose_names[p]][self.imu_names[i_su]][7:14]
             kinematic_chain.set_poses(poses)
@@ -142,9 +141,9 @@ class ConstantRotationErrorFunctionTorch(ErrorFunction):
                     # TODO: parse start_joint. Currently, there is a bug
                     kinematic_chain.set_poses(poses, end_joint=i_joint)
                     model_accel_torch = estimate_acceleration_torch(kinematic_chain=kinematic_chain,
-                                                        i_rotate_joint=d_joint,
-                                                        i_su=i_su,
-                                                        joint_angular_velocity=angular_velocity_torch)
+                                                                    i_rotate_joint=d_joint,
+                                                                    i_su=i_su,
+                                                                    joint_angular_velocity=angular_velocity_torch)
 
                     # logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t' +
                     #               f'Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}')
@@ -219,7 +218,6 @@ class MaxAccelerationErrorFunctionTorch(ErrorFunction):
                     joint_angular_acceleration = joint_angular_accelerations[idx]
                     joint_angular_velocity = joint_angular_velocities[idx]
 
-
                     # kinematic_chain.set_poses(joints)
                     kinematic_chain.set_poses(poses, end_joint=i_joint)
                     # use mittendorfer's original or modified based on condition
@@ -236,9 +234,8 @@ class MaxAccelerationErrorFunctionTorch(ErrorFunction):
                     # logging.debug(f'[{pose}, {joint}, {su}@Joint{i_joint}]\t' +
                     #               f'Model: {n2s(estimate_A, 4)} SU: {n2s(measured_A, 4)}')
                     measured_A_tensor = torch.tensor(measured_A).double().cuda()
-                        # print(max_accel_model.detach().numpy(), max_accel_train)
+                    # print(max_accel_model.detach().numpy(), max_accel_train)
                     error = torch.sum(torch.abs(measured_A_tensor - estimate_A_tensor)**2)
-
 
                     e2 += error
                     n_data += 1

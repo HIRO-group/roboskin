@@ -263,6 +263,11 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
 
 class CombinedErrorFunction(ErrorFunction):
+    """
+    combined error function that allows for
+    the error based on the cumulative sum of error
+    functions.
+    """
     def __init__(self, **kwargs):
         self.error_funcs = []
         for k, v in kwargs.items():

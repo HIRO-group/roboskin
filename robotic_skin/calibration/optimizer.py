@@ -189,7 +189,6 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
             )
         stop_condition = DeltaXStopCondition()
 
-
         if isinstance(error_function_, ErrorFunction):
             error_function = error_function_
         if isinstance(stop_condition_, StopCondition):
@@ -336,14 +335,13 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         self.local_step = 0
         self.stop_conditions.initialize()
 
-
         opt = nlopt.opt(nlopt.GD_MLSL_LDS, self.n_param)
 
         # The objective function only accepts x and grad arguments.
         # This is the only way to pass other arguments to opt
         # https://github.com/JuliaOpt/NLopt.jl/issues/27
         self.previous_params = None
-        # 
+        #
         opt.set_min_objective(self.nlopt_objective)
         # Set boundaries
         opt.set_lower_bounds(bounds[:, 0])
@@ -606,7 +604,6 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
         T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type='eval')
         errors = self.evaluator.evaluate(i_su=self.i_su, T=T)
         # Log
-        print(params)
         self.data_logger.add_trial(
             global_step=self.global_step,
             params=params,

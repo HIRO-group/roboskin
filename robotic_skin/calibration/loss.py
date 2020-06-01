@@ -1,5 +1,4 @@
 import numpy as np
-import torch
 import torch.nn as nn
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
