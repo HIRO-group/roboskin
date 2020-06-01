@@ -14,7 +14,7 @@ from robotic_skin.calibration.error_functions import (
 from robotic_skin.calibration.stop_conditions import (
     StopCondition,
     DeltaXStopCondition,
-    PassThroughStopCondition
+    # PassThroughStopCondition
 )
 from robotic_skin.calibration.loss import L2Loss
 from robotic_skin.calibration.utils.io import n2s
