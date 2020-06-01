@@ -390,8 +390,8 @@ rs_g = rs_R_su * su_g = su_R_rs.T * su_g</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="robotic_skin.calibration.utils.rotational_acceleration.compute_tangential_acceleration_numerically">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration.</code><code class="sig-name descname">compute_tangential_acceleration_numerically</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">i_rotate_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">current_time</span></em>, <em class="sig-param"><span class="n">angle_func</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration.html#compute_tangential_acceleration_numerically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration.compute_tangential_acceleration_numerically" title="Permalink to this definition">¶</a></dt>
+<dt id="robotic_skin.calibration.utils.rotational_acceleration.compute_acceleration_numerically">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration.</code><code class="sig-name descname">compute_acceleration_numerically</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">i_rotate_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">current_time</span></em>, <em class="sig-param"><span class="n">angle_func</span></em>, <em class="sig-param"><span class="n">method</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration.html#compute_acceleration_numerically"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration.compute_acceleration_numerically" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns tangential acceleration in RS coordinate.
 The acceleration is computed by taking 2nd derivative of the position.
 This small change in position in Rotating Coordinate is only in the
@@ -412,7 +412,7 @@ from this method.</p>
 
 <dl class="py function">
 <dt id="robotic_skin.calibration.utils.rotational_acceleration.estimate_acceleration">
-<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration.</code><code class="sig-name descname">estimate_acceleration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">i_rotate_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">joint_angular_velocity</span></em>, <em class="sig-param"><span class="n">joint_angular_acceleration</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">current_time</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">angle_func</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'analytical'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration.html#estimate_acceleration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration.estimate_acceleration" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration.</code><code class="sig-name descname">estimate_acceleration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">i_rotate_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">method</span></em>, <em class="sig-param"><span class="n">joint_angular_velocity</span></em>, <em class="sig-param"><span class="n">joint_angular_acceleration</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">current_time</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">angle_func</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration.html#estimate_acceleration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration.estimate_acceleration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute an acceleration value from positions.
 .. math:: <cite>a = frac{f({Delta t}) + f({Delta t) - 2 f(0)}{h^2}</cite></p>
 <p>This equation came from Taylor Expansion to get the second derivative from f(t).
@@ -428,12 +428,17 @@ from this method.</p>
 <li><p><strong>joint_angular_velocity</strong> (<cite>float</cite>) – Angular velocity</p></li>
 <li><p><strong>'max_angular_velocity'</strong> (<em>'float'</em>) – Maximum angular velocity</p></li>
 <li><p><strong>current_time</strong> (<cite>float</cite>) – Current Time</p></li>
-<li><p><strong>method</strong> (<cite>str</cite>) – Determines if we are using <cite>analytical</cite>, <cite>normal_mittendorfer</cite> or <cite>mittendorfer</cite>
+<li><p><strong>method</strong> (<cite>str</cite>) – Determines if we are using <cite>analytical</cite>, <cite>our</cite>, <cite>mittendorfer</cite> or <cite>modified_mittendorfer</cite>
 methods (which we modified due to some possible missing terms).</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration.remove_centripetal_component">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration.</code><code class="sig-name descname">remove_centripetal_component</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rs_A</span></em>, <em class="sig-param"><span class="n">rs_T_dof</span></em>, <em class="sig-param"><span class="n">dof_T_su</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration.html#remove_centripetal_component"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration.remove_centripetal_component" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt id="robotic_skin.calibration.utils.rotational_acceleration.tangential_acceleration">

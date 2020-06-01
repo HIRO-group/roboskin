@@ -148,9 +148,9 @@
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
-<div class="viewcode-block" id="estimate_acceleration"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.rotational_acceleration.estimate_acceleration">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_rotate_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span>
+<div class="viewcode-block" id="estimate_acceleration"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.rotational_acceleration.estimate_acceleration">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_rotate_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span>
                           <span class="n">joint_angular_velocity</span><span class="p">,</span> <span class="n">joint_angular_acceleration</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                          <span class="n">current_time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">angle_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;analytical&#39;</span><span class="p">):</span>
+                          <span class="n">current_time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">angle_func</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute an acceleration value from positions.</span>
 <span class="sd">    .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`</span>
@@ -176,10 +176,10 @@
 <span class="sd">    `current_time`: `float`</span>
 <span class="sd">        Current Time</span>
 <span class="sd">    `method`: `str`</span>
-<span class="sd">        Determines if we are using `analytical`, `normal_mittendorfer` or `mittendorfer`</span>
+<span class="sd">        Determines if we are using `analytical`, `our`, `mittendorfer` or `modified_mittendorfer`</span>
 <span class="sd">        methods (which we modified due to some possible missing terms).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;analytical&#39;</span><span class="p">,</span> <span class="s1">&#39;mittendorfer&#39;</span><span class="p">,</span> <span class="s1">&#39;normal_mittendorfer&#39;</span><span class="p">]</span>
+    <span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;analytical&#39;</span><span class="p">,</span> <span class="s1">&#39;our&#39;</span><span class="p">,</span> <span class="s1">&#39;mittendorfer&#39;</span><span class="p">,</span> <span class="s1">&#39;modified_mittendorfer&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">methods</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;There is no method called </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span>
                          <span class="sa">f</span><span class="s1">&#39;Please Choose from </span><span class="si">{</span><span class="n">methods</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -195,6 +195,10 @@
     <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span>
         <span class="n">start_joint</span><span class="o">=</span><span class="n">i_rotate_joint</span><span class="p">,</span>
         <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
+        <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
+
+    <span class="n">rs_T_dof</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_joint_TM</span><span class="p">(</span>
+        <span class="n">i_joint</span><span class="o">=</span><span class="n">i_rotate_joint</span><span class="p">,</span>
         <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
 
     <span class="c1"># In any joint (DoF) coordinate,</span>
@@ -215,18 +219,25 @@
         <span class="k">return</span> <span class="n">su_g</span> <span class="o">+</span> <span class="n">su_Ac</span> <span class="o">+</span> <span class="n">su_At</span>
 
     <span class="c1"># The following will run if method is mittendorfer&#39;s method</span>
-    <span class="n">su_At</span> <span class="o">=</span> <span class="n">compute_tangential_acceleration_numerically</span><span class="p">(</span>
+    <span class="n">rs_A</span> <span class="o">=</span> <span class="n">compute_acceleration_numerically</span><span class="p">(</span>
         <span class="n">kinematic_chain</span><span class="o">=</span><span class="n">kinematic_chain</span><span class="p">,</span>
         <span class="n">i_rotate_joint</span><span class="o">=</span><span class="n">i_rotate_joint</span><span class="p">,</span>
         <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
         <span class="n">current_time</span><span class="o">=</span><span class="n">current_time</span><span class="p">,</span>
-        <span class="n">angle_func</span><span class="o">=</span><span class="n">angle_func</span><span class="p">)</span>
+        <span class="n">angle_func</span><span class="o">=</span><span class="n">angle_func</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;normal_mittendorfer&#39;</span><span class="p">:</span>
-        <span class="c1"># return su_At</span>
-        <span class="k">return</span> <span class="n">su_g</span> <span class="o">+</span> <span class="n">su_At</span>
+    <span class="k">if</span> <span class="s1">&#39;mittendorfer&#39;</span> <span class="ow">in</span> <span class="n">method</span><span class="p">:</span>
+        <span class="n">su_At</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rs_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">rs_A</span><span class="p">)</span>
 
-    <span class="c1"># Every joint rotates along its own z axis, one joint moves at a time</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;mittendorfer&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">su_At</span>
+
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;modified_mittendorfer&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">su_g</span> <span class="o">+</span> <span class="n">su_Ac</span> <span class="o">+</span> <span class="n">su_At</span>
+
+    <span class="n">su_At</span> <span class="o">=</span> <span class="n">remove_centripetal_component</span><span class="p">(</span><span class="n">rs_A</span><span class="p">,</span> <span class="n">rs_T_dof</span><span class="p">,</span> <span class="n">dof_T_su</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">su_g</span> <span class="o">+</span> <span class="n">su_Ac</span> <span class="o">+</span> <span class="n">su_At</span></div>
 
 
@@ -331,8 +342,8 @@
     <span class="k">return</span> <span class="p">((</span><span class="n">x_func</span><span class="p">(</span><span class="n">t</span><span class="o">+</span><span class="n">dt</span><span class="p">)</span> <span class="o">+</span> <span class="n">x_func</span><span class="p">(</span><span class="n">t</span><span class="o">-</span><span class="n">dt</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">x_func</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">dt</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="compute_tangential_acceleration_numerically"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.rotational_acceleration.compute_tangential_acceleration_numerically">[docs]</a><span class="k">def</span> <span class="nf">compute_tangential_acceleration_numerically</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_rotate_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span>
-                                                <span class="n">current_time</span><span class="p">,</span> <span class="n">angle_func</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_acceleration_numerically"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.rotational_acceleration.compute_acceleration_numerically">[docs]</a><span class="k">def</span> <span class="nf">compute_acceleration_numerically</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_rotate_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span>
+                                     <span class="n">current_time</span><span class="p">,</span> <span class="n">angle_func</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns tangential acceleration in RS coordinate.</span>
 <span class="sd">    The acceleration is computed by taking 2nd derivative of the position.</span>
@@ -362,13 +373,11 @@
 
     <span class="c1"># Compute the Acceleration from 3 close positions</span>
     <span class="n">rs_A</span> <span class="o">=</span> <span class="n">compute_2nd_order_derivative</span><span class="p">(</span><span class="n">x_func</span><span class="o">=</span><span class="n">current_su_position</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">current_time</span><span class="p">)</span>
-    <span class="c1"># Compute current Angle during sinuosoidal motion</span>
-    <span class="n">angle</span> <span class="o">=</span> <span class="n">angle_func</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">current_time</span><span class="p">)</span>
-    <span class="c1"># Get current transformation matrix of SU defined in dof coordinate</span>
-    <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">init_temp_TM</span><span class="p">(</span><span class="n">i_joint</span><span class="o">=</span><span class="n">i_rotate_joint</span><span class="p">,</span> <span class="n">additional_pose</span><span class="o">=</span><span class="n">angle</span><span class="p">)</span>
-    <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span> <span class="n">start_joint</span><span class="o">=</span><span class="n">i_rotate_joint</span><span class="p">)</span>
-    <span class="c1"># dof defined in rs coordinate</span>
-    <span class="n">rs_T_dof</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_joint_TM</span><span class="p">(</span><span class="n">i_joint</span><span class="o">=</span><span class="n">i_rotate_joint</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">rs_A</span></div>
+
+
+<div class="viewcode-block" id="remove_centripetal_component"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.rotational_acceleration.remove_centripetal_component">[docs]</a><span class="k">def</span> <span class="nf">remove_centripetal_component</span><span class="p">(</span><span class="n">rs_A</span><span class="p">,</span> <span class="n">rs_T_dof</span><span class="p">,</span> <span class="n">dof_T_su</span><span class="p">):</span>
     <span class="c1"># Convert rs_A to dof_A</span>
     <span class="n">dof_A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rs_T_dof</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">rs_A</span><span class="p">)</span>
 
