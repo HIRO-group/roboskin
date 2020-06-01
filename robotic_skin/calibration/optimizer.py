@@ -14,6 +14,7 @@ from robotic_skin.calibration.error_functions import (
 from robotic_skin.calibration.stop_conditions import (
     StopCondition,
     DeltaXStopCondition,
+    PassThroughStopCondition
 )
 from robotic_skin.calibration.loss import L2Loss
 from robotic_skin.calibration.utils.io import n2s
@@ -411,11 +412,11 @@ class OurMethodOptimizer(SeparateIncrementalOptimizer):
     def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all,
                  error_functions_=None, stop_conditions_=None):
         error_functions = {
-            'Position': MaxAccelerationErrorFunction(L2Loss(), method='mittendorfer'),
+            'Position': MaxAccelerationErrorFunction(L2Loss(), method='our'),
             'Orientation': StaticErrorFunction(L2Loss())}
         stop_conditions = {
             'Position': DeltaXStopCondition(),
-            'Orientation': DeltaXStopCondition(threshold=0.00001),
+            'Orientation': PassThroughStopCondition(),
         }
 
         if isinstance(error_functions_, dict):
