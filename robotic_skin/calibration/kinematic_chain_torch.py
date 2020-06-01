@@ -16,6 +16,8 @@ BOUNDS_SU = np.array([
     [-1.0, 1.0],        # d
     [-1.0, 1.0],        # a     # 0 gives error
     [-np.pi, np.pi]])   # alpha
+
+
 def construct_kinematic_chain(robot_configs: dict, imu_mappings: dict,
                               test_code=False, optimize_all=False):
     su_joint_dict = {}
@@ -493,40 +495,3 @@ class KinematicChainTorch():
         else:
             if self.sudh_dict is None:
                 self.set_sudh(i_su, params)
-
-# import os
-# import unittest
-# import numpy as np
-# import pyquaternion as pyqt
-# from robotic_skin.calibration.utils.io import load_robot_configs
-
-# repodir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-# robot_config = load_robot_configs(os.path.join(repodir, 'config'), 'panda')
-
-# linkdh_dict = robot_config['dh_parameter']
-# sudh_dict = robot_config['su_dh_parameter']
-# su_pose = robot_config['su_pose']
-
-# n_joint = len(linkdh_dict)
-# su_joint_dict = {i: i for i in range(n_joint)}
-
-# bounds = np.array([
-#     [-np.pi, np.pi],    # th
-#     [0.0, 1.0],         # d
-#     [0.0, 1.0],         # a
-#     [-np.pi, np.pi]])   # alpha
-# bounds_su = np.array([
-#     [-np.pi, np.pi],    # th
-#     [-1.0, 1.0],        # d
-#     [-np.pi, np.pi],    # th
-#     [0.0, 0.2],         # d
-#     [0.0, 0.0001],      # a     # 0 gives error
-#     [0, np.pi]])        # alpha
-# bound_dict = {'link': bounds, 'su': bounds_su}
-
-# KinematicChainTorch(
-#             n_joint=n_joint,
-#             su_joint_dict=su_joint_dict,
-#             bound_dict=bound_dict,
-#             linkdh_dict=None,
-#             sudh_dict=None)
