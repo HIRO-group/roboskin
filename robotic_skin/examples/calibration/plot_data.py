@@ -300,7 +300,7 @@ def verify_acceleration_estimate(data, pose_names: List[str],
         optimize_all=False)
 
     # Methods to Compare
-    methods = ['analytical', 'mittendorfer']
+    methods = ['analytical', 'our', 'mittendorfer']
 
     indices = {
         'measured': np.arange(0, 3),

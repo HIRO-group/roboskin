@@ -14,30 +14,13 @@ from robotic_skin.calibration.error_functions import (
 from robotic_skin.calibration.stop_conditions import (
     StopCondition,
     DeltaXStopCondition,
+    # PassThroughStopCondition
 )
 from robotic_skin.calibration.loss import L2Loss
 from robotic_skin.calibration.utils.io import n2s
 
 
 def choose_optimizer(args, kinematic_chain, evaluator, data_logger, optimize_all):
-    """
-    # These are examples of how we could parse arguments in the future ...
-    param_grid = {
-        'error_functions': CombinedErrorFunction,
-        'error_functions__e1': StaticErrorFunction,
-        'error_functions__e1__loss': [L1Loss, L2Loss],
-        'error_functions__e2': MaxAccelerationErrorFunction,
-        'error_functions__e2__loss': [L1Loss, L2Loss],
-    }
-
-    param_grid = {
-        'error_functions__Position': ConstantRotationErrorFunction,
-        'error_functions__Position__loss': [L1Loss, L2Loss],
-        'error_functions__Orientation': StaticErrorFunction,
-        'error_functions__Orientation__loss': [L1Loss, L2Loss]
-    }
-    """
-
     if args.method == 'OM':
         optimizer = OurMethodOptimizer(
             kinematic_chain, evaluator, data_logger,
@@ -45,11 +28,11 @@ def choose_optimizer(args, kinematic_chain, evaluator, data_logger, optimize_all
     elif args.method == 'MM':
         optimizer = MittendorferMethodOptimizer(
             kinematic_chain, evaluator, data_logger,
-            optimize_all, args.error_functions, args.stop_conditions, method='normal_mittendorfer')
+            optimize_all, args.error_functions, args.stop_conditions, method='mittendorfer')
     elif args.method == 'mMM':
         optimizer = MittendorferMethodOptimizer(
             kinematic_chain, evaluator, data_logger,
-            optimize_all, args.error_functions, args.stop_conditions, method='mittendorfer')
+            optimize_all, args.error_functions, args.stop_conditions, method='modified_mittendorfer')
     else:
         raise ValueError(f'There is no such method name={args.method}')
 
@@ -409,13 +392,13 @@ class MittendorferMethodOptimizer(MixedIncrementalOptimizer):
 
 class OurMethodOptimizer(SeparateIncrementalOptimizer):
     def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all,
-                 error_functions_=None, stop_conditions_=None):
+                 error_functions_=None, stop_conditions_=None, method='our'):
         error_functions = {
-            'Position': MaxAccelerationErrorFunction(L2Loss(), method='mittendorfer'),
+            'Position': MaxAccelerationErrorFunction(L2Loss(), method=method),
             'Orientation': StaticErrorFunction(L2Loss())}
         stop_conditions = {
             'Position': DeltaXStopCondition(),
-            'Orientation': DeltaXStopCondition(threshold=0.00001),
+            'Orientation': DeltaXStopCondition(threshold=0.000001),
         }
 
         if isinstance(error_functions_, dict):
