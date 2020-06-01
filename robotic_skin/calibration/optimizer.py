@@ -181,9 +181,10 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
                  optimize_all, error_function_=None, stop_condition_=None,):
 
         error_function = CombinedErrorFunction(
-            StaticErrorFunctionTorch(
+            e1=StaticErrorFunctionTorch(
                 loss=L2LossTorch()),
-            MaxAccelerationErrorFunctionTorch(
+            e2=MaxAccelerationErrorFunctionTorch(
+                method='mittendorfer',
                 loss=L2LossTorch())
             )
         stop_condition = DeltaXStopCondition()
@@ -301,7 +302,7 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         """
         error, gradients = self.get_gradients(params)
 
-        res = self.stop_conditions.update(params, None, error)
+        res, params = self.stop_conditions.update(params, None, error)
         print(error, res)
         for i in range(len(grad)):
             grad[i] = gradients[i]
@@ -319,7 +320,6 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         # print to terminal
         logging.info(f'e={error:.5f}, res={res:.5f}, params:{n2s(params, 3)}' +
                      f'P:{t2s(T.position)}, Q:{n2s(T.quaternion, 3)}')
-
         self.local_step += 1
         self.global_step += 1
 
@@ -367,6 +367,7 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         """
         Pytorch optimization. Simply calculates the gradients.
         """
+        self.data_logger.start_timer('total')
 
         # iterate through each SU
         # Initilialize error functions with data
@@ -378,9 +379,14 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         print('Skipping 0th IMU.')
         print(self.kinematic_chain.n_su)
         for i_su in range(1, self.kinematic_chain.n_su):
-            print("Optimizing %ith SU ..." % (i_su))
+
+            logging.info("Optimizing %ith SU ..." % (i_su))
+            self.data_logger.start_timer(timer_name=f'SU{i_su+1}')
+
             # optimize parameters wrt data
             params = self._optimize(i_su=i_su)
+
+            elapsed_time = self.data_logger.end_timer(timer_name=f'SU{i_su+1}')
 
             # Compute necessary data
             self.kinematic_chain.set_params_at(i_su, params)
@@ -397,11 +403,13 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
                 euclidean_distance=errors['position'],
                 quaternion_distance=errors['orientation'])
 
-            print('='*100)
-            print('Position:', T.position)
-            print('Quaternion:', T.quaternion)
-            print('Euclidean distance: ', errors['position'])
-            print('='*100)
+            logging.info('='*100)
+            logging.info(f'Position: {T.position}')
+            logging.info(f'Quaternion: {T.quaternion}')
+            logging.info(f"Euclidean distance: {errors['position']}")
+            logging.info(f'Elapsed Time {elapsed_time}')
+            logging.info('='*100)
+        elapsed_time = self.data_logger.end_timer('total')
 
 
 class MixedIncrementalOptimizer(IncrementalOptimizerBase):

@@ -2,6 +2,7 @@ import copy
 import numpy as np
 from typing import List
 from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
+from robotic_skin.calibration.kinematic_chain_torch import KinematicChainTorch
 import torch
 
 BOUNDS = np.array([
@@ -19,7 +20,8 @@ BOUNDS_SU = np.array([
 
 
 def construct_kinematic_chain(robot_configs: dict, imu_mappings: dict,
-                              test_code=False, optimize_all=False):
+                              test_code=False, optimize_all=False,
+                              is_torch=False):
     su_joint_dict = {}
     joints = []
     for imu_str, link_str in imu_mappings.items():
@@ -37,14 +39,22 @@ def construct_kinematic_chain(robot_configs: dict, imu_mappings: dict,
     linkdh_dict = None if optimize_all else robot_configs['dh_parameter']
     sudh_dict = robot_configs['su_dh_parameter'] if test_code else None
     eval_poses = np.array(robot_configs['eval_poses'])
-
-    kinematic_chain = KinematicChain(
-        n_joint=joints.size,
-        su_joint_dict=su_joint_dict,
-        bound_dict=bound_dict,
-        linkdh_dict=linkdh_dict,
-        sudh_dict=sudh_dict,
-        eval_poses=eval_poses)
+    if is_torch:
+        kinematic_chain = KinematicChainTorch(
+            n_joint=joints.size,
+            su_joint_dict=su_joint_dict,
+            bound_dict=bound_dict,
+            linkdh_dict=linkdh_dict,
+            sudh_dict=sudh_dict,
+            eval_poses=eval_poses)
+    else:
+        kinematic_chain = KinematicChain(
+            n_joint=joints.size,
+            su_joint_dict=su_joint_dict,
+            bound_dict=bound_dict,
+            linkdh_dict=linkdh_dict,
+            sudh_dict=sudh_dict,
+            eval_poses=eval_poses)
 
     if optimize_all:
         linkdh0 = np.array(robot_configs['dh_parameter']['joint1'])

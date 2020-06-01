@@ -7,6 +7,7 @@ from robotic_skin.calibration.error_functions import ErrorFunction
 from robotic_skin.calibration.utils.io import n2s, t2s
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
+from robotic_skin.calibration.utils.rotational_acceleration_torch import estimate_acceleration_torch
 
 
 def max_angle_func(t: int):
@@ -20,40 +21,6 @@ def max_angle_func(t: int):
         Current time t
     """
     return (C.MAX_ANGULAR_VELOCITY / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ * t))
-
-
-class ErrorFunction():
-    """
-    Error Function class used to evaluate kinematics
-    estimation models.
-    """
-    def __init__(self, loss):
-        """
-        Parses the data and gets the loss function.
-        """
-        self.initialized = False
-        self.loss = loss
-
-    def initialize(self, data):
-        self.initialized = True
-        self.data = data
-        self.pose_names = list(data.constant.keys())
-        self.joint_names = list(data.constant[self.pose_names[0]].keys())
-        self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
-        self.n_dynamic_pose = len(list(data.dynamic.keys()))
-        self.n_constant_pose = len(list(data.constant.keys()))
-        self.n_static_pose = len(list(data.static.keys()))
-
-        self.n_joint = len(self.joint_names)
-        self.n_sensor = self.n_joint
-
-    def __call__(self, kinematic_chain, inert_su):
-        """
-        __call__ is to be used on returning an error value.
-        """
-        if not self.initialized:
-            raise ValueError('Not Initialized')
-        raise NotImplementedError()
 
 
 class StaticErrorFunctionTorch(ErrorFunction):
@@ -118,10 +85,10 @@ class StaticErrorFunctionTorch(ErrorFunction):
             # logging.debug(f'Measured: {q_su}, Model: {T.quaternion}')
             error_quaternion[p] = d
 
-        return self.loss(gravities, gravity, axis=1)
+        return self.loss(gravities, gravity)
 
 
-class ConstantRotationErrorFunction(ErrorFunction):
+class ConstantRotationErrorFunctionTorch(ErrorFunction):
     """
     An error function used when a robotic arm's joints
     are moving at a constant velocity.
@@ -174,7 +141,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
                     angular_velocity_torch = torch.Tensor(angular_velocity).double().cuda()
                     # TODO: parse start_joint. Currently, there is a bug
                     kinematic_chain.set_poses(poses, end_joint=i_joint)
-                    model_accel_torch = estimate_acceleration(kinematic_chain=kinematic_chain,
+                    model_accel_torch = estimate_acceleration_torch(kinematic_chain=kinematic_chain,
                                                         i_rotate_joint=d_joint,
                                                         i_su=i_su,
                                                         joint_angular_velocity=angular_velocity_torch)
@@ -190,7 +157,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
         return errors/n_error
 
 
-class MaxAccelerationErrorFunction(ErrorFunction):
+class MaxAccelerationErrorFunctionTorch(ErrorFunction):
     """
     Compute errors between estimated and measured max acceleration for sensor i
 
@@ -252,13 +219,11 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     joint_angular_acceleration = joint_angular_accelerations[idx]
                     joint_angular_velocity = joint_angular_velocities[idx]
 
-                    joint_angular_velocity_torch = torch.Tensor(joint_angular_velocity).double().cuda()
-                    joint_angular_acceleration_torch = torch.Tensor(joint_angular_acceleration).double().cuda()
 
                     # kinematic_chain.set_poses(joints)
                     kinematic_chain.set_poses(poses, end_joint=i_joint)
                     # use mittendorfer's original or modified based on condition
-                    estimate_A_tensor = estimate_acceleration(
+                    estimate_A_tensor = estimate_acceleration_torch(
                         kinematic_chain=kinematic_chain,
                         i_rotate_joint=rotate_joint,
                         i_su=i_su,
@@ -272,7 +237,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     #               f'Model: {n2s(estimate_A, 4)} SU: {n2s(measured_A, 4)}')
                     measured_A_tensor = torch.tensor(measured_A).double().cuda()
                         # print(max_accel_model.detach().numpy(), max_accel_train)
-                    error = torch.sum(torch.abs(measured_A - estimate_A_tensor)**2)
+                    error = torch.sum(torch.abs(measured_A_tensor - estimate_A_tensor)**2)
 
 
                     e2 += error

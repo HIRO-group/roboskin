@@ -36,7 +36,7 @@ def parse_arguments():
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
     parser.add_argument('--test', action='store_true',
                         help="Determines if the true SU DH parameters will be used")
-    parser.add_argument('--method', type=str, default='OM',
+    parser.add_argument('--method', type=str, default='TM',
                         help="Please provide a method name")
 
     parser.add_argument('-e', '--error_functions', nargs='+', default=None,
@@ -51,15 +51,15 @@ def parse_arguments():
 if __name__ == '__main__':
     args = parse_arguments()
     datadir = utils.parse_datadir(args.datadir)
-
+    is_torch = True if args.method == 'TM' else False
     utils.initialize_logging(args.log, args.logfile)
 
     robot_configs = utils.load_robot_configs(args.configdir, args.robot)
     measured_data, imu_mappings = utils.load_data(args.robot, datadir)
 
-    # Kinematic Chain of a robot
+    # Kinematic Chain of a robot - get torch version depending on method.
     kinematic_chain = construct_kinematic_chain(
-        robot_configs, imu_mappings, args.test, args.optimizeall)
+        robot_configs, imu_mappings, args.test, args.optimizeall, is_torch=is_torch)
 
     evaluator = Evaluator(true_su_pose=robot_configs['su_pose'])
     data_logger = DataLogger(datadir, args.robot, args.method)
