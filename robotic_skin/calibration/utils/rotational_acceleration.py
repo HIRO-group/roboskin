@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su,
+def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su, method,
                           joint_angular_velocity, joint_angular_acceleration=0,
-                          current_time=0, angle_func=None, method='analytical'):
+                          current_time=0, angle_func=None):
     r"""
     Compute an acceleration value from positions.
     .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`
@@ -29,10 +29,10 @@ def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su,
     `current_time`: `float`
         Current Time
     `method`: `str`
-        Determines if we are using `analytical`, `our`, `normal_mittendorfer` or `mittendorfer`
+        Determines if we are using `analytical`, `our`, `mittendorfer` or `modified_mittendorfer`
         methods (which we modified due to some possible missing terms).
     """
-    methods = ['analytical', 'our', 'mittendorfer', 'normal_mittendorfer']
+    methods = ['analytical', 'our', 'mittendorfer', 'modified_mittendorfer']
     if method not in methods:
         raise ValueError(f'There is no method called {method}\n' +
                          f'Please Choose from {methods}')
@@ -83,10 +83,10 @@ def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su,
     if 'mittendorfer' in method:
         su_At = np.dot(rs_T_su.R.T, rs_A)
 
-        if method == 'normal_mittendorfer':
+        if method == 'mittendorfer':
             return su_At
 
-        if method == 'mittendorfer':
+        if method == 'modified_mittendorfer':
             su_g + su_Ac + su_At
 
     su_At = remove_centripetal_component(rs_A, rs_T_dof, dof_T_su)
