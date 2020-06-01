@@ -75,6 +75,7 @@ class StaticErrorFunctionTorch(ErrorFunction):
 
             accel_su = torch.Tensor(accel_su).double().cuda()
 
+            # rotate accel_su into rs frame.
             accel_rs = torch.mm(rs_R_su, accel_su.view(3, 1)).view(-1)
 
             gravities[p, :] = accel_rs
@@ -100,9 +101,9 @@ class ConstantRotationErrorFunctionTorch(ErrorFunction):
         """
         Arguments
         ------------
-        i_su: int
-            i_suth sensor
-        kinemaic_chain:
+        i_su: `int`
+            i_su-th sensor
+        kinematic_chain:
             A Kinematic Chain of the robot
 
         Returns
@@ -126,7 +127,6 @@ class ConstantRotationErrorFunctionTorch(ErrorFunction):
                 joints = data[:, 7:14]
                 angular_velocities = data[:, 14]
 
-                # for meas_accel, poses, curr_w in zip(meas_accels, joints, angular_velocities):
                 n_eval = 10
                 for i in range(n_eval):
                     n_data = data.shape[0]
@@ -176,7 +176,7 @@ class MaxAccelerationErrorFunctionTorch(ErrorFunction):
         ------------
         i_su: int
             i_su th sensor
-        kinemaic_chain:
+        kinematic_chain:
             A Kinematic Chain of the robot
 
         Returns
@@ -244,23 +244,3 @@ class MaxAccelerationErrorFunctionTorch(ErrorFunction):
                     n_data += 1
 
         return e2/n_data
-
-
-class CombinedErrorFunction(ErrorFunction):
-    def __init__(self, **kwargs):
-        self.error_funcs = []
-        for k, v in kwargs.items():
-            if not isinstance(v, ErrorFunction):
-                raise ValueError('Only ErrorFunction class is allowed')
-            setattr(self, k, v)
-            self.error_funcs.append(v)
-
-    def initialize(self, data):
-        for error_function in self.error_funcs:
-            error_function.initialize(data)
-
-    def __call__(self, kinematic_chain, i_su):
-        e = 0.0
-        for error_function in self.error_funcs:
-            e += error_function(kinematic_chain, i_su)
-        return e
