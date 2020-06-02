@@ -46,6 +46,8 @@ class TransformationMatrix():
             params = np.array([theta, d, a, alpha], dtype=float)
             # Only select provided keys (which are not None)
             self.params = np.nan_to_num(params)
+            temp_params = self.params
+
         self.matrix = self.transformation_matrix(*self.params)
         qx = pyqt.Quaternion(axis=[1, 0, 0], angle=temp_params[3])
         qz = pyqt.Quaternion(axis=[0, 0, 1], angle=temp_params[0])
