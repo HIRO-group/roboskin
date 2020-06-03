@@ -209,6 +209,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
             raise ValueError('Not Initialized')
 
         i_joint = kinematic_chain.su_joint_dict[i_su]
+        # Will be add a multiprocessing feature.
 
         e2 = 0.0
         n_data = 0
