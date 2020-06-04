@@ -41,7 +41,7 @@ def estimate_acceleration_torch(kinematic_chain, i_rotate_joint, i_su, method,
     if angle_func is None:
         def _angle_func_torch(t):
             return joint_angular_velocity*t
-        angle_func = _angle_func
+        angle_func = _angle_func_torch
 
     rs_T_su = kinematic_chain.compute_su_TM(
         i_su=i_su, pose_type='current')

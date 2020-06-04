@@ -1,12 +1,9 @@
-import logging
 import numpy as np
 import torch
 import robotic_skin.const as C
 import pyquaternion as pyqt
 from robotic_skin.calibration.error_functions import ErrorFunction
-from robotic_skin.calibration.utils.io import n2s, t2s
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
-from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
 from robotic_skin.calibration.utils.rotational_acceleration_torch import estimate_acceleration_torch
 
 

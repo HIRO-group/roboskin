@@ -3,7 +3,6 @@ import numpy as np
 from typing import List
 from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
 from robotic_skin.calibration.kinematic_chain_torch import KinematicChainTorch
-import torch
 
 BOUNDS = np.array([
     [-np.pi, np.pi],    # th

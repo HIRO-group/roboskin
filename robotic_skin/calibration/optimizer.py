@@ -21,7 +21,7 @@ from robotic_skin.calibration.stop_conditions import (
     DeltaXStopCondition,
     # PassThroughStopCondition
 )
-from robotic_skin.calibration.loss import L2Loss, L1Loss, L2LossTorch
+from robotic_skin.calibration.loss import L2Loss, L2LossTorch
 from robotic_skin.calibration.utils.io import n2s, t2s
 
 
@@ -190,6 +190,7 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         temp_params = params.clone()
         min_loss = np.inf
         best_params = temp_params
+        prev_val = None
         for _ in range(5):
             arr = []
             i = 0
