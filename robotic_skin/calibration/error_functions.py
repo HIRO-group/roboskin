@@ -27,9 +27,9 @@ def max_angle_func(t: int, i_joint: int, delta_t=0.08, **kwargs):
 # args=(self.shared_data, self.shared_params, ret_list, i_su, i_params, kinematic_chain)
 def error_func(shared_dict, params_list, ret_list, i_su, i_params, kinematic_chain):
     # Get indices and names
-    params = params_list[i_su]
+    params = params_list[i_su][i_params]
     rotate_joint, pose, joint, su, idx, method = params
-    i_joint = kinematic_chain.su_joint_dict[params[2]]
+    i_joint = kinematic_chain.su_joint_dict[i_su]
 
     # Get current data
     d = shared_dict[pose][joint][su][idx]
