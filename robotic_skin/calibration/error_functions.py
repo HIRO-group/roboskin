@@ -24,22 +24,32 @@ def max_angle_func(t: int, i_joint: int, delta_t=0.08, **kwargs):
            (1 - np.cos(2*np.pi*C.PATTERN_FREQ[i_joint] * (t - delta_t)))
 
 
-def error_process(params):
-    kinematic_chain = params[0]
+# args=(self.shared_data, self.shared_params, ret_list, i_su, i_params, kinematic_chain)
+def error_func(shared_dict, params_list, ret_list, i_su, i_params, kinematic_chain):
+    # Get indices and names
+    params = params_list[i_su]
+    rotate_joint, pose, joint, su, idx, method = params
     i_joint = kinematic_chain.su_joint_dict[params[2]]
+
+    # Get current data
+    d = shared_dict[pose][joint][su][idx]
+
     # kinematic_chain.set_poses(joints)
-    kinematic_chain.set_poses(params[4][3:10], end_joint=i_joint)
+    kinematic_chain.set_poses(d[3:10], end_joint=i_joint)
+
     # use mittendorfer's original or modified based on condition
     estimate_A = estimate_acceleration(
         kinematic_chain=kinematic_chain,
-        i_rotate_joint=params[1],
-        i_su=params[2],
-        method=params[3],
-        joint_angular_velocity=params[4][13],
-        joint_angular_acceleration=params[4][11],
-        current_time=params[4][10],
+        i_rotate_joint=rotate_joint,
+        i_su=i_su,
+        method=method,
+        joint_angular_velocity=d[13],
+        joint_angular_acceleration=d[11],
+        current_time=d[10],
         angle_func=max_angle_func)
-    return np.sum(np.abs(params[4][:3] - estimate_A)**2)
+    error = np.sum(np.abs(d[:3] - estimate_A)**2)
+
+    ret_list.append(error)
 
 
 class ErrorFunction():
@@ -54,7 +64,7 @@ class ErrorFunction():
         self.initialized = False
         self.loss = loss
 
-    def initialize(self, data):
+    def initialize(self, data, *args):
         self.initialized = True
         self.data = data
         self.pose_names = list(data.constant.keys())
@@ -213,6 +223,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
     def __init__(self, loss, method='our'):
         super().__init__(loss)
         self.method = method
+        self.n_eval = n_eval
 
     def initialize(self, data):
         super().initialize(data)
@@ -274,12 +285,18 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     params.append([kinematic_chain, rotate_joint, i_su, self.method, self.data.dynamic[pose][joint][su][idx]])
 
         # Generate processes equal to the number of cores
-        pool = multiprocessing.Pool(os.cpu_count())
+        # for param in params:
+        #     p = multiprocessing.Process(target=error_func, args=(shared_dict, ret_list, param))
+        #     p.start()
+        #     p.join()
 
         # Distribute the parameter sets evenly across the cores
-        errors = pool.map(error_process, params)
+        pool = multiprocessing.Pool(os.cpu_count())
+        for i_params in range(len(self.shared_params[0])):
+            pool.apply_async(func=error_func, args=(self.shared_data, self.shared_params, ret_list, i_su, i_params, kinematic_chain))
 
-        return np.mean(errors)
+        pool.close()
+        pool.join()
 
     def use_max_accel_point(self):
         """
