@@ -41,7 +41,7 @@ class StaticErrorFunctionTorch(ErrorFunction):
 
         Arguments
         ------------
-        kinemaic_chain:
+        kinematic_chain:
             A Kinematic Chain of the robot
         i_su: int
             i_su th sensor

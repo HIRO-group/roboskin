@@ -73,7 +73,7 @@ class StaticErrorFunction(ErrorFunction):
 
         Arguments
         ------------
-        kinemaic_chain:
+        kinematic_chain:
             A Kinematic Chain of the robot
         i_su: int
             i_su th sensor
@@ -124,7 +124,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
         ------------
         i_su: int
             i_suth sensor
-        kinemaic_chain:
+        kinematic_chain:
             A Kinematic Chain of the robot
 
         Returns
@@ -197,7 +197,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         ------------
         i_su: int
             i_su th sensor
-        kinemaic_chain:
+        kinematic_chain:
             A Kinematic Chain of the robot
 
         Returns
