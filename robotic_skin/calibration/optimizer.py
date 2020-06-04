@@ -161,13 +161,14 @@ class IncrementalOptimizerBase(OptimizerBase):
 
 class TorchOptimizerBase(IncrementalOptimizerBase):
     def __init__(self, kinematic_chain, evaluator, data_logger,
-                 optimize_all, error_function_=None, stop_condition_=None,):
+                 optimize_all, error_function_=None, stop_condition_=None,
+                 method='our'):
 
         error_function = CombinedErrorFunction(
             e1=StaticErrorFunctionTorch(
                 loss=L2LossTorch()),
             e2=MaxAccelerationErrorFunctionTorch(
-                method='mittendorfer',
+                method=method,
                 loss=L2LossTorch())
             )
         stop_condition = DeltaXStopCondition()

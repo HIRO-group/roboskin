@@ -2,9 +2,9 @@
 import torch
 
 
-def estimate_acceleration_torch(kinematic_chain, i_rotate_joint, i_su,
+def estimate_acceleration_torch(kinematic_chain, i_rotate_joint, i_su, method,
                                 joint_angular_velocity, joint_angular_acceleration=0,
-                                current_time=0, angle_func=None, method='analytical'):
+                                current_time=0, angle_func=None):
     r"""
     Compute an acceleration value from positions.
     .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`
@@ -30,10 +30,10 @@ def estimate_acceleration_torch(kinematic_chain, i_rotate_joint, i_su,
     `current_time`: `float`
         Current Time
     `method`: `str`
-        Determines if we are using `analytical`, `normal_mittendorfer` or `mittendorfer`
+        Determines if we are using `analytical`, `our`, `mittendorfer` or `modified_mittendorfer`
         methods (which we modified due to some possible missing terms).
     """
-    methods = ['analytical', 'mittendorfer', 'normal_mittendorfer']
+    methods = ['analytical', 'our', 'mittendorfer', 'modified_mittendorfer']
     if method not in methods:
         raise ValueError(f'There is no method called {method}\n' +
                          f'Please Choose from {methods}')
@@ -50,6 +50,11 @@ def estimate_acceleration_torch(kinematic_chain, i_rotate_joint, i_su,
         start_joint=i_rotate_joint,
         i_su=i_su,
         pose_type='current')
+
+    rs_T_dof = kinematic_chain.compute_joint_TM(
+        i_joint=i_rotate_joint,
+        pose_type='current')
+
 
     # In any joint (DoF) coordinate,
     # the the rotational axis is always pointing its z direction.
@@ -69,16 +74,24 @@ def estimate_acceleration_torch(kinematic_chain, i_rotate_joint, i_su,
         return su_g + su_Ac + su_At
 
     # The following will run if method is mittendorfer's method
-    su_At = compute_tangential_acceleration_numerically_torch(
+    rs_A = compute_acceleration_numerically_torch(
         kinematic_chain=kinematic_chain,
         i_rotate_joint=i_rotate_joint,
         i_su=i_su,
         current_time=current_time,
-        angle_func=angle_func)
+        angle_func=angle_func,
+        method=method)
 
-    if method == 'normal_mittendorfer':
-        # return su_At
-        return su_g + su_At
+    if 'mittendorfer' in method:
+        su_At = torch.mm(rs_T_su.R.T, rs_A.view(3, 1)).view(-1)
+
+        if method == 'mittendorfer':
+            return su_At
+
+        elif method == 'modified_mittendorfer':
+            return su_g + su_Ac + su_At
+
+    su_At = remove_centripetal_component_torch(rs_A, rs_T_dof, dof_T_su)
 
     # Every joint rotates along its own z axis, one joint moves at a time
     return su_g + su_Ac + su_At
@@ -185,8 +198,8 @@ def compute_2nd_order_derivative_torch(x_func, t=0, dt=0.001):
     return ((x_func(t+dt) + x_func(t-dt) - 2*x_func(t)) / (dt**2))
 
 
-def compute_tangential_acceleration_numerically_torch(kinematic_chain, i_rotate_joint, i_su,
-                                                      current_time, angle_func):
+def compute_acceleration_numerically_torch(kinematic_chain, i_rotate_joint, i_su,
+                                                      current_time, angle_func, method):
     """
     Returns tangential acceleration in RS coordinate.
     The acceleration is computed by taking 2nd derivative of the position.
@@ -216,13 +229,10 @@ def compute_tangential_acceleration_numerically_torch(kinematic_chain, i_rotate_
 
     # Compute the Acceleration from 3 close positions
     rs_A = compute_2nd_order_derivative_torch(x_func=current_su_position_torch, t=current_time)
-    # Compute current Angle during sinuosoidal motion
-    angle = angle_func(t=current_time)
-    # Get current transformation matrix of SU defined in dof coordinate
-    kinematic_chain.init_temp_TM(i_joint=i_rotate_joint, additional_pose=angle)
-    dof_T_su = kinematic_chain.compute_su_TM(i_su=i_su, pose_type='temp', start_joint=i_rotate_joint)
-    # dof defined in rs coordinate
-    rs_T_dof = kinematic_chain.compute_joint_TM(i_joint=i_rotate_joint, pose_type='temp')
+
+    return rs_A
+
+def remove_centripetal_component_torch(rs_A, rs_T_dof, dof_T_su):
     # Convert rs_A to dof_A
     dof_A = torch.mm(rs_T_dof.R.T, rs_A.view(3, 1)).view(-1)
 
