@@ -273,11 +273,11 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     idx = i_eval * int(n_data/n_eval)
                     params.append([kinematic_chain, rotate_joint, i_su, self.method, self.data.dynamic[pose][joint][su][idx]])
 
-        #Generate processes equal to the number of cores
+        # Generate processes equal to the number of cores
         pool = multiprocessing.Pool(os.cpu_count())
 
-        #Distribute the parameter sets evenly across the cores
-        errors  = pool.map(error_process, params)
+        # Distribute the parameter sets evenly across the cores
+        errors = pool.map(error_process, params)
 
         return np.mean(errors)
 
