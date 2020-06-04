@@ -55,7 +55,6 @@ def estimate_acceleration_torch(kinematic_chain, i_rotate_joint, i_su, method,
         i_joint=i_rotate_joint,
         pose_type='current')
 
-
     # In any joint (DoF) coordinate,
     # the the rotational axis is always pointing its z direction.
     # This is how DH parameters are defined.
@@ -199,7 +198,7 @@ def compute_2nd_order_derivative_torch(x_func, t=0, dt=0.001):
 
 
 def compute_acceleration_numerically_torch(kinematic_chain, i_rotate_joint, i_su,
-                                                      current_time, angle_func, method):
+                                           current_time, angle_func, method):
     """
     Returns tangential acceleration in RS coordinate.
     The acceleration is computed by taking 2nd derivative of the position.
@@ -231,6 +230,7 @@ def compute_acceleration_numerically_torch(kinematic_chain, i_rotate_joint, i_su
     rs_A = compute_2nd_order_derivative_torch(x_func=current_su_position_torch, t=current_time)
 
     return rs_A
+
 
 def remove_centripetal_component_torch(rs_A, rs_T_dof, dof_T_su):
     # Convert rs_A to dof_A
