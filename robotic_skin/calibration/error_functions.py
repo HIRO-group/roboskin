@@ -292,7 +292,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
         # Distribute the parameter sets evenly across the cores
         pool = multiprocessing.Pool(os.cpu_count())
-        for i_params in range(len(self.shared_params[0])):
+        for i_params in range(len(self.shared_params[i_su])):
             pool.apply_async(func=error_func, args=(self.shared_data, self.shared_params, ret_list, i_su, i_params, kinematic_chain))
 
         pool.close()
