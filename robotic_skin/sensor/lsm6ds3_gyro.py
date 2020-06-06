@@ -9,7 +9,7 @@ import smbus2
 from robotic_skin.sensor import Sensor
 
 
-class LSM6DS3_acclerometer(Sensor):
+class LSM6DS3_gyroscope(Sensor):
     """
     This is the Python Class for LSM6DS3. This includes all subroutines including calibration to handle everything
     related to the device.
