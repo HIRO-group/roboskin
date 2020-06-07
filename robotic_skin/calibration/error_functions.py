@@ -30,7 +30,7 @@ class ErrorFunction():
         self.initialized = False
         self.loss = loss
 
-    def initialize(self, data):
+    def initialize(self, data, *args):
         self.initialized = True
         self.data = data
         self.pose_names = list(data.constant.keys())
@@ -187,6 +187,23 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         super().__init__(loss)
         self.method = method
 
+    def initialize(self, data, kinematic_chain):
+        super().initialize(data, kinematic_chain)
+        if 'mittendorfer' in self.method:
+            for i_su, su in enumerate(self.imu_names):
+                i_joint = kinematic_chain.su_joint_dict[i_su]
+                for i_pose in range(self.n_dynamic_pose):
+                    for rotate_joint in range(max(0, i_joint-2), i_joint+1):
+                        su = self.imu_names[i_su]
+                        pose = self.pose_names[i_pose]
+                        joint = self.joint_names[rotate_joint]
+                        data = self.data.dynamic[pose][joint][su]
+
+                        accelerations = data[:, :3]
+                        max_index = np.argmax(np.linalg.norm(accelerations, axis=1))
+
+                        self.data.dynamic[pose][joint][su] = data[max_index].reshape(1, -1)
+
     def __call__(self, kinematic_chain, i_su):
         """
         Compute errors between estimated and measured max acceleration for sensor i
@@ -228,7 +245,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 # max_angular_velocity = data[0, 12]
                 joint_angular_velocities = data[:, 13]
 
-                n_eval = 4
+                n_eval = 1 if 'mittendorfer' in self.method else 4
                 for i_eval in range(n_eval):
                     n_data = data.shape[0]
                     if n_data <= i_eval:
@@ -272,9 +289,9 @@ class CombinedErrorFunction(ErrorFunction):
             setattr(self, k, v)
             self.error_funcs.append(v)
 
-    def initialize(self, data):
+    def initialize(self, data, *args):
         for error_function in self.error_funcs:
-            error_function.initialize(data)
+            error_function.initialize(data, *args)
 
     def __call__(self, kinematic_chain, i_su):
         e = 0.0

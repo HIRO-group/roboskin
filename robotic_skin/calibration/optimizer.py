@@ -97,9 +97,9 @@ class IncrementalOptimizerBase(OptimizerBase):
         # Initilialize error functions with data
         if isinstance(self.error_functions, dict):
             for error_function in self.error_functions.values():
-                error_function.initialize(data)
+                error_function.initialize(data, self.kinematic_chain)
         elif isinstance(self.error_functions, ErrorFunction):
-            self.error_functions.initialize(data)
+            self.error_functions.initialize(data, self.kinematic_chain)
 
         logging.info('Skipping 0th IMU')
         for i_su in range(1, self.kinematic_chain.n_su):
