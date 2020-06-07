@@ -91,8 +91,10 @@
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.convert_to_lowertriangular_matrix">robotic_skin.calibration.convert_to_lowertriangular_matrix module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.data_logger">robotic_skin.calibration.data_logger module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.error_functions">robotic_skin.calibration.error_functions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.error_functions_torch">robotic_skin.calibration.error_functions_torch module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.evaluator">robotic_skin.calibration.evaluator module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.kinematic_chain">robotic_skin.calibration.kinematic_chain module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.kinematic_chain_torch">robotic_skin.calibration.kinematic_chain_torch module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#robotic-skin-calibration-loss-module">robotic_skin.calibration.loss module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#robotic-skin-calibration-optimizer-module">robotic_skin.calibration.optimizer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="robotic_skin.calibration.html#module-robotic_skin.calibration.stop_conditions">robotic_skin.calibration.stop_conditions module</a></li>
@@ -249,6 +251,13 @@
 <dt id="robotic_skin.calibration.utils.io.parse_datadir">
 <code class="sig-prename descclassname">robotic_skin.calibration.utils.io.</code><code class="sig-name descname">parse_datadir</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">datadir</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#parse_datadir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.io.parse_datadir" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.io.t2s">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.io.</code><code class="sig-name descname">t2s</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/io.html#t2s"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.io.t2s" title="Permalink to this definition">¶</a></dt>
+<dd><p>the equivalent of printing out
+a pytorch tensor, but in string form.</p>
+</dd></dl>
 
 </div>
 <div class="section" id="module-robotic_skin.calibration.utils.quaternion">
@@ -443,6 +452,121 @@ methods (which we modified due to some possible missing terms).</p></li>
 <dl class="py function">
 <dt id="robotic_skin.calibration.utils.rotational_acceleration.tangential_acceleration">
 <code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration.</code><code class="sig-name descname">tangential_acceleration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">alpha</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration.html#tangential_acceleration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration.tangential_acceleration" title="Permalink to this definition">¶</a></dt>
+<dd><div class="math notranslate nohighlight">
+\[`a = lpha        imes r`\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<cite>float</cite>) – Position vector r of the body in the inertial coordinate</p></li>
+<li><p><strong>alpha</strong> (<cite>float</cite>) – Angular Acceleration of an axis in the inertial coordinate.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-robotic_skin.calibration.utils.rotational_acceleration_torch">
+<span id="robotic-skin-calibration-utils-rotational-acceleration-torch-module"></span><h2>robotic_skin.calibration.utils.rotational_acceleration_torch module<a class="headerlink" href="#module-robotic_skin.calibration.utils.rotational_acceleration_torch" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration_torch.centripetal_acceleration_torch">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration_torch.</code><code class="sig-name descname">centripetal_acceleration_torch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">w</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration_torch.html#centripetal_acceleration_torch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration_torch.centripetal_acceleration_torch" title="Permalink to this definition">¶</a></dt>
+<dd><div class="math notranslate nohighlight">
+\[`a = \omega \times \omega \times r`\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<cite>float</cite>) – Position vector r of the body in the inertial coordinate</p></li>
+<li><p><strong>w</strong> (<cite>float</cite>) – Angular Velocity of an axis in the inertial coordinate.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration_torch.compute_2nd_order_derivative_torch">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration_torch.</code><code class="sig-name descname">compute_2nd_order_derivative_torch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_func</span></em>, <em class="sig-param"><span class="n">t</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">dt</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration_torch.html#compute_2nd_order_derivative_torch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration_torch.compute_2nd_order_derivative_torch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take 2nd order derivative of x_func
+This computation comes from the Taylor Expansion</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}x(t+dt) = x(t) + x'(t)*dt + 1/2 * x''(t)*dt^2\\x(t-dt) = x(t) - x'(t)*dt + 1/2 * x''(t)*dt^2\\x(t+dt) + x(t-dt) = 2*x(t) + x''(t)*dt^2\\x''(t) = \frac{x(t+dt) + x(t-dt) - 2*x(t)}{dt^2}\end{aligned}\end{align} \]</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration_torch.compute_acceleration_analytically_torch">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration_torch.</code><code class="sig-name descname">compute_acceleration_analytically_torch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inert_w_body</span></em>, <em class="sig-param"><span class="n">inert_r_body</span></em>, <em class="sig-param"><span class="n">inert_alpha_body</span></em>, <em class="sig-param"><span class="n">body_R_inert</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">body_R_world</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">inert_R_world</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">coordinate</span><span class="o">=</span><span class="default_value">'body'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration_torch.html#compute_acceleration_analytically_torch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration_torch.compute_acceleration_analytically_torch" title="Permalink to this definition">¶</a></dt>
+<dd><p>There are 3 coordinates to remember.
+1. World Frame (Fixed to the world)
+2. Inertial Frame (each Rotating Joint Coordinate)
+3. Body Frame (SU Coordinate)</p>
+<p>We use the following notation <cite>coord1_variable_coord2</cite>.
+This represents a variable of coord2 defined in coord1.</p>
+<p>For example, SU’s linear accelerations can be represented as rs_A_su.
+It represents the acceleration A measured in SU coordinate defined in the world coordinate.
+This is what we can measure from the real IMU as well.</p>
+<p>We use the same notation for the rotation matrix <cite>coord1_R_coord2</cite>,
+but this represents how you can rotate soem vector from <cite>coord2 to `coord1</cite>.</p>
+<p>For example, if you want the gravity in the su coordinate,
+su_g = su_R_rs * rs_g
+As a result, the gravity defined in the RS frame is converted to the SU coordinate.</p>
+<p>The inverse of the Rotation Matrix is its transpose.
+Therefore, one can rotate it back to its original frame by
+rs_g = rs_R_su * su_g = su_R_rs.T * su_g</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration_torch.compute_acceleration_numerically_torch">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration_torch.</code><code class="sig-name descname">compute_acceleration_numerically_torch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">i_rotate_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">current_time</span></em>, <em class="sig-param"><span class="n">angle_func</span></em>, <em class="sig-param"><span class="n">method</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration_torch.html#compute_acceleration_numerically_torch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration_torch.compute_acceleration_numerically_torch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns tangential acceleration in RS coordinate.
+The acceleration is computed by taking 2nd derivative of the position.
+This small change in position in Rotating Coordinate is only in the
+tangential direction. Thus, you can only compute the tangential acceleration,
+from this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kinematic_chain</strong> (<cite>robotic_skin.calibration.kinematic_chain.KinematicChain</cite>) – Robot’s Kinematic Chain</p></li>
+<li><p><strong>'i_rotate_joint'</strong> (<em>'int'</em>) – dof ‘d’</p></li>
+<li><p><strong>i</strong> (<cite>int</cite>) – imu <cite>i</cite></p></li>
+<li><p><strong>current_time</strong> (<em>float`</em>) – Current Time</p></li>
+<li><p><strong>angle_func</strong> (<em>function</em>) – A function to compute the current angle at time t</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration_torch.estimate_acceleration_torch">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration_torch.</code><code class="sig-name descname">estimate_acceleration_torch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kinematic_chain</span></em>, <em class="sig-param"><span class="n">i_rotate_joint</span></em>, <em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">method</span></em>, <em class="sig-param"><span class="n">joint_angular_velocity</span></em>, <em class="sig-param"><span class="n">joint_angular_acceleration</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">current_time</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">angle_func</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration_torch.html#estimate_acceleration_torch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration_torch.estimate_acceleration_torch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute an acceleration value from positions.
+.. math:: <cite>a = frac{f({Delta t}) + f({Delta t) - 2 f(0)}{h^2}</cite></p>
+<p>This equation came from Taylor Expansion to get the second derivative from f(t).
+.. math:: f(t+{Delta t}) = f(t) + hf^{prime}(t) + frac{h^2}{2}f^{primeprime}(t)
+.. math:: f(t-{Delta t}) = f(t) - hf^{prime}(t) + frac{h^2}{2}f^{primeprime}(t)</p>
+<p>Add both equations and plug t=0 to get the above equation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kinematic_chain</strong> (<cite>robotic_skin.calibration.kinematic_chain.KinematicChain</cite>) – Robot’s Kinematic Chain</p></li>
+<li><p><strong>i_rotate_joint</strong> (<cite>int</cite>) – dof <cite>d</cite></p></li>
+<li><p><strong>i_su</strong> (<cite>int</cite>) – <a href="#id3"><span class="problematic" id="id4">`</span></a>i`th SU</p></li>
+<li><p><strong>joint_angular_velocity</strong> (<cite>float</cite>) – Angular velocity</p></li>
+<li><p><strong>'max_angular_velocity'</strong> (<em>'float'</em>) – Maximum angular velocity</p></li>
+<li><p><strong>current_time</strong> (<cite>float</cite>) – Current Time</p></li>
+<li><p><strong>method</strong> (<cite>str</cite>) – Determines if we are using <cite>analytical</cite>, <cite>our</cite>, <cite>mittendorfer</cite> or <cite>modified_mittendorfer</cite>
+methods (which we modified due to some possible missing terms).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration_torch.remove_centripetal_component_torch">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration_torch.</code><code class="sig-name descname">remove_centripetal_component_torch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rs_A</span></em>, <em class="sig-param"><span class="n">rs_T_dof</span></em>, <em class="sig-param"><span class="n">dof_T_su</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration_torch.html#remove_centripetal_component_torch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration_torch.remove_centripetal_component_torch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="robotic_skin.calibration.utils.rotational_acceleration_torch.tangential_acceleration_torch">
+<code class="sig-prename descclassname">robotic_skin.calibration.utils.rotational_acceleration_torch.</code><code class="sig-name descname">tangential_acceleration_torch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">alpha</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/utils/rotational_acceleration_torch.html#tangential_acceleration_torch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.utils.rotational_acceleration_torch.tangential_acceleration_torch" title="Permalink to this definition">¶</a></dt>
 <dd><div class="math notranslate nohighlight">
 \[`a = lpha        imes r`\]</div>
 <dl class="field-list simple">

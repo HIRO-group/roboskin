@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>robotic_skin.calibration.error_functions &mdash; robotic_skin  documentation</title>
+  <title>robotic_skin.calibration.error_functions_torch &mdash; robotic_skin  documentation</title>
   
 
   
@@ -129,7 +129,7 @@
         
           <li><a href="../../index.html">Module code</a> &raquo;</li>
         
-      <li>robotic_skin.calibration.error_functions</li>
+      <li>robotic_skin.calibration.error_functions_torch</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -144,15 +144,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for robotic_skin.calibration.error_functions</h1><div class="highlight"><pre>
+  <h1>Source code for robotic_skin.calibration.error_functions_torch</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pyquaternion</span> <span class="k">as</span> <span class="nn">pyqt</span>
+<span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">robotic_skin.const</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">pyquaternion</span> <span class="k">as</span> <span class="nn">pyqt</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration.error_functions</span> <span class="kn">import</span> <span class="n">ErrorFunction</span>
 <span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils.quaternion</span> <span class="kn">import</span> <span class="n">np_to_pyqt</span>
-<span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils.rotational_acceleration</span> <span class="kn">import</span> <span class="n">estimate_acceleration</span>
+<span class="kn">from</span> <span class="nn">robotic_skin.calibration.utils.rotational_acceleration_torch</span> <span class="kn">import</span> <span class="n">estimate_acceleration_torch</span>
 
 
-<div class="viewcode-block" id="max_angle_func"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.max_angle_func">[docs]</a><span class="k">def</span> <span class="nf">max_angle_func</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<div class="viewcode-block" id="max_angle_func"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions_torch.max_angle_func">[docs]</a><span class="k">def</span> <span class="nf">max_angle_func</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes current joint angle at time t</span>
 <span class="sd">    joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.</span>
@@ -165,41 +167,7 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">MAX_ANGULAR_VELOCITY</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">C</span><span class="o">.</span><span class="n">PATTERN_FREQ</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">C</span><span class="o">.</span><span class="n">PATTERN_FREQ</span> <span class="o">*</span> <span class="n">t</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="ErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.ErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">ErrorFunction</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Error Function class used to evaluate kinematics</span>
-<span class="sd">    estimation models.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loss</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses the data and gets the loss function.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">loss</span>
-
-<div class="viewcode-block" id="ErrorFunction.initialize"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.ErrorFunction.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_dynamic_pose</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_constant_pose</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_sensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span></div>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">inert_su</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        __call__ is to be used on returning an error value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not Initialized&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="StaticErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.StaticErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">StaticErrorFunction</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>
+<div class="viewcode-block" id="StaticErrorFunctionTorch"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions_torch.StaticErrorFunctionTorch">[docs]</a><span class="k">class</span> <span class="nc">StaticErrorFunctionTorch</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Static error is an deviation of the gravity vector for p positions.</span>
 
@@ -234,9 +202,11 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not Initialized&#39;</span><span class="p">)</span>
 
-        <span class="n">gravities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-        <span class="n">gravity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.8</span><span class="p">],</span> <span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-        <span class="n">error_quaternion</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">)</span>
+        <span class="n">gravities</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">double</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+
+        <span class="n">gravity</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">9.8</span><span class="p">],</span> <span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">)</span><span class="o">.</span><span class="n">double</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+
+        <span class="n">error_quaternion</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">)</span><span class="o">.</span><span class="n">double</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_static_pose</span><span class="p">):</span>
             <span class="n">poses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][</span><span class="mi">7</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span>
@@ -245,7 +215,12 @@
             <span class="c1"># Account for Gravity</span>
             <span class="n">rs_R_su</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">R</span>
             <span class="n">accel_su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][</span><span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span>
-            <span class="n">accel_rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rs_R_su</span><span class="p">,</span> <span class="n">accel_su</span><span class="p">)</span>
+
+            <span class="n">accel_su</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">accel_su</span><span class="p">)</span><span class="o">.</span><span class="n">double</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+
+            <span class="c1"># rotate accel_su into rs frame.</span>
+            <span class="n">accel_rs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">rs_R_su</span><span class="p">,</span> <span class="n">accel_su</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
             <span class="n">gravities</span><span class="p">[</span><span class="n">p</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">accel_rs</span>
             <span class="c1"># Account of Quaternion</span>
             <span class="n">q_su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][:</span><span class="mi">4</span><span class="p">]</span>
@@ -254,10 +229,10 @@
             <span class="c1"># logging.debug(f&#39;Measured: {q_su}, Model: {T.quaternion}&#39;)</span>
             <span class="n">error_quaternion</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">gravities</span><span class="p">,</span> <span class="n">gravity</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">gravities</span><span class="p">,</span> <span class="n">gravity</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ConstantRotationErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.ConstantRotationErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">ConstantRotationErrorFunction</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>
+<div class="viewcode-block" id="ConstantRotationErrorFunctionTorch"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions_torch.ConstantRotationErrorFunctionTorch">[docs]</a><span class="k">class</span> <span class="nc">ConstantRotationErrorFunctionTorch</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An error function used when a robotic arm&#39;s joints</span>
 <span class="sd">    are moving at a constant velocity.</span>
@@ -269,8 +244,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments</span>
 <span class="sd">        ------------</span>
-<span class="sd">        i_su: int</span>
-<span class="sd">            i_suth sensor</span>
+<span class="sd">        i_su: `int`</span>
+<span class="sd">            i_su-th sensor</span>
 <span class="sd">        kinematic_chain:</span>
 <span class="sd">            A Kinematic Chain of the robot</span>
 
@@ -295,7 +270,6 @@
                 <span class="n">joints</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">7</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span>
                 <span class="n">angular_velocities</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">14</span><span class="p">]</span>
 
-                <span class="c1"># for meas_accel, poses, curr_w in zip(meas_accels, joints, angular_velocities):</span>
                 <span class="n">n_eval</span> <span class="o">=</span> <span class="mi">10</span>
                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_eval</span><span class="p">):</span>
                     <span class="n">n_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -306,18 +280,19 @@
                     <span class="n">meas_accel</span> <span class="o">=</span> <span class="n">meas_accels</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span>
                     <span class="n">poses</span> <span class="o">=</span> <span class="n">joints</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span>
                     <span class="n">angular_velocity</span> <span class="o">=</span> <span class="n">angular_velocities</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
-
+                    <span class="n">meas_accel_torch</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">meas_accel</span><span class="p">)</span><span class="o">.</span><span class="n">double</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+                    <span class="n">angular_velocity_torch</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">angular_velocity</span><span class="p">)</span><span class="o">.</span><span class="n">double</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
                     <span class="c1"># TODO: parse start_joint. Currently, there is a bug</span>
                     <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_poses</span><span class="p">(</span><span class="n">poses</span><span class="p">,</span> <span class="n">end_joint</span><span class="o">=</span><span class="n">i_joint</span><span class="p">)</span>
-                    <span class="n">model_accel</span> <span class="o">=</span> <span class="n">estimate_acceleration</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="o">=</span><span class="n">kinematic_chain</span><span class="p">,</span>
-                                                        <span class="n">i_rotate_joint</span><span class="o">=</span><span class="n">d_joint</span><span class="p">,</span>
-                                                        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
-                                                        <span class="n">joint_angular_velocity</span><span class="o">=</span><span class="n">angular_velocity</span><span class="p">)</span>
+                    <span class="n">model_accel_torch</span> <span class="o">=</span> <span class="n">estimate_acceleration_torch</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="o">=</span><span class="n">kinematic_chain</span><span class="p">,</span>
+                                                                    <span class="n">i_rotate_joint</span><span class="o">=</span><span class="n">d_joint</span><span class="p">,</span>
+                                                                    <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
+                                                                    <span class="n">joint_angular_velocity</span><span class="o">=</span><span class="n">angular_velocity_torch</span><span class="p">)</span>
 
                     <span class="c1"># logging.debug(f&#39;[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t&#39; +</span>
                     <span class="c1">#               f&#39;Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}&#39;)</span>
 
-                    <span class="n">error2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">model_accel</span><span class="p">,</span> <span class="n">meas_accel</span><span class="p">)</span>
+                    <span class="n">error2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">model_accel_torch</span><span class="p">,</span> <span class="n">meas_accel_torch</span><span class="p">)</span>
 
                     <span class="n">errors</span> <span class="o">+=</span> <span class="n">error2</span>
                     <span class="n">n_error</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -325,7 +300,7 @@
         <span class="k">return</span> <span class="n">errors</span><span class="o">/</span><span class="n">n_error</span></div>
 
 
-<div class="viewcode-block" id="MaxAccelerationErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">MaxAccelerationErrorFunction</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>
+<div class="viewcode-block" id="MaxAccelerationErrorFunctionTorch"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions_torch.MaxAccelerationErrorFunctionTorch">[docs]</a><span class="k">class</span> <span class="nc">MaxAccelerationErrorFunctionTorch</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute errors between estimated and measured max acceleration for sensor i</span>
 
@@ -390,7 +365,7 @@
                     <span class="c1"># kinematic_chain.set_poses(joints)</span>
                     <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_poses</span><span class="p">(</span><span class="n">poses</span><span class="p">,</span> <span class="n">end_joint</span><span class="o">=</span><span class="n">i_joint</span><span class="p">)</span>
                     <span class="c1"># use mittendorfer&#39;s original or modified based on condition</span>
-                    <span class="n">estimate_A</span> <span class="o">=</span> <span class="n">estimate_acceleration</span><span class="p">(</span>
+                    <span class="n">estimate_A_tensor</span> <span class="o">=</span> <span class="n">estimate_acceleration_torch</span><span class="p">(</span>
                         <span class="n">kinematic_chain</span><span class="o">=</span><span class="n">kinematic_chain</span><span class="p">,</span>
                         <span class="n">i_rotate_joint</span><span class="o">=</span><span class="n">rotate_joint</span><span class="p">,</span>
                         <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
@@ -402,36 +377,14 @@
 
                     <span class="c1"># logging.debug(f&#39;[{pose}, {joint}, {su}@Joint{i_joint}]\t&#39; +</span>
                     <span class="c1">#               f&#39;Model: {n2s(estimate_A, 4)} SU: {n2s(measured_A, 4)}&#39;)</span>
-                    <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">measured_A</span> <span class="o">-</span> <span class="n">estimate_A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="n">measured_A_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">measured_A</span><span class="p">)</span><span class="o">.</span><span class="n">double</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+                    <span class="c1"># print(max_accel_model.detach().numpy(), max_accel_train)</span>
+                    <span class="n">error</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">measured_A_tensor</span> <span class="o">-</span> <span class="n">estimate_A_tensor</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
                     <span class="n">e2</span> <span class="o">+=</span> <span class="n">error</span>
                     <span class="n">n_data</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="k">return</span> <span class="n">e2</span><span class="o">/</span><span class="n">n_data</span></div>
-
-
-<div class="viewcode-block" id="CombinedErrorFunction"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.CombinedErrorFunction">[docs]</a><span class="k">class</span> <span class="nc">CombinedErrorFunction</span><span class="p">(</span><span class="n">ErrorFunction</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    combined error function that allows for</span>
-<span class="sd">    the error based on the cumulative sum of error</span>
-<span class="sd">    functions.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">ErrorFunction</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Only ErrorFunction class is allowed&#39;</span><span class="p">)</span>
-            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-
-<div class="viewcode-block" id="CombinedErrorFunction.initialize"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.CombinedErrorFunction.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">error_function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span><span class="p">:</span>
-            <span class="n">error_function</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
-        <span class="n">e</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="k">for</span> <span class="n">error_function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_funcs</span><span class="p">:</span>
-            <span class="n">e</span> <span class="o">+=</span> <span class="n">error_function</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_su</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">e</span></div>
 </pre></div>
 
            </div>

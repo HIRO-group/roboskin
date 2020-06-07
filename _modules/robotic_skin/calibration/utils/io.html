@@ -171,6 +171,14 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array2string</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">separator</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="t2s"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.io.t2s">[docs]</a><span class="k">def</span> <span class="nf">t2s</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    the equivalent of printing out</span>
+<span class="sd">    a pytorch tensor, but in string form.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="load_robot_configs"><a class="viewcode-back" href="../../../../robotic_skin.calibration.utils.html#robotic_skin.calibration.utils.io.load_robot_configs">[docs]</a><span class="k">def</span> <span class="nf">load_robot_configs</span><span class="p">(</span><span class="n">configdir</span><span class="p">,</span> <span class="n">robot</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Loads robot&#39;s DH parameters, SUs&#39; DH parameters and their poses</span>

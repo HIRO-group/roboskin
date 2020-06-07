@@ -28,6 +28,14 @@ robotic\_skin.calibration.utils.rotational\_acceleration module
    :undoc-members:
    :show-inheritance:
 
+robotic\_skin.calibration.utils.rotational\_acceleration\_torch module
+----------------------------------------------------------------------
+
+.. automodule:: robotic_skin.calibration.utils.rotational_acceleration_torch
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------

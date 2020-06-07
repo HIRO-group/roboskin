@@ -36,6 +36,14 @@ robotic\_skin.calibration.error\_functions module
    :undoc-members:
    :show-inheritance:
 
+robotic\_skin.calibration.error\_functions\_torch module
+--------------------------------------------------------
+
+.. automodule:: robotic_skin.calibration.error_functions_torch
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 robotic\_skin.calibration.evaluator module
 ------------------------------------------
 
@@ -48,6 +56,14 @@ robotic\_skin.calibration.kinematic\_chain module
 -------------------------------------------------
 
 .. automodule:: robotic_skin.calibration.kinematic_chain
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+robotic\_skin.calibration.kinematic\_chain\_torch module
+--------------------------------------------------------
+
+.. automodule:: robotic_skin.calibration.kinematic_chain_torch
    :members:
    :undoc-members:
    :show-inheritance:

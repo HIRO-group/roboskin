@@ -146,6 +146,7 @@
             
   <h1>Source code for robotic_skin.calibration.evaluator</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">pyquaternion</span> <span class="k">as</span> <span class="nn">pyqt</span>
 <span class="kn">from</span> <span class="nn">robotic_skin.calibration</span> <span class="kn">import</span> <span class="n">utils</span>
 
@@ -155,8 +156,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">true_su_pose</span> <span class="o">=</span> <span class="n">true_su_pose</span>
 
 <div class="viewcode-block" id="Evaluator.evaluate"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.evaluator.Evaluator.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">position</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">position</span><span class="p">)</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">position</span> <span class="o">=</span> <span class="n">position</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
         <span class="n">euclidean_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span>
-            <span class="n">T</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">true_su_pose</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;su</span><span class="si">{</span><span class="n">i_su</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">][</span><span class="s1">&#39;position&#39;</span><span class="p">])</span>
+            <span class="n">position</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">true_su_pose</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;su</span><span class="si">{</span><span class="n">i_su</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">][</span><span class="s1">&#39;position&#39;</span><span class="p">])</span>
 
         <span class="n">q_su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">true_su_pose</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;su</span><span class="si">{</span><span class="n">i_su</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">][</span><span class="s1">&#39;rotation&#39;</span><span class="p">]</span>
         <span class="n">quaternion_distance</span> <span class="o">=</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="o">.</span><span class="n">absolute_distance</span><span class="p">(</span>
