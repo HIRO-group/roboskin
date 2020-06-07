@@ -24,8 +24,12 @@ class TransformationMatrix():
             https://robotacademy.net.au/lesson/denavit-hartenberg-notation/
         """
         # if parameters are tensors, don't convert to np array
-        temp_params = np.array([theta, d, a, alpha], dtype=float)
-        self.key_index = np.argwhere(~np.isnan(temp_params)).flatten()
+        params = np.array([theta, d, a, alpha], dtype=float)
+        self.key_index = np.argwhere(~np.isnan(params)).flatten()
+        self.params = np.nan_to_num(params)
+
+        qx = pyqt.Quaternion(axis=[1, 0, 0], angle=self.params[3])
+        qz = pyqt.Quaternion(axis=[0, 0, 1], angle=self.params[0])
 
         if type(theta) == torch.Tensor:
             if theta is None:
@@ -36,21 +40,14 @@ class TransformationMatrix():
                 a = torch.tensor(0.).double().cuda()
             if alpha is None:
                 alpha = torch.tensor(0.).double().cuda()
-            temp_params = np.array([theta.cpu(), d.cpu(), a.cpu(), alpha.cpu()], dtype=float)
 
             self.params = torch.cat((theta.view(-1), d.view(-1), a.view(-1), alpha.view(-1)))
             self.is_tensor = True
-
         else:
             self.is_tensor = False
-            params = np.array([theta, d, a, alpha], dtype=float)
             # Only select provided keys (which are not None)
-            self.params = np.nan_to_num(params)
-            temp_params = self.params
 
         self.matrix = self.transformation_matrix(*self.params)
-        qx = pyqt.Quaternion(axis=[1, 0, 0], angle=temp_params[3])
-        qz = pyqt.Quaternion(axis=[0, 0, 1], angle=temp_params[0])
         self.q = qx * qz
 
     def transformation_matrix(self, th, d, a, al):
