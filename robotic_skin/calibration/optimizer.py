@@ -160,9 +160,21 @@ class IncrementalOptimizerBase(OptimizerBase):
 
 
 class TorchOptimizerBase(IncrementalOptimizerBase):
+    """
+    torch optimizer. This optimizer is the only optimizer
+    that takes into account gradients during runtime. This is done
+    through the .backward() function of PyTorch tensors (with `is_grad`
+    set to `True`), which will automatically calculate the gradients
+    of the parameters (DH parameters) based on the error.
+    """
     def __init__(self, kinematic_chain, evaluator, data_logger,
                  optimize_all, error_function_=None, stop_condition_=None,
                  method='our'):
+        """
+        initialization for torch optimizer. For best results,
+        by default, this optimizer uses static error and max accel
+        error functions.
+        """
 
         error_function = CombinedErrorFunction(
             e1=StaticErrorFunctionTorch(
