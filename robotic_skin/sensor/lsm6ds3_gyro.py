@@ -29,7 +29,7 @@ class LSM6DS3_gyroscope(Sensor):
             config_file is the full path to the config file which contains all parameters in yaml to execute
             successfully as explained above
         """
-        super(LSM6DS3_acclerometer, self).__init__(config_file)
+        super(LSM6DS3_gyroscope, self).__init__(config_file)
         # Below are Accelerometer Output registers
         self.OUTX_L_G = 0x22
         self.OUTX_H_G = 0x23
