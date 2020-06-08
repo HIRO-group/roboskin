@@ -183,7 +183,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
     Compute errors between estimated and measured max acceleration for sensor i
 
     """
-    def __init__(self, loss, method='normal_mittendorfer'):
+    def __init__(self, loss, method='mittendorfer'):
         super().__init__(loss)
         self.method = method
 
@@ -201,12 +201,15 @@ class MaxAccelerationErrorFunction(ErrorFunction):
             A Kinematic Chain of the robot
 
         Returns
-        --------
+        --------.error_funct
         e2: float
             Dynamic Error
         """  # noqa: W605
         if not self.initialized:
             raise ValueError('Not Initialized')
+
+        if self.method == 'mittendorfer':
+            self.use_max_accel_point()
 
         i_joint = kinematic_chain.su_joint_dict[i_su]
 
@@ -261,6 +264,51 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
         return e2/n_data
 
+    def use_max_accel_point(self):
+
+        time_range = (0.04, 0.16)
+        # filter code.
+        for pose_name in self.pose_names:
+            for joint_name in self.joint_names:
+                for imu_name in self.imu_names:
+                    imu_data = self.data.dynamic[pose_name][joint_name][imu_name]
+
+                    imu_accs = imu_data[:, :3]
+
+                    norms = np.linalg.norm(imu_accs, axis=1)
+
+                    joint_accs = imu_data[:, 11]
+
+                    # array of imu data - both filtered and raw
+                    imu_filtered_arr = []
+                    imu_raw_arr = []
+
+                    # max imu acceleration
+                    imu_acc_max = 0
+                    # max individual joint acceleration
+                    joint_acc_max = 0
+                    # idx of the max acceleration.
+                    best_idx = 0
+
+                    for idx, (norm, acc) in enumerate(zip(norms, joint_accs)):
+                        cur_time = imu_data[idx, 10]
+                        # add filtered and raw data to array
+                        imu_filtered_arr.append(norm)
+                        imu_raw_arr.append(norms[idx])
+                        """
+                        conditions for update of best idx:
+                            - the filtered norm is greater than the current highest one.
+                            - the time of this data lies within `time_range`
+                            - the filtered joint acceleration is also greater than the current highest one.
+                        """
+                        if norm > imu_acc_max and cur_time < time_range[1] and cur_time > time_range[0] and acc > joint_acc_max:
+                            best_idx = idx
+                            imu_acc_max = norm
+                            joint_acc_max = acc
+
+                    best = self.data.dynamic[pose_name][joint_name][imu_name][best_idx]
+                    self.data.dynamic[pose_name][joint_name][imu_name] = np.array([best])
+                    # update data to the max acceleration point
 
 class CombinedErrorFunction(ErrorFunction):
     """
