@@ -183,7 +183,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
     Compute errors between estimated and measured max acceleration for sensor i
 
     """
-    def __init__(self, loss, method='mittendorfer'):
+    def __init__(self, loss, method=''):
         super().__init__(loss)
         self.method = method
 
