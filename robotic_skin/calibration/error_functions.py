@@ -209,7 +209,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
             A Kinematic Chain of the robot
 
         Returns
-        --------.error_funct
+        --------
         e2: float
             Dynamic Error
         """  # noqa: W605
