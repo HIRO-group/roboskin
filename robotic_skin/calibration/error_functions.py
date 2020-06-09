@@ -191,7 +191,9 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         super().initialize(data)
         if 'mittendorfer' in self.method:
             self.should_use_one_point = True
-            # self.use_max_accel_point()
+            self.use_max_accel_point()
+        else:
+            self.should_use_one_point = False
 
     def __call__(self, kinematic_chain, i_su):
         """
