@@ -37,7 +37,7 @@ def choose_optimizer(args, kinematic_chain, evaluator, data_logger, optimize_all
     elif args.method == 'mMM':
         optimizer = MittendorferMethodOptimizer(
             kinematic_chain, evaluator, data_logger,
-            optimize_all, args.error_functions, args.stop_conditions, method='mittendorfer')
+            optimize_all, args.error_functions, args.stop_conditions, method='modified_mittendorfer')
 
     elif args.method == 'TM':
         # method using pytorch's autograd, and optimization methods
