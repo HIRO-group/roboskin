@@ -1,8 +1,10 @@
 import numpy as np
-import pyquaternion as pyqt
+import torch
 import robotic_skin.const as C
+import pyquaternion as pyqt
+from robotic_skin.calibration.error_functions import ErrorFunction
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
-from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
+from robotic_skin.calibration.utils.rotational_acceleration_torch import estimate_acceleration_torch
 
 
 def max_angle_func(t: int):
@@ -18,41 +20,7 @@ def max_angle_func(t: int):
     return (C.MAX_ANGULAR_VELOCITY / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ * t))
 
 
-class ErrorFunction():
-    """
-    Error Function class used to evaluate kinematics
-    estimation models.
-    """
-    def __init__(self, loss):
-        """
-        Parses the data and gets the loss function.
-        """
-        self.initialized = False
-        self.loss = loss
-
-    def initialize(self, data):
-        self.initialized = True
-        self.data = data
-        self.pose_names = list(data.constant.keys())
-        self.joint_names = list(data.constant[self.pose_names[0]].keys())
-        self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
-        self.n_dynamic_pose = len(list(data.dynamic.keys()))
-        self.n_constant_pose = len(list(data.constant.keys()))
-        self.n_static_pose = len(list(data.static.keys()))
-
-        self.n_joint = len(self.joint_names)
-        self.n_sensor = self.n_joint
-
-    def __call__(self, kinematic_chain, inert_su):
-        """
-        __call__ is to be used on returning an error value.
-        """
-        if not self.initialized:
-            raise ValueError('Not Initialized')
-        raise NotImplementedError()
-
-
-class StaticErrorFunction(ErrorFunction):
+class StaticErrorFunctionTorch(ErrorFunction):
     """
     Static error is an deviation of the gravity vector for p positions.
 
@@ -87,9 +55,11 @@ class StaticErrorFunction(ErrorFunction):
         if not self.initialized:
             raise ValueError('Not Initialized')
 
-        gravities = np.zeros((self.n_static_pose, 3))
-        gravity = np.array([[0, 0, 9.8], ] * self.n_static_pose, dtype=float)
-        error_quaternion = np.zeros(self.n_static_pose)
+        gravities = torch.zeros((self.n_static_pose, 3)).double().cuda()
+
+        gravity = torch.tensor([[0, 0, 9.8], ] * self.n_static_pose).double().cuda()
+
+        error_quaternion = torch.zeros(self.n_static_pose).double().cuda()
 
         for p in range(self.n_static_pose):
             poses = self.data.static[self.pose_names[p]][self.imu_names[i_su]][7:14]
@@ -98,7 +68,12 @@ class StaticErrorFunction(ErrorFunction):
             # Account for Gravity
             rs_R_su = T.R
             accel_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][4:7]
-            accel_rs = np.dot(rs_R_su, accel_su)
+
+            accel_su = torch.Tensor(accel_su).double().cuda()
+
+            # rotate accel_su into rs frame.
+            accel_rs = torch.mm(rs_R_su, accel_su.view(3, 1)).view(-1)
+
             gravities[p, :] = accel_rs
             # Account of Quaternion
             q_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][:4]
@@ -107,10 +82,10 @@ class StaticErrorFunction(ErrorFunction):
             # logging.debug(f'Measured: {q_su}, Model: {T.quaternion}')
             error_quaternion[p] = d
 
-        return self.loss(gravities, gravity, axis=1)
+        return self.loss(gravities, gravity)
 
 
-class ConstantRotationErrorFunction(ErrorFunction):
+class ConstantRotationErrorFunctionTorch(ErrorFunction):
     """
     An error function used when a robotic arm's joints
     are moving at a constant velocity.
@@ -122,8 +97,8 @@ class ConstantRotationErrorFunction(ErrorFunction):
         """
         Arguments
         ------------
-        i_su: int
-            i_suth sensor
+        i_su: `int`
+            i_su-th sensor
         kinematic_chain:
             A Kinematic Chain of the robot
 
@@ -148,7 +123,6 @@ class ConstantRotationErrorFunction(ErrorFunction):
                 joints = data[:, 7:14]
                 angular_velocities = data[:, 14]
 
-                # for meas_accel, poses, curr_w in zip(meas_accels, joints, angular_velocities):
                 n_eval = 10
                 for i in range(n_eval):
                     n_data = data.shape[0]
@@ -159,18 +133,19 @@ class ConstantRotationErrorFunction(ErrorFunction):
                     meas_accel = meas_accels[idx, :]
                     poses = joints[idx, :]
                     angular_velocity = angular_velocities[idx]
-
+                    meas_accel_torch = torch.Tensor(meas_accel).double().cuda()
+                    angular_velocity_torch = torch.Tensor(angular_velocity).double().cuda()
                     # TODO: parse start_joint. Currently, there is a bug
                     kinematic_chain.set_poses(poses, end_joint=i_joint)
-                    model_accel = estimate_acceleration(kinematic_chain=kinematic_chain,
-                                                        i_rotate_joint=d_joint,
-                                                        i_su=i_su,
-                                                        joint_angular_velocity=angular_velocity)
+                    model_accel_torch = estimate_acceleration_torch(kinematic_chain=kinematic_chain,
+                                                                    i_rotate_joint=d_joint,
+                                                                    i_su=i_su,
+                                                                    joint_angular_velocity=angular_velocity_torch)
 
                     # logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t' +
                     #               f'Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}')
 
-                    error2 = self.loss(model_accel, meas_accel)
+                    error2 = self.loss(model_accel_torch, meas_accel_torch)
 
                     errors += error2
                     n_error += 1
@@ -178,7 +153,7 @@ class ConstantRotationErrorFunction(ErrorFunction):
         return errors/n_error
 
 
-class MaxAccelerationErrorFunction(ErrorFunction):
+class MaxAccelerationErrorFunctionTorch(ErrorFunction):
     """
     Compute errors between estimated and measured max acceleration for sensor i
 
@@ -243,7 +218,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     # kinematic_chain.set_poses(joints)
                     kinematic_chain.set_poses(poses, end_joint=i_joint)
                     # use mittendorfer's original or modified based on condition
-                    estimate_A = estimate_acceleration(
+                    estimate_A_tensor = estimate_acceleration_torch(
                         kinematic_chain=kinematic_chain,
                         i_rotate_joint=rotate_joint,
                         i_su=i_su,
@@ -255,33 +230,11 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
                     # logging.debug(f'[{pose}, {joint}, {su}@Joint{i_joint}]\t' +
                     #               f'Model: {n2s(estimate_A, 4)} SU: {n2s(measured_A, 4)}')
-                    error = np.sum(np.abs(measured_A - estimate_A)**2)
+                    measured_A_tensor = torch.tensor(measured_A).double().cuda()
+                    # print(max_accel_model.detach().numpy(), max_accel_train)
+                    error = torch.sum(torch.abs(measured_A_tensor - estimate_A_tensor)**2)
+
                     e2 += error
                     n_data += 1
 
         return e2/n_data
-
-
-class CombinedErrorFunction(ErrorFunction):
-    """
-    combined error function that allows for
-    the error based on the cumulative sum of error
-    functions.
-    """
-    def __init__(self, **kwargs):
-        self.error_funcs = []
-        for k, v in kwargs.items():
-            if not isinstance(v, ErrorFunction):
-                raise ValueError('Only ErrorFunction class is allowed')
-            setattr(self, k, v)
-            self.error_funcs.append(v)
-
-    def initialize(self, data):
-        for error_function in self.error_funcs:
-            error_function.initialize(data)
-
-    def __call__(self, kinematic_chain, i_su):
-        e = 0.0
-        for error_function in self.error_funcs:
-            e += error_function(kinematic_chain, i_su)
-        return e
