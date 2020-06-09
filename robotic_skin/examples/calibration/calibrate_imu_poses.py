@@ -36,7 +36,7 @@ def parse_arguments():
                         help="Determines if the optimizer will be run to find all of the dh parameters.")
     parser.add_argument('--test', action='store_true',
                         help="Determines if the true SU DH parameters will be used")
-    parser.add_argument('--method', type=str, default='OM',
+    parser.add_argument('--method', type=str, default='MM',
                         help="Please provide a method name")
 
     parser.add_argument('-e', '--error_functions', nargs='+', default=None,

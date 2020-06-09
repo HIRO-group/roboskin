@@ -187,6 +187,12 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         super().__init__(loss)
         self.method = method
 
+    def initialize(self, data):
+        super().initialize(data)
+        if 'mittendorfer' in self.method:
+            self.should_use_one_point = True
+            # self.use_max_accel_point()
+
     def __call__(self, kinematic_chain, i_su):
         """
         Compute errors between estimated and measured max acceleration for sensor i
@@ -208,9 +214,6 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         if not self.initialized:
             raise ValueError('Not Initialized')
 
-        if self.method == 'mittendorfer':
-            self.use_max_accel_point()
-
         i_joint = kinematic_chain.su_joint_dict[i_su]
 
         e2 = 0.0
@@ -229,8 +232,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 joint_angular_accelerations = data[:, 11]
                 # max_angular_velocity = data[0, 12]
                 joint_angular_velocities = data[:, 13]
-
-                n_eval = 4
+                n_eval = 1 if self.should_use_one_point else 4
                 for i_eval in range(n_eval):
                     n_data = data.shape[0]
                     if n_data <= i_eval:
@@ -309,6 +311,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     best = self.data.dynamic[pose_name][joint_name][imu_name][best_idx]
                     self.data.dynamic[pose_name][joint_name][imu_name] = np.array([best])
                     # update data to the max acceleration point
+
 
 class CombinedErrorFunction(ErrorFunction):
     """
