@@ -285,10 +285,6 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
                     joint_accs = imu_data[:, 11]
 
-                    # array of imu data - both filtered and raw
-                    imu_filtered_arr = []
-                    imu_raw_arr = []
-
                     # max imu acceleration
                     imu_acc_max = 0
                     # max individual joint acceleration
@@ -299,8 +295,6 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     for idx, (norm, acc) in enumerate(zip(norms, joint_accs)):
                         cur_time = imu_data[idx, 10]
                         # add filtered and raw data to array
-                        imu_filtered_arr.append(norm)
-                        imu_raw_arr.append(norms[idx])
                         """
                         conditions for update of best idx:
                             - the norm is greater than the current highest one.
