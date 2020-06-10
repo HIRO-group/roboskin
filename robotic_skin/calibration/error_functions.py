@@ -285,13 +285,6 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
                     joint_accs = imu_data[:, 11]
 
-                    # filter acceleration norms
-                    filtered_norms = low_pass_filter(norms, 100.)
-                    # filtered_vels = utils.low_pass_filter(ang_vels, 100.)
-
-                    # filter joint accelerations
-                    filtered_joint_accs = low_pass_filter(joint_accs, 100.)
-
                     # array of imu data - both filtered and raw
                     imu_filtered_arr = []
                     imu_raw_arr = []
@@ -303,18 +296,18 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     # idx of the max acceleration.
                     best_idx = 0
 
-                    for idx, (norm, acc) in enumerate(zip(filtered_norms, filtered_joint_accs)):
+                    for idx, (norm, acc) in enumerate(zip(norms, joint_accs)):
                         cur_time = imu_data[idx, 10]
                         # add filtered and raw data to array
                         imu_filtered_arr.append(norm)
                         imu_raw_arr.append(norms[idx])
                         """
                         conditions for update of best idx:
-                            - the filtered norm is greater than the current highest one.
+                            - the norm is greater than the current highest one.
                             - the time of this data lies within `time_range`
-                            - the filtered joint acceleration is also greater than the current highest one.
+                            - the joint acceleration is also greater than the current highest one.
 
-                        explanation:
+                        explanation: 
 
                          we use the information from both the norms of the SU acceleration
                          and joint acceleration values. Since alpha x r,

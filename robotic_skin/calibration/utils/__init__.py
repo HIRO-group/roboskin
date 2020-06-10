@@ -17,8 +17,6 @@ from .io import (
     add_outlier
 )
 
-from .filtering import low_pass_filter
-
 __all__ = [
     "tf_to_pyqt",
     "pyqt_to_tf",
@@ -33,6 +31,5 @@ __all__ = [
     "load_data",
     "parse_datadir",
     "add_noise",
-    "add_outlier",
-    "low_pass_filter"
+    "add_outlier"
 ]
