@@ -447,9 +447,33 @@ estimation models.</p>
 
 <dl class="py class">
 <dt id="robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction">
-<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">MaxAccelerationErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'normal_mittendorfer'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#MaxAccelerationErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">robotic_skin.calibration.error_functions.</code><code class="sig-name descname">MaxAccelerationErrorFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'our'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#MaxAccelerationErrorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#robotic_skin.calibration.error_functions.ErrorFunction" title="robotic_skin.calibration.error_functions.ErrorFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">robotic_skin.calibration.error_functions.ErrorFunction</span></code></a></p>
 <p>Compute errors between estimated and measured max acceleration for sensor i</p>
+<dl class="py method">
+<dt id="robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#MaxAccelerationErrorFunction.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction.use_max_accel_point">
+<code class="sig-name descname">use_max_accel_point</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/error_functions.html#MaxAccelerationErrorFunction.use_max_accel_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.error_functions.MaxAccelerationErrorFunction.use_max_accel_point" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>conditions for update of best idx:</dt><dd><ul class="simple">
+<li><p>the norm is greater than the current highest one.</p></li>
+<li><p>the time of this data lies within <cite>time_range</cite></p></li>
+<li><p>the joint acceleration is also greater than the current highest one.</p></li>
+</ul>
+</dd>
+</dl>
+<p>explanation:
+we use the information from both the norms of the SU acceleration
+and joint acceleration values. Since alpha x r,
+where alpha is joint acceleration is dominant
+in the calculation of SU acceleration, using both sources of information is
+more reliable and robust than just using one.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
