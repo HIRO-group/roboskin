@@ -307,7 +307,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                             - the time of this data lies within `time_range`
                             - the joint acceleration is also greater than the current highest one.
 
-                        explanation: 
+                        explanation:
 
                          we use the information from both the norms of the SU acceleration
                          and joint acceleration values. Since alpha x r,
