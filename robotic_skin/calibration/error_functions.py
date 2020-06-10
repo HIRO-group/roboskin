@@ -183,9 +183,18 @@ class MaxAccelerationErrorFunction(ErrorFunction):
     Compute errors between estimated and measured max acceleration for sensor i
 
     """
-    def __init__(self, loss, method='normal_mittendorfer'):
+    def __init__(self, loss, method='our'):
         super().__init__(loss)
         self.method = method
+
+    def initialize(self, data):
+        super().initialize(data)
+
+        if 'mittendorfer' in self.method:
+            self.should_use_one_point = True
+            self.use_max_accel_point()
+        else:
+            self.should_use_one_point = False
 
     def __call__(self, kinematic_chain, i_su):
         """
@@ -226,8 +235,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 joint_angular_accelerations = data[:, 11]
                 # max_angular_velocity = data[0, 12]
                 joint_angular_velocities = data[:, 13]
-
-                n_eval = 4
+                n_eval = 1 if self.should_use_one_point else 4
                 for i_eval in range(n_eval):
                     n_data = data.shape[0]
                     if n_data <= i_eval:
@@ -260,6 +268,49 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     n_data += 1
 
         return e2/n_data
+
+    def use_max_accel_point(self):
+        """
+        conditions for update of best idx:
+            - the norm is greater than the current highest one.
+            - the time of this data lies within `time_range`
+            - the joint acceleration is also greater than the current highest one.
+
+        explanation:
+        we use the information from both the norms of the SU acceleration
+        and joint acceleration values. Since alpha x r,
+        where alpha is joint acceleration is dominant
+        in the calculation of SU acceleration, using both sources of information is
+        more reliable and robust than just using one.
+        """
+        time_range = (0.04, 0.16)
+        # filter code.
+        for pose_name in self.pose_names:
+            for joint_name in self.joint_names:
+                for imu_name in self.imu_names:
+                    imu_data = self.data.dynamic[pose_name][joint_name][imu_name]
+
+                    imu_accs = imu_data[:, :3]
+                    acceleration_norms = np.linalg.norm(imu_accs, axis=1)
+                    joint_accs = imu_data[:, 11]
+
+                    # max imu acceleration
+                    imu_acc_max = 0
+                    # max individual joint acceleration
+                    joint_acc_max = 0
+                    # idx of the max acceleration.
+                    best_idx = 0
+
+                    for idx, (acceleration_norm, joint_acc) in enumerate(zip(acceleration_norms, joint_accs)):
+                        cur_time = imu_data[idx, 10]
+                        if acceleration_norm > imu_acc_max and cur_time < time_range[1] \
+                           and cur_time > time_range[0] and joint_acc > joint_acc_max:
+                            best_idx = idx
+                            imu_acc_max = acceleration_norm
+                            joint_acc_max = joint_acc
+
+                    max_point = self.data.dynamic[pose_name][joint_name][imu_name][best_idx]
+                    self.data.dynamic[pose_name][joint_name][imu_name] = np.array([max_point])
 
 
 class CombinedErrorFunction(ErrorFunction):
