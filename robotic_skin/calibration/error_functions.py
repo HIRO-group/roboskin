@@ -2,6 +2,7 @@ import numpy as np
 import pyquaternion as pyqt
 import robotic_skin.const as C
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
+from robotic_skin.calibration.utils.filtering import low_pass_filter
 from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
 
 
@@ -183,12 +184,13 @@ class MaxAccelerationErrorFunction(ErrorFunction):
     Compute errors between estimated and measured max acceleration for sensor i
 
     """
-    def __init__(self, loss, method=''):
+    def __init__(self, loss, method='our'):
         super().__init__(loss)
         self.method = method
 
     def initialize(self, data):
         super().initialize(data)
+
         if 'mittendorfer' in self.method:
             self.should_use_one_point = True
             self.use_max_accel_point()
@@ -283,6 +285,13 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
                     joint_accs = imu_data[:, 11]
 
+                    # filter acceleration norms
+                    filtered_norms = low_pass_filter(norms, 100.)
+                    # filtered_vels = utils.low_pass_filter(ang_vels, 100.)
+
+                    # filter joint accelerations
+                    filtered_joint_accs = low_pass_filter(joint_accs, 100.)
+
                     # array of imu data - both filtered and raw
                     imu_filtered_arr = []
                     imu_raw_arr = []
@@ -294,7 +303,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     # idx of the max acceleration.
                     best_idx = 0
 
-                    for idx, (norm, acc) in enumerate(zip(norms, joint_accs)):
+                    for idx, (norm, acc) in enumerate(zip(filtered_norms, filtered_joint_accs)):
                         cur_time = imu_data[idx, 10]
                         # add filtered and raw data to array
                         imu_filtered_arr.append(norm)
@@ -304,6 +313,14 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                             - the filtered norm is greater than the current highest one.
                             - the time of this data lies within `time_range`
                             - the filtered joint acceleration is also greater than the current highest one.
+
+                        explanation:
+
+                         we use the information from both the norms of the SU acceleration
+                         and joint acceleration values. Since alpha x r,
+                         where alpha is joint acceleration is dominant
+                         in the calculation of SU acceleration, using both sources of information is
+                         more reliable and robust than just using one.
                         """
                         if norm > imu_acc_max and cur_time < time_range[1] and cur_time > time_range[0] and acc > joint_acc_max:
                             best_idx = idx
