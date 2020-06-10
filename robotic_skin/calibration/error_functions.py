@@ -2,7 +2,6 @@ import numpy as np
 import pyquaternion as pyqt
 import robotic_skin.const as C
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
-from robotic_skin.calibration.utils.filtering import low_pass_filter
 from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
 
 
