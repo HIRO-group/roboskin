@@ -271,7 +271,9 @@ class MaxAccelerationErrorFunction(ErrorFunction):
         return e2/n_data
 
     def use_max_accel_point(self):
-
+        """
+        takes max acceleration point from dynamic data.
+        """
         time_range = (0.04, 0.16)
         # filter code.
         for pose_name in self.pose_names:
@@ -281,7 +283,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
                     imu_accs = imu_data[:, :3]
 
-                    norms = np.linalg.norm(imu_accs, axis=1)
+                    acceleration_norms = np.linalg.norm(imu_accs, axis=1)
 
                     joint_accs = imu_data[:, 11]
 
@@ -292,7 +294,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     # idx of the max acceleration.
                     best_idx = 0
 
-                    for idx, (norm, acc) in enumerate(zip(norms, joint_accs)):
+                    for idx, (acceleration_norm, joint_acc) in enumerate(zip(acceleration_norms, joint_accs)):
                         cur_time = imu_data[idx, 10]
                         # add filtered and raw data to array
                         """
@@ -309,13 +311,13 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                          in the calculation of SU acceleration, using both sources of information is
                          more reliable and robust than just using one.
                         """
-                        if norm > imu_acc_max and cur_time < time_range[1] and cur_time > time_range[0] and acc > joint_acc_max:
+                        if acceleration_norm > imu_acc_max and cur_time < time_range[1] and cur_time > time_range[0] and joint_acc > joint_acc_max:
                             best_idx = idx
-                            imu_acc_max = norm
-                            joint_acc_max = acc
+                            imu_acc_max = acceleration_norm
+                            joint_acc_max = joint_acc
 
-                    best = self.data.dynamic[pose_name][joint_name][imu_name][best_idx]
-                    self.data.dynamic[pose_name][joint_name][imu_name] = np.array([best])
+                    max_point = self.data.dynamic[pose_name][joint_name][imu_name][best_idx]
+                    self.data.dynamic[pose_name][joint_name][imu_name] = np.array([max_point])
                     # update data to the max acceleration point
 
 
