@@ -272,7 +272,17 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
     def use_max_accel_point(self):
         """
-        takes max acceleration point from dynamic data.
+        conditions for update of best idx:
+            - the norm is greater than the current highest one.
+            - the time of this data lies within `time_range`
+            - the joint acceleration is also greater than the current highest one.
+
+        explanation:
+        we use the information from both the norms of the SU acceleration
+        and joint acceleration values. Since alpha x r,
+        where alpha is joint acceleration is dominant
+        in the calculation of SU acceleration, using both sources of information is
+        more reliable and robust than just using one.
         """
         time_range = (0.04, 0.16)
         # filter code.
@@ -282,9 +292,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                     imu_data = self.data.dynamic[pose_name][joint_name][imu_name]
 
                     imu_accs = imu_data[:, :3]
-
                     acceleration_norms = np.linalg.norm(imu_accs, axis=1)
-
                     joint_accs = imu_data[:, 11]
 
                     # max imu acceleration
@@ -296,29 +304,14 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
                     for idx, (acceleration_norm, joint_acc) in enumerate(zip(acceleration_norms, joint_accs)):
                         cur_time = imu_data[idx, 10]
-                        # add filtered and raw data to array
-                        """
-                        conditions for update of best idx:
-                            - the norm is greater than the current highest one.
-                            - the time of this data lies within `time_range`
-                            - the joint acceleration is also greater than the current highest one.
-
-                        explanation:
-
-                         we use the information from both the norms of the SU acceleration
-                         and joint acceleration values. Since alpha x r,
-                         where alpha is joint acceleration is dominant
-                         in the calculation of SU acceleration, using both sources of information is
-                         more reliable and robust than just using one.
-                        """
-                        if acceleration_norm > imu_acc_max and cur_time < time_range[1] and cur_time > time_range[0] and joint_acc > joint_acc_max:
+                        if acceleration_norm > imu_acc_max and cur_time < time_range[1] \
+                           and cur_time > time_range[0] and joint_acc > joint_acc_max:
                             best_idx = idx
                             imu_acc_max = acceleration_norm
                             joint_acc_max = joint_acc
 
                     max_point = self.data.dynamic[pose_name][joint_name][imu_name][best_idx]
                     self.data.dynamic[pose_name][joint_name][imu_name] = np.array([max_point])
-                    # update data to the max acceleration point
 
 
 class CombinedErrorFunction(ErrorFunction):
