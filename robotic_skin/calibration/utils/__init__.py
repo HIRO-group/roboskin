@@ -34,5 +34,5 @@ __all__ = [
     "parse_datadir",
     "add_noise",
     "add_outlier",
-    "filter"
+    "low_pass_filter"
 ]
