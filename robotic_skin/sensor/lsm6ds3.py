@@ -10,7 +10,7 @@ from robotic_skin.sensor import Sensor
 from robotic_skin.const import GRAVITATIONAL_CONSTANT
 
 
-class LSM6DS3_acclerometer(Sensor):
+class LSM6DS3_IMU(Sensor):
     """
     This is the Python Class for LSM6DS3. This includes all subroutines including calibration to handle everything
     related to the device.
@@ -29,7 +29,7 @@ class LSM6DS3_acclerometer(Sensor):
             config_file is the full path to the config file which contains all parameters in yaml to execute
             successfully as explained above
         """
-        super(LSM6DS3_acclerometer, self).__init__(config_file)
+        super(LSM6DS3_IMU, self).__init__(config_file)
         # Below are Accelerometer Output registers
         self.OUTX_L_XL = 0x28
         self.OUTX_H_XL = 0x29
@@ -37,6 +37,14 @@ class LSM6DS3_acclerometer(Sensor):
         self.OUTY_H_XL = 0x2B
         self.OUTZ_L_XL = 0x2C
         self.OUTZ_H_XL = 0x2D
+
+        # Below are Gyroscope Output registers
+        self.OUTX_L_G = 0x22
+        self.OUTX_H_G = 0x23
+        self.OUTY_L_G = 0x24
+        self.OUTY_H_G = 0x25
+        self.OUTZ_L_G = 0x26
+        self.OUTZ_H_G = 0x27
         # Below is a register used to find out if the device is LSM6DS3 or not
         # According to Page 51 this register will always output 0x69
         self.WHO_AM_I = 0x0F
@@ -197,15 +205,24 @@ class LSM6DS3_acclerometer(Sensor):
     def _read_raw(self):
         axh = self.read_reg(self.OUTX_H_XL)
         axl = self.read_reg(self.OUTX_L_XL)
-        ax = self.make_16bit_value(axh, axl)
+        ax = self.make_16bit_value(axh, axl) * GRAVITATIONAL_CONSTANT
         ayh = self.read_reg(self.OUTY_H_XL)
         ayl = self.read_reg(self.OUTY_L_XL)
-        ay = self.make_16bit_value(ayh, ayl)
+        ay = self.make_16bit_value(ayh, ayl) * GRAVITATIONAL_CONSTANT
         azh = self.read_reg(self.OUTZ_H_XL)
         azl = self.read_reg(self.OUTZ_L_XL)
-        az = self.make_16bit_value(azh, azl)
+        az = self.make_16bit_value(azh, azl) * GRAVITATIONAL_CONSTANT
+        gxh = self.read_reg(self.OUTX_H_G)
+        gxl = self.read_reg(self.OUTX_L_G)
+        gx = self.make_16bit_value(gxh, gxl)
+        gyh = self.read_reg(self.OUTY_H_G)
+        gyl = self.read_reg(self.OUTY_L_G)
+        gy = self.make_16bit_value(gyh, gyl)
+        gzh = self.read_reg(self.OUTZ_H_G)
+        gzl = self.read_reg(self.OUTZ_L_G)
+        gz = self.make_16bit_value(gzh, gzl)
 
-        return [ax, ay, az]
+        return [ax, ay, az, gx, gy, gz]
 
     def _calibrate_value(self, input_value):
         """
@@ -222,7 +239,7 @@ class LSM6DS3_acclerometer(Sensor):
             Returns the calibrated value
 
         """
-        return input_value * GRAVITATIONAL_CONSTANT
+        return input_value
 
     def read(self):
         """
@@ -231,7 +248,8 @@ class LSM6DS3_acclerometer(Sensor):
         Returns
         -------
         list
-            List of floats with Acceleration values in G in the form of [x, y, z] respective directions
+            List of floats with Acceleration values and angular velocity values in G in the form of
+            [ax, ay, az, gx, gy, gz] respective directions
 
         """
         return [self._calibrate_value(each_value) for each_value in self._read_raw()]
