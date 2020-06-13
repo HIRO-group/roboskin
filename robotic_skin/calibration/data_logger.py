@@ -51,13 +51,13 @@ class DataLogger():
         self.average_euclidean_distance = np.mean(
             list(self.best_data['euclidean_distance'].values()))
 
-    def add_trial(self, global_step, **kwargs):
+    def add_trial(self, global_step, imu_num, **kwargs):
+        if global_step not in self.best_data:
+            self.trials[global_step] = {}
+        self.trials[global_step]['imu_num'] = imu_num
         for key, value in kwargs.items():
             if isinstance(value, np.ndarray):
                 value = value.tolist()
-
-            if global_step not in self.best_data:
-                self.trials[global_step] = {}
 
             self.trials[global_step][key] = value
 
@@ -68,7 +68,7 @@ class DataLogger():
             'best_data': self.best_data,
             'trials': self.trials}
         with open(self.savepath, 'wb') as f:
-            pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(data, f, protocol=2)
 
     def __call__(self):
         print('Estimated SU Positions')

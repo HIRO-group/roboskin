@@ -262,6 +262,7 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         params = params.cpu().detach().numpy()
         self.data_logger.add_trial(
             global_step=self.global_step,
+            imu_num=self.i_su,
             params=params,
             position=pos,
             orientation=quat,
@@ -308,6 +309,7 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         # Log
         self.data_logger.add_trial(
             global_step=self.global_step,
+            imu_num=self.i_su,
             params=params,
             position=T.position,
             orientation=T.quaternion,
@@ -479,6 +481,7 @@ class MixedIncrementalOptimizer(IncrementalOptimizerBase):
         # Log
         self.data_logger.add_trial(
             global_step=self.global_step,
+            imu_num=self.i_su,
             params=params,
             position=T.position,
             orientation=T.quaternion,
@@ -603,6 +606,7 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
         # Log
         self.data_logger.add_trial(
             global_step=self.global_step,
+            imu_num=self.i_su,
             params=params,
             position=T.position,
             orientation=T.quaternion,
