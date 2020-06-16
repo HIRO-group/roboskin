@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 import pyquaternion as pyqt
 from robotic_skin.calibration import utils
 
@@ -8,8 +9,11 @@ class Evaluator():
         self.true_su_pose = true_su_pose
 
     def evaluate(self, T, i_su):
+        position = T.position
+        if type(position) == torch.Tensor:
+            position = position.cpu().detach().numpy()
         euclidean_distance = np.linalg.norm(
-            T.position - self.true_su_pose[f'su{i_su+1}']['position'])
+            position - self.true_su_pose[f'su{i_su+1}']['position'])
 
         q_su = self.true_su_pose[f'su{i_su+1}']['rotation']
         quaternion_distance = pyqt.Quaternion.absolute_distance(

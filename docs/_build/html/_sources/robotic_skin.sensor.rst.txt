@@ -20,10 +20,10 @@ robotic\_skin.sensor.flexiforce module
    :undoc-members:
    :show-inheritance:
 
-robotic\_skin.sensor.lsm6ds3\_accel module
-------------------------------------------
+robotic\_skin.sensor.lsm6ds3 module
+-----------------------------------
 
-.. automodule:: robotic_skin.sensor.lsm6ds3_accel
+.. automodule:: robotic_skin.sensor.lsm6ds3
    :members:
    :undoc-members:
    :show-inheritance:

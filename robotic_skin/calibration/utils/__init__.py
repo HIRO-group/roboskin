@@ -31,5 +31,5 @@ __all__ = [
     "load_data",
     "parse_datadir",
     "add_noise",
-    "add_outlier",
+    "add_outlier"
 ]
