@@ -253,3 +253,8 @@ class LSM6DS3_IMU(Sensor):
 
         """
         return [self._calibrate_value(each_value) for each_value in self._read_raw()]
+
+if __name__ == "__main__":
+    lsm6ds3 = LSM6DS3_IMU("/home/hiro/catkin_ws/src/ros_robotic_skin/config/accelerometer_config1.yaml")
+    print(lsm6ds3.read())
+
