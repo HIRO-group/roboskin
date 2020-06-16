@@ -141,7 +141,8 @@ class LSM6DS3_IMU(Sensor):
             Acceleration Value in G
         """
 
-        v = (vh << 8) | vl
+        # v = (vh << 8) | vl
+        v = (vl << 8) | vh
         return v
         # return (self.twos_comp(v, 16)) / math.pow(2, 14)
 
