@@ -151,10 +151,10 @@
 <span class="sd">Thanks Homie!</span>
 <span class="sd">Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">smbus2</span>
 <span class="kn">from</span> <span class="nn">robotic_skin.sensor</span> <span class="kn">import</span> <span class="n">Sensor</span>
 <span class="kn">from</span> <span class="nn">robotic_skin.const</span> <span class="kn">import</span> <span class="n">GRAVITATIONAL_CONSTANT</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
 
 
 <div class="viewcode-block" id="LSM6DS3_IMU"><a class="viewcode-back" href="../../../robotic_skin.sensor.html#robotic_skin.sensor.lsm6ds3.LSM6DS3_IMU">[docs]</a><span class="k">class</span> <span class="nc">LSM6DS3_IMU</span><span class="p">(</span><span class="n">Sensor</span><span class="p">):</span>
@@ -162,6 +162,7 @@
 <span class="sd">    This is the Python Class for LSM6DS3. This includes all subroutines including calibration to handle everything</span>
 <span class="sd">    related to the device.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">):</span>  <span class="c1"># noqa: E999</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the LSM6DS3 accelerometer. Checks for the I2C connection and checks whether it&#39;s the correct</span>
@@ -286,9 +287,9 @@
 <span class="sd">            Acceleration Value in G</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">vh</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">vl</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">vl</span> <span class="o">|</span> <span class="p">(</span><span class="n">vh</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span>
         <span class="c1"># return v</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">twos_comp</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">14</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">twos_comp</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span>  <span class="c1"># / math.pow(2, 14)</span></div>
 
 <div class="viewcode-block" id="LSM6DS3_IMU.twos_comp"><a class="viewcode-back" href="../../../robotic_skin.sensor.html#robotic_skin.sensor.lsm6ds3.LSM6DS3_IMU.twos_comp">[docs]</a>    <span class="k">def</span> <span class="nf">twos_comp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">num_of_bits</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -352,13 +353,13 @@
     <span class="k">def</span> <span class="nf">_read_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">axh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTX_H_XL</span><span class="p">)</span>
         <span class="n">axl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTX_L_XL</span><span class="p">)</span>
-        <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">axh</span><span class="p">,</span> <span class="n">axl</span><span class="p">)</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">axh</span><span class="p">,</span> <span class="n">axl</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.061</span> <span class="o">*</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span>  <span class="c1"># This should go to calibrate</span>
         <span class="n">ayh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTY_H_XL</span><span class="p">)</span>
         <span class="n">ayl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTY_L_XL</span><span class="p">)</span>
-        <span class="n">ay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">ayh</span><span class="p">,</span> <span class="n">ayl</span><span class="p">)</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span>
+        <span class="n">ay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">ayh</span><span class="p">,</span> <span class="n">ayl</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.061</span> <span class="o">*</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span>  <span class="c1"># This should go to calibrate</span>
         <span class="n">azh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTZ_H_XL</span><span class="p">)</span>
         <span class="n">azl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTZ_L_XL</span><span class="p">)</span>
-        <span class="n">az</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">azh</span><span class="p">,</span> <span class="n">azl</span><span class="p">)</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span>
+        <span class="n">az</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">azh</span><span class="p">,</span> <span class="n">azl</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.061</span> <span class="o">*</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span>  <span class="c1"># This should go to calibrate</span>
         <span class="n">gxh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTX_H_G</span><span class="p">)</span>
         <span class="n">gxl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTX_L_G</span><span class="p">)</span>
         <span class="n">gx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">gxh</span><span class="p">,</span> <span class="n">gxl</span><span class="p">)</span>
@@ -400,6 +401,17 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_calibrate_value</span><span class="p">(</span><span class="n">each_value</span><span class="p">)</span> <span class="k">for</span> <span class="n">each_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_raw</span><span class="p">()]</span></div></div>
+
+
+<span class="c1"># useful for debugging</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># A ROS Pkg can be used and the config file can be passed so that there is no need of</span>
+    <span class="c1"># hard coding the path. But this main function is used to debug to check the functionality</span>
+    <span class="c1"># of the driver.</span>
+    <span class="n">lsm6ds3</span> <span class="o">=</span> <span class="n">LSM6DS3_IMU</span><span class="p">(</span><span class="s2">&quot;/home/hiro/catkin_ws/src/ros_robotic_skin/config/accelerometer_config1.yaml&quot;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">lsm6ds3</span><span class="o">.</span><span class="n">read</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
 </pre></div>
 
            </div>
