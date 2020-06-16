@@ -8,6 +8,8 @@ import math
 import smbus2
 from robotic_skin.sensor import Sensor
 from robotic_skin.const import GRAVITATIONAL_CONSTANT
+import numpy as np
+from time import sleep
 
 
 class LSM6DS3_IMU(Sensor):
@@ -259,4 +261,5 @@ class LSM6DS3_IMU(Sensor):
 if __name__ == "__main__":
     lsm6ds3 = LSM6DS3_IMU("/home/hiro/catkin_ws/src/ros_robotic_skin/config/accelerometer_config1.yaml")
     while 1:
-        print(lsm6ds3.read()[0:3])
+        print(np.linalg.norm(lsm6ds3.read()[0:3]))
+        sleep(0.5)
