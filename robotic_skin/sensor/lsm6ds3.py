@@ -207,13 +207,13 @@ class LSM6DS3_IMU(Sensor):
     def _read_raw(self):
         axh = self.read_reg(self.OUTX_H_XL)
         axl = self.read_reg(self.OUTX_L_XL)
-        ax = self.make_16bit_value(axh, axl) * 0.061 * 0.001  # This should go to calibrate
+        ax = self.make_16bit_value(axh, axl) * 0.061 * 0.001 * GRAVITATIONAL_CONSTANT  # This should go to calibrate
         ayh = self.read_reg(self.OUTY_H_XL)
         ayl = self.read_reg(self.OUTY_L_XL)
-        ay = self.make_16bit_value(ayh, ayl) * 0.061 * 0.001  # This should go to calibrate
+        ay = self.make_16bit_value(ayh, ayl) * 0.061 * 0.001 * GRAVITATIONAL_CONSTANT  # This should go to calibrate
         azh = self.read_reg(self.OUTZ_H_XL)
         azl = self.read_reg(self.OUTZ_L_XL)
-        az = self.make_16bit_value(azh, azl) * 0.061 * 0.001  # This should go to calibrate
+        az = self.make_16bit_value(azh, azl) * 0.061 * 0.001 * GRAVITATIONAL_CONSTANT  # This should go to calibrate
         gxh = self.read_reg(self.OUTX_H_G)
         gxl = self.read_reg(self.OUTX_L_G)
         gx = self.make_16bit_value(gxh, gxl)
@@ -256,8 +256,12 @@ class LSM6DS3_IMU(Sensor):
         """
         return [self._calibrate_value(each_value) for each_value in self._read_raw()]
 
+
 # useful for debugging
 if __name__ == "__main__":
+    # A ROS Pkg can be used and the config file can be passed so that there is no need of
+    # hard coding the path. But this main function is used to debug to check the functionality
+    # of the driver.
     lsm6ds3 = LSM6DS3_IMU("/home/hiro/catkin_ws/src/ros_robotic_skin/config/accelerometer_config1.yaml")
     while 1:
         print(lsm6ds3.read()[0:3])
