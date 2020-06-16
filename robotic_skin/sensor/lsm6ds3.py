@@ -207,13 +207,13 @@ class LSM6DS3_IMU(Sensor):
     def _read_raw(self):
         axh = self.read_reg(self.OUTX_H_XL)
         axl = self.read_reg(self.OUTX_L_XL)
-        ax = self.make_16bit_value(axh, axl) * 0.061 * 0.001
+        ax = self.make_16bit_value(axh, axl) * GRAVITATIONAL_CONSTANT
         ayh = self.read_reg(self.OUTY_H_XL)
         ayl = self.read_reg(self.OUTY_L_XL)
-        ay = self.make_16bit_value(ayh, ayl) * 0.061 * 0.001
+        ay = self.make_16bit_value(ayh, ayl) * GRAVITATIONAL_CONSTANT
         azh = self.read_reg(self.OUTZ_H_XL)
         azl = self.read_reg(self.OUTZ_L_XL)
-        az = self.make_16bit_value(azh, azl) * 0.061 * 0.001
+        az = self.make_16bit_value(azh, azl) * GRAVITATIONAL_CONSTANT
         gxh = self.read_reg(self.OUTX_H_G)
         gxl = self.read_reg(self.OUTX_L_G)
         gx = self.make_16bit_value(gxh, gxl)
