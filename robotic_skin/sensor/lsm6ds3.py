@@ -4,7 +4,6 @@ https://github.com/CRImier/python-lsm6ds3
 Thanks Homie!
 Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf
 """
-import math
 import smbus2
 from robotic_skin.sensor import Sensor
 from robotic_skin.const import GRAVITATIONAL_CONSTANT
