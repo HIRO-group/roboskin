@@ -142,8 +142,8 @@ class LSM6DS3_IMU(Sensor):
         """
 
         v = vl | (vh << 8)
-        return v
-        # return (self.twos_comp(v, 16)) / math.pow(2, 14)
+        # return v
+        return (self.twos_comp(v, 16)) #/ math.pow(2, 14)
 
     def twos_comp(self, val, num_of_bits):
         """
