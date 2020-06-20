@@ -38,7 +38,7 @@ def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su, method,
                          f'Please Choose from {methods}')
 
     if angle_func is None:
-        def _angle_func(t):
+        def _angle_func(t, **kwargs):
             return joint_angular_velocity*t
         angle_func = _angle_func
 
@@ -219,7 +219,7 @@ def compute_acceleration_numerically(kinematic_chain, i_rotate_joint, i_su,
         A function to compute the current angle at time t
     """
     def current_su_position(t):
-        angle = angle_func(t=t)
+        angle = angle_func(t=t, i_joint=i_rotate_joint)
         kinematic_chain.init_temp_TM(i_joint=i_rotate_joint, additional_pose=angle)
         T = kinematic_chain.compute_su_TM(i_su=i_su, pose_type='temp')
         return T.position

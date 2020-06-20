@@ -5,7 +5,7 @@ from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
 
 
-def max_angle_func(t: int):
+def max_angle_func(t: int, i_joint: int):
     """
     Computes current joint angle at time t
     joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.
@@ -15,7 +15,7 @@ def max_angle_func(t: int):
     `t`: `int`
         Current time t
     """
-    return (C.MAX_ANGULAR_VELOCITY / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ * t))
+    return (C.MAX_ANGULAR_VELOCITY[i_joint] / (2*np.pi*C.PATTERN_FREQ[i_joint])) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ[i_joint] * t))
 
 
 class ErrorFunction():
