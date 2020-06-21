@@ -1,4 +1,5 @@
 import numpy as np
+import robotic_skin.const as C
 
 
 def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su, method,
@@ -151,7 +152,7 @@ def compute_acceleration_analytically(inert_w_body, inert_r_body, inert_alpha_bo
     Therefore, one can rotate it back to its original frame by
     rs_g = rs_R_su * su_g = su_R_rs.T * su_g
     """
-    world_g = np.array([0, 0, 9.80])
+    world_g = np.array([0, 0, C.GRAVITATIONAL_CONSTANT])
     inert_Ac_body = centripetal_acceleration(r=inert_r_body, w=inert_w_body)
     inert_At_body = tangential_acceleration(r=inert_r_body, alpha=inert_alpha_body)
 
