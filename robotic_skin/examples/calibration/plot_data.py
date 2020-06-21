@@ -9,10 +9,145 @@ from robotic_skin.calibration.error_functions import max_angle_func
 from robotic_skin.calibration.kinematic_chain import construct_kinematic_chain
 from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
 from robotic_skin.calibration import utils
+import robotic_skin.const as C
 
 REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 IMGDIR = os.path.join(REPODIR, 'images')
 CONFIGDIR = os.path.join(REPODIR, 'config')
+
+
+def hampel_filter_forloop(input_series, window_size, n_sigmas=3):
+    """
+    Implementation of Hampel Filter for outlier detection.
+
+    Arguments
+    ----------
+    `input_series`: `np.array`
+        The input data to use for outlier detection.
+
+    `window_size`: `int`
+        The sliding window size to use for the filter on
+        `input_series`.
+
+    `n_sigmas`: `int`
+        The number of standard deviations to determine
+        what data points are outliers.
+    """
+    n = len(input_series)
+    new_series = input_series.copy()
+    k = 1.4826  # scale factor for Gaussian distribution
+    indices = []
+    # possibly use np.nanmedian
+    for i in range((window_size), (n - window_size)):
+        x0 = np.median(input_series[(i - window_size):(i + window_size)])
+        S0 = k * np.median(np.abs(input_series[(i - window_size):(i + window_size)] - x0))
+        if (np.abs(input_series[i] - x0) > n_sigmas * S0):
+            new_series[i] = x0
+            indices.append(i)
+    return new_series, indices
+
+
+def low_pass_filter(data, samp_freq, cutoff_freq=15.):
+    """
+    Implementation of the standard pass filter,
+    also known as a exponential moving average filter.
+
+    Arguments
+    ---------
+    `data`:
+        data to be filtered.
+    `samp_freq`:
+        sampling frequency of the data
+    `cutoff_freq`:
+        cutoff frequency; that is, data that is > = `cutoff_freq` will
+        be attentuated.
+    """
+    # need to cut cutoff_freq in half because we apply two filters.
+    half_cutoff_freq = cutoff_freq * 0.5
+    n = len(data)
+    # smoother data when alpha is lower
+    tau = 1 / (2 * np.pi * half_cutoff_freq)
+    dt = 1 / samp_freq
+    alpha = dt / (dt + tau)
+    new_data = data.copy()
+
+    for i in range(1, n):
+        new_data[i] = ((1 - alpha) * new_data[i-1]) + (alpha * data[i])
+    reversed_data = new_data[::-1]
+
+    for i in range(1, n):
+        reversed_data[i] = ((1 - alpha) * reversed_data[i-1]) + (alpha * reversed_data[i])
+
+    return reversed_data[::-1]
+
+
+def clean_data(data):
+    """
+    TO DO - this is hardcoded from ros_robotic_skin, will fix later
+    yea....
+    """
+    time_range = (0.04, 0.16)
+    data = copy.deepcopy(data)
+    for pose_name in data.dynamic.keys():
+        for joint_name in data.dynamic[pose_name].keys():
+            for imu_name in data.dynamic[pose_name][joint_name].keys():
+                # on each pose, for each joint wiggle, get the
+                # maximum acceleration for each skin unit
+                imu_data = data.dynamic[pose_name][joint_name][imu_name]
+                # filter imu acceleration, angular velocities,
+                # joint accelerations
+                imu_accs = imu_data[:, :3]
+
+                ax = imu_data[:, 0]
+                ay = imu_data[:, 1]
+                az = imu_data[:, 2]
+
+                joint_accs = imu_data[:, 11]
+                if True:
+                    pass
+                    # use hampel filter for outlier detection
+                    # it actually doesn't affect the end result much.
+                    ax = hampel_filter_forloop(ax, 10)[0]
+                    ay = hampel_filter_forloop(ay, 10)[0]
+                    az = hampel_filter_forloop(az, 10)[0]
+
+                    joint_accs = hampel_filter_forloop(joint_accs, 10)[0]
+
+                # filter
+                filtered_ax = low_pass_filter(ax, 100.)
+                filtered_ay = low_pass_filter(ay, 100.)
+                filtered_az = low_pass_filter(az, 100.)
+
+                filtered_joint_accs = low_pass_filter(joint_accs, 100.)
+
+                # array of imu data - both filtered and raw
+                data.dynamic[pose_name][joint_name][imu_name][:,0] = filtered_ax
+                data.dynamic[pose_name][joint_name][imu_name][:,1] = filtered_ay
+                data.dynamic[pose_name][joint_name][imu_name][:,2] = filtered_az
+                data.dynamic[pose_name][joint_name][imu_name][:,11] = filtered_joint_accs
+
+    return data
+
+
+def get_imu_bias(data):
+    imu_dict = {}
+    for pose_name in data.static.keys():
+        for imu_name in data.static[pose_name].keys():
+            accs = data.static[pose_name][imu_name][4:7]
+            norm = np.linalg.norm(accs)
+            if imu_name not in imu_dict:
+                imu_dict[imu_name] = [norm]
+            else:
+                imu_dict[imu_name].append(norm)
+
+            # print(data.static[pose_name][imu_name])
+    imu_avgs = []
+    for imu_name in imu_names[1:]:
+        imu_avgs.append(np.mean(imu_dict[imu_name]))
+    arr = np.zeros(len(imu_names[1:]))
+    arr.fill(C.GRAVITATIONAL_CONSTANT)
+    diffs = np.array(imu_avgs) - arr
+    return diffs
 
 
 def check_data(y_dict: dict, ylabels: List[str]):
@@ -291,7 +426,8 @@ def verify_noise_added_correctly(data, pose_names: List[str],
 
 def verify_acceleration_estimate(data, pose_names: List[str],
                                  joint_names: List[str], imu_names: List[str],
-                                 robot_configs: dict, imu_mappings: dict):
+                                 robot_configs: dict, imu_mappings: dict,
+                                 biases):
     # Initialize KinematicChain
     kinematic_chain = construct_kinematic_chain(
         robot_configs=robot_configs,
@@ -300,7 +436,7 @@ def verify_acceleration_estimate(data, pose_names: List[str],
         optimize_all=False)
 
     # Methods to Compare
-    methods = ['analytical', 'our', 'mittendorfer']
+    methods = ['our']
 
     indices = {
         'measured': np.arange(0, 3),
@@ -310,7 +446,10 @@ def verify_acceleration_estimate(data, pose_names: List[str],
         'angvel': 13
     }
 
+    print(imu_names)
+
     for i_su, su in enumerate(imu_names):
+        bias = biases[i_su]
         # joint which i_su th SU is attached to
         i_joint = kinematic_chain.su_joint_dict[i_su]
         for pose in pose_names:
@@ -321,10 +460,11 @@ def verify_acceleration_estimate(data, pose_names: List[str],
 
                 # Break up the data
                 each_data = data.dynamic[pose][joint][su]
-
                 # Prepare for plotting
                 measured_As = each_data[:, indices['measured']]
-                y_dict = {'Measured': measured_As}
+                measured_As_norms = np.linalg.norm(measured_As, axis=1) - bias
+                y_dict = {'Measured': measured_As_norms}
+
                 # Run Estimate_Acceleration for each method
                 for method in methods:
                     # Store to a dictionary
@@ -336,16 +476,20 @@ def verify_acceleration_estimate(data, pose_names: List[str],
                         i_su=i_su,
                         inds=indices,
                         method=method)
-
+                method_norms = np.linalg.norm(y_dict[method], axis=1)
                 # Plot all methods in a same graph
-                plot_in_one_graph(
-                    y_dict=y_dict,
-                    ylabels=['ax', 'ay', 'az'],
-                    xlabel='Time [s]',
-                    title=f'{joint}_{su}_{pose}',
-                    x=each_data[:, indices['time']],
-                    show=True,
-                    save=False)
+                plt.plot(each_data[:, indices['time']], measured_As_norms)
+                plt.plot(each_data[:, indices['time']], method_norms)
+
+                plt.show()
+                # plot_in_one_graph(
+                #     y_dict=y_dict,
+                #     ylabels=['a'],
+                #     xlabel='Time [s]',
+                #     title=f'{joint}_{su}_{pose}',
+                #     x=each_data[:, indices['time']],
+                #     show=True,
+                #     save=False)
 
 
 def estimate_acceleration_batch(kinematic_chain, data: np.ndarray,
@@ -395,11 +539,13 @@ if __name__ == '__main__':
     joint_names = list(data.dynamic[pose_names[0]].keys())
     imu_names = list(data.dynamic[pose_names[0]][joint_names[0]].keys())
     print(pose_names, joint_names, imu_names)
-
+    data = clean_data(data)
+    # quick check
+    imu_biases = get_imu_bias(data)
     if args.run == 'verify_noise':
         verify_noise_added_correctly(
             data, pose_names, joint_names, imu_names)
     else:
         verify_acceleration_estimate(
-            data, pose_names, joint_names, imu_names,
-            robot_configs, imu_mappings)
+            data, pose_names, joint_names, imu_names[1:],
+            robot_configs, imu_mappings, biases=imu_biases)
