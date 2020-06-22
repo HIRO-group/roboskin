@@ -81,7 +81,7 @@ def low_pass_filter(data, samp_freq, cutoff_freq=15.):
     return reversed_data[::-1]
 
 
-def clean_data(data):
+def clean_data(data, wrong_vals):
     """
     TO DO - this is hardcoded from ros_robotic_skin, will fix later
     yea....
@@ -90,7 +90,7 @@ def clean_data(data):
     data = copy.deepcopy(data)
     for pose_name in data.dynamic.keys():
         for joint_name in data.dynamic[pose_name].keys():
-            for imu_name in data.dynamic[pose_name][joint_name].keys():
+            for idx, imu_name in enumerate(data.dynamic[pose_name][joint_name].keys()):
                 # on each pose, for each joint wiggle, get the
                 # maximum acceleration for each skin unit
                 imu_data = data.dynamic[pose_name][joint_name][imu_name]
@@ -103,7 +103,7 @@ def clean_data(data):
                 az = imu_data[:, 2]
 
                 joint_accs = imu_data[:, 11]
-                if True:
+                if False:
                     pass
                     # use hampel filter for outlier detection
                     # it actually doesn't affect the end result much.
@@ -113,12 +113,21 @@ def clean_data(data):
 
                     joint_accs = hampel_filter_forloop(joint_accs, 10)[0]
 
-                # filter
+                if idx != 0:
+                    # to-do: refactor
+                    scale_val = wrong_vals[idx-1]
+                    ax = (ax / scale_val) * C.GRAVITATIONAL_CONSTANT
+                    ay = (ay / scale_val) * C.GRAVITATIONAL_CONSTANT
+                    az = (az / scale_val) * C.GRAVITATIONAL_CONSTANT
+                # # filter
                 filtered_ax = low_pass_filter(ax, 100.)
                 filtered_ay = low_pass_filter(ay, 100.)
                 filtered_az = low_pass_filter(az, 100.)
+                # filtered_ax = ax
+                # filtered_ay = ay
+                # filtered_az = az
 
-                filtered_joint_accs = low_pass_filter(joint_accs, 100.)
+                filtered_joint_accs = joint_accs
 
                 # array of imu data - both filtered and raw
                 data.dynamic[pose_name][joint_name][imu_name][:,0] = filtered_ax
@@ -144,10 +153,7 @@ def get_imu_bias(data):
     imu_avgs = []
     for imu_name in imu_names[1:]:
         imu_avgs.append(np.mean(imu_dict[imu_name]))
-    arr = np.zeros(len(imu_names[1:]))
-    arr.fill(C.GRAVITATIONAL_CONSTANT)
-    diffs = np.array(imu_avgs) - arr
-    return diffs
+    return np.array(imu_avgs)
 
 
 def check_data(y_dict: dict, ylabels: List[str]):
@@ -426,8 +432,7 @@ def verify_noise_added_correctly(data, pose_names: List[str],
 
 def verify_acceleration_estimate(data, pose_names: List[str],
                                  joint_names: List[str], imu_names: List[str],
-                                 robot_configs: dict, imu_mappings: dict,
-                                 biases):
+                                 robot_configs: dict, imu_mappings: dict):
     # Initialize KinematicChain
     kinematic_chain = construct_kinematic_chain(
         robot_configs=robot_configs,
@@ -446,50 +451,50 @@ def verify_acceleration_estimate(data, pose_names: List[str],
         'angvel': 13
     }
 
-    print(imu_names)
 
     for i_su, su in enumerate(imu_names):
-        bias = biases[i_su]
-        # joint which i_su th SU is attached to
-        i_joint = kinematic_chain.su_joint_dict[i_su]
-        for pose in pose_names:
-            # Consider 2 previous joints
-            for rotate_joint in range(max(0, i_joint-2), i_joint+1):
-                joint = joint_names[rotate_joint]
-                print(f'[{su}_{pose}_{joint}]')
+        if i_su != 0:
+            # joint which i_su th SU is attached to
+            i_joint = kinematic_chain.su_joint_dict[i_su]
+            for pose in pose_names:
+                # Consider 2 previous joints
+                for rotate_joint in range(max(0, i_joint-2), i_joint+1):
+                    joint = joint_names[rotate_joint]
+                    print(f'[{su}_{pose}_{joint}]')
 
-                # Break up the data
-                each_data = data.dynamic[pose][joint][su]
-                # Prepare for plotting
-                measured_As = each_data[:, indices['measured']]
-                measured_As_norms = np.linalg.norm(measured_As, axis=1) - bias
-                y_dict = {'Measured': measured_As_norms}
+                    # Break up the data
+                    each_data = data.dynamic[pose][joint][su]
 
-                # Run Estimate_Acceleration for each method
-                for method in methods:
-                    # Store to a dictionary
-                    y_dict[method] = estimate_acceleration_batch(
-                        kinematic_chain=kinematic_chain,
-                        data=each_data,
-                        rotate_joint=rotate_joint,
-                        i_joint=i_joint,
-                        i_su=i_su,
-                        inds=indices,
-                        method=method)
-                method_norms = np.linalg.norm(y_dict[method], axis=1)
-                # Plot all methods in a same graph
-                plt.plot(each_data[:, indices['time']], measured_As_norms)
-                plt.plot(each_data[:, indices['time']], method_norms)
+                    measured_As = each_data[:, indices['measured']]
+                    # measured_As_norms = np.linalg.norm(measured_As, axis=1)
+                    y_dict = {'Measured': measured_As}
 
-                plt.show()
-                # plot_in_one_graph(
-                #     y_dict=y_dict,
-                #     ylabels=['a'],
-                #     xlabel='Time [s]',
-                #     title=f'{joint}_{su}_{pose}',
-                #     x=each_data[:, indices['time']],
-                #     show=True,
-                #     save=False)
+                    # Run Estimate_Acceleration for each method
+                    print(i_joint, i_su)
+                    for method in methods:
+                        # Store to a dictionary
+                        y_dict[method] = estimate_acceleration_batch(
+                            kinematic_chain=kinematic_chain,
+                            data=each_data,
+                            rotate_joint=rotate_joint,
+                            i_joint=i_joint,
+                            i_su=i_su,
+                            inds=indices,
+                            method=method)
+                    # method_norms = np.linalg.norm(y_dict[method], axis=1)
+                    # Plot all methods in a same graph
+                    # plt.plot(each_data[:, indices['time']], measured_As_norms)
+                    # plt.plot(each_data[:, indices['time']], method_norms)
+
+                    # plt.show()
+                    plot_in_one_graph(
+                        y_dict=y_dict,
+                        ylabels=['ax', 'ay', 'az'],
+                        xlabel='Time [s]',
+                        title=f'{joint}_{su}_{pose}',
+                        x=each_data[:, indices['time']],
+                        show=True,
+                        save=False)
 
 
 def estimate_acceleration_batch(kinematic_chain, data: np.ndarray,
@@ -538,14 +543,13 @@ if __name__ == '__main__':
     pose_names = list(data.dynamic.keys())
     joint_names = list(data.dynamic[pose_names[0]].keys())
     imu_names = list(data.dynamic[pose_names[0]][joint_names[0]].keys())
-    print(pose_names, joint_names, imu_names)
-    data = clean_data(data)
+    wrong_vals = get_imu_bias(data)
+    data = clean_data(data, wrong_vals)
     # quick check
-    imu_biases = get_imu_bias(data)
     if args.run == 'verify_noise':
         verify_noise_added_correctly(
             data, pose_names, joint_names, imu_names)
     else:
         verify_acceleration_estimate(
-            data, pose_names, joint_names, imu_names[1:],
-            robot_configs, imu_mappings, biases=imu_biases)
+            data, pose_names, joint_names, imu_names,
+            robot_configs, imu_mappings)
