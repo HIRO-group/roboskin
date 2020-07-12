@@ -3,6 +3,8 @@ import pyquaternion as pyqt
 import robotic_skin.const as C
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
+from robotic_skin.calibration.utils.io import n2s
+import logging
 
 
 def max_angle_func(t: int, i_joint: int, delta_t=0.08, **kwargs):
@@ -98,7 +100,10 @@ class StaticErrorFunction(ErrorFunction):
             T = kinematic_chain.compute_su_TM(i_su, pose_type='current')
             # Account for Gravity
             rs_R_su = T.R
-            accel_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][4:7]
+            accel_su = -self.data.static[self.pose_names[p]][self.imu_names[i_su]][4:7]
+            if np.isnan(accel_su).any():
+                continue
+            # logging.debug(accel_su)
             accel_rs = np.dot(rs_R_su, accel_su)
             gravities[p, :] = accel_rs
             # Account of Quaternion
@@ -234,7 +239,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
                 data = self.data.dynamic[pose][joint][su]
                 acceleration_scale = C.GRAVITATIONAL_CONSTANT / np.linalg.norm(self.data.static[pose][su][4:7])
-                measured_As = acceleration_scale * data[:, :3]
+                measured_As = -data[:, :3]
                 joints = data[:, 3:10]
                 times = data[:, 10]
                 joint_angular_accelerations = data[:, 11]

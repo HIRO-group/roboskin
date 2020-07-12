@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 from typing import List
 import matplotlib.pyplot as plt
+from scipy.optimize import leastsq
 
 import robotic_skin.const as C
 from robotic_skin.calibration.error_functions import max_angle_func
@@ -15,6 +16,11 @@ REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.pat
 IMGDIR = os.path.join(REPODIR, 'images')
 CONFIGDIR = os.path.join(REPODIR, 'config')
 
+
+def fit_sin(t, y, rotate_joint):
+    optimize_func = lambda x: x[0]*np.sin(2*np.pi*C.PATTERN_FREQ[rotate_joint]*t+x[1]) + x[2] - y
+    est_amp, est_phase, est_mean = leastsq(optimize_func, [1, 0, 0])[0]
+    return est_amp*np.sin(2*np.pi*C.PATTERN_FREQ[rotate_joint]*t+est_phase) + est_mean
 
 def hampel_filter_forloop(input_series, window_size, n_sigmas=3):
     """
@@ -421,6 +427,7 @@ def verify_acceleration_estimate(data, pose_names: List[str],
 
     # Methods to Compare
     methods = ['analytical', 'our', 'mittendorfer']
+    methods = ['our', 'modified_mittendorfer']
     methods = ['our']
 
     indices = {
@@ -432,7 +439,7 @@ def verify_acceleration_estimate(data, pose_names: List[str],
     }
 
     for i_su, su in enumerate(imu_names):
-        if i_su == 0 or i_su == 1:
+        if i_su is not 5:
             continue
         # joint which i_su th SU is attached to
         i_joint = kinematic_chain.su_joint_dict[i_su]
@@ -440,15 +447,23 @@ def verify_acceleration_estimate(data, pose_names: List[str],
             # Consider 2 previous joints
             for rotate_joint in range(max(0, i_joint-2), i_joint+1):
                 joint = joint_names[rotate_joint]
-                print(f'[{su}_{pose}_{joint}]')
+                static_acceleration = data.static[pose][su][4:7]
+                print(f'[{su}_{pose}_{joint}] {static_acceleration}')
 
                 # Break up the data
                 each_data = data.dynamic[pose][joint][su]
-                acceleration_scale = C.GRAVITATIONAL_CONSTANT / np.linalg.norm(data.static[pose][su][4:7])
+                time = each_data[:, indices['time']]
+                acceleration_scale = -C.GRAVITATIONAL_CONSTANT / np.linalg.norm(data.static[pose][su][4:7])
 
                 # Prepare for plotting
                 measured_As = acceleration_scale * each_data[:, indices['measured']]
-                y_dict = {'Measured': measured_As}
+
+                ax_fit = fit_sin(time, measured_As[:, 0], rotate_joint)
+                ay_fit = fit_sin(time, measured_As[:, 1], rotate_joint)
+                az_fit = fit_sin(time, measured_As[:, 2], rotate_joint)
+                fit_As = np.array([ax_fit, ay_fit, az_fit]).T
+
+                y_dict = {'Measured': measured_As, 'Fit': fit_As}
                 # Run Estimate_Acceleration for each method
                 for method in methods:
                     # Store to a dictionary
@@ -461,18 +476,13 @@ def verify_acceleration_estimate(data, pose_names: List[str],
                         inds=indices,
                         method=method)
 
-                plt.figure()
-                time = each_data[:, indices['time']]
-                angvel = each_data[:, indices['angvel']]
-                plt.plot(time, angvel)
-
                 # Plot all methods in a same graph
                 plot_in_one_graph(
                     y_dict=y_dict,
                     ylabels=['ax', 'ay', 'az'],
                     xlabel='Time [s]',
                     title=f'{joint}_{su}_{pose}',
-                    x=each_data[:, indices['time']],
+                    x=time,
                     show=True,
                     save=False)
 
