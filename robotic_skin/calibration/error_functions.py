@@ -240,7 +240,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
                 data = self.data.dynamic[pose][joint][su]
                 # acceleration_scale = C.GRAVITATIONAL_CONSTANT / np.linalg.norm(self.data.static[pose][su][4:7])
-                measured_As = -data[:, :3]
+                measured_As = data[:, :3]
                 joints = data[:, 3:10]
                 times = data[:, 10]
                 joint_angular_accelerations = data[:, 11]

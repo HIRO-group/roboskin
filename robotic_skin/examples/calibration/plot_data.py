@@ -448,7 +448,7 @@ def verify_acceleration_estimate(data, pose_names: List[str],
                 # Break up the data
                 each_data = data.dynamic[pose][joint][su]
                 time = each_data[:, indices['time']]
-                acceleration_scale = -C.GRAVITATIONAL_CONSTANT / np.linalg.norm(data.static[pose][su][4:7])
+                acceleration_scale = C.GRAVITATIONAL_CONSTANT / np.linalg.norm(data.static[pose][su][4:7])
 
                 # Prepare for plotting
                 measured_As = acceleration_scale * each_data[:, indices['measured']]
