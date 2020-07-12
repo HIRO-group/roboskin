@@ -18,9 +18,11 @@ CONFIGDIR = os.path.join(REPODIR, 'config')
 
 
 def fit_sin(t, y, rotate_joint):
-    optimize_func = lambda x: x[0]*np.sin(2*np.pi*C.PATTERN_FREQ[rotate_joint]*t+x[1]) + x[2] - y
+    def optimize_func(x):
+        x[0]*np.sin(2*np.pi*C.PATTERN_FREQ[rotate_joint]*t+x[1]) + x[2] - y
     est_amp, est_phase, est_mean = leastsq(optimize_func, [1, 0, 0])[0]
     return est_amp*np.sin(2*np.pi*C.PATTERN_FREQ[rotate_joint]*t+est_phase) + est_mean
+
 
 def hampel_filter_forloop(input_series, window_size, n_sigmas=3):
     """
@@ -92,7 +94,6 @@ def clean_data(data):
     TO DO - this is hardcoded from ros_robotic_skin, will fix later
     yea....
     """
-    time_range = (0.04, 0.16)
     data = copy.deepcopy(data)
     for pose_name in data.dynamic.keys():
         for joint_name in data.dynamic[pose_name].keys():
@@ -102,8 +103,6 @@ def clean_data(data):
                 imu_data = data.dynamic[pose_name][joint_name][imu_name]
                 # filter imu acceleration, angular velocities,
                 # joint accelerations
-                imu_accs = imu_data[:, :3]
-
                 ax = imu_data[:, 0]
                 ay = imu_data[:, 1]
                 az = imu_data[:, 2]
@@ -127,10 +126,10 @@ def clean_data(data):
                 filtered_joint_accs = low_pass_filter(joint_accs, 100.)
 
                 # array of imu data - both filtered and raw
-                data.dynamic[pose_name][joint_name][imu_name][:,0] = filtered_ax
-                data.dynamic[pose_name][joint_name][imu_name][:,1] = filtered_ay
-                data.dynamic[pose_name][joint_name][imu_name][:,2] = filtered_az
-                data.dynamic[pose_name][joint_name][imu_name][:,11] = filtered_joint_accs
+                data.dynamic[pose_name][joint_name][imu_name][:, 0] = filtered_ax
+                data.dynamic[pose_name][joint_name][imu_name][:, 1] = filtered_ay
+                data.dynamic[pose_name][joint_name][imu_name][:, 2] = filtered_az
+                data.dynamic[pose_name][joint_name][imu_name][:, 11] = filtered_joint_accs
 
     return data
 
@@ -350,7 +349,6 @@ def verify_noise_added_correctly(data, pose_names: List[str],
     n_constant_pose = len(list(data.constant.keys()))
     n_static_pose = len(list(data.static.keys()))
 
-    """
     # Plot Static Acceleration Data vs. Noise Added
     # Prepare Data (Append single data points to a list)
     accelerations = []
@@ -373,7 +371,6 @@ def verify_noise_added_correctly(data, pose_names: List[str],
         y_dict=y_dict,
         title='Static Acceleration',
         xlabel='Data Points')
-    """
 
     # Plot Dynamic Acceleration Data vs. Noise Added
     # Prepare Data (Append single data points to a list)
@@ -383,7 +380,7 @@ def verify_noise_added_correctly(data, pose_names: List[str],
                 accelerations = data.dynamic[pose_names[i]][joint][su][:, :3]
                 accelerations_noise = data_noise.dynamic[pose_names[i]][joint][su][:, :3]
                 y_dict = {
-                    'Accelerations': accelerations_noise,
+                    'Accelerations': accelerations,
                     'Accelerations + Noise': accelerations_noise}
                 # Plot
                 plot_side_by_side(
@@ -393,7 +390,6 @@ def verify_noise_added_correctly(data, pose_names: List[str],
                     show=False,
                     save=True)
 
-    """
     # Plot Constant Acceleration Data vs. Noise Added
     # Prepare Data
     for i in range(n_constant_pose):
@@ -412,7 +408,6 @@ def verify_noise_added_correctly(data, pose_names: List[str],
                     y_dict=y_dict,
                     title=f'{joint}_{su}_{pose_names[i]}',
                     xlabel='Data Points')
-    """
 
 
 def verify_acceleration_estimate(data, pose_names: List[str],
@@ -439,7 +434,7 @@ def verify_acceleration_estimate(data, pose_names: List[str],
     }
 
     for i_su, su in enumerate(imu_names):
-        if i_su is not 5:
+        if i_su != 5:
             continue
         # joint which i_su th SU is attached to
         i_joint = kinematic_chain.su_joint_dict[i_su]

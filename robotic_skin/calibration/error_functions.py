@@ -3,8 +3,8 @@ import pyquaternion as pyqt
 import robotic_skin.const as C
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
-from robotic_skin.calibration.utils.io import n2s
-import logging
+# from robotic_skin.calibration.utils.io import n2s
+# import logging
 
 
 def max_angle_func(t: int, i_joint: int, delta_t=0.08, **kwargs):
@@ -18,7 +18,8 @@ def max_angle_func(t: int, i_joint: int, delta_t=0.08, **kwargs):
         Current time t
     """
     # return joint_angle + t *joint_velocity
-    return (C.MAX_ANGULAR_VELOCITY[i_joint] / (2*np.pi*C.PATTERN_FREQ[i_joint])) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ[i_joint] * (t - delta_t)))
+    return (C.MAX_ANGULAR_VELOCITY[i_joint] / (2*np.pi*C.PATTERN_FREQ[i_joint])) *\
+           (1 - np.cos(2*np.pi*C.PATTERN_FREQ[i_joint] * (t - delta_t)))
 
 
 class ErrorFunction():
@@ -238,7 +239,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 joint = self.joint_names[rotate_joint]
 
                 data = self.data.dynamic[pose][joint][su]
-                acceleration_scale = C.GRAVITATIONAL_CONSTANT / np.linalg.norm(self.data.static[pose][su][4:7])
+                # acceleration_scale = C.GRAVITATIONAL_CONSTANT / np.linalg.norm(self.data.static[pose][su][4:7])
                 measured_As = -data[:, :3]
                 joints = data[:, 3:10]
                 times = data[:, 10]
