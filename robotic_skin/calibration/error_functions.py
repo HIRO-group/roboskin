@@ -102,11 +102,12 @@ class StaticErrorFunction(ErrorFunction):
             gravities[p, :] = accel_rs
             # Account of Quaternion
             q_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][:4]
+
             d = pyqt.Quaternion.absolute_distance(T.q, np_to_pyqt(q_su))
             d = np.linalg.norm(q_su - T.quaternion)
-            # logging.debug(f'Measured: {q_su}, Model: {T.quaternion}')
             error_quaternion[p] = d
 
+        # print(self.loss(gravities, gravity, axis=1))
         return self.loss(gravities, gravity, axis=1)
 
 
@@ -189,6 +190,9 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
     def initialize(self, data):
         super().initialize(data)
+        self.pose_names = list(data.dynamic.keys())
+        self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
+        self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
 
         if 'mittendorfer' in self.method:
             self.should_use_one_point = True
