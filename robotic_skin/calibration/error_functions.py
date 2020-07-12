@@ -101,7 +101,7 @@ class StaticErrorFunction(ErrorFunction):
             T = kinematic_chain.compute_su_TM(i_su, pose_type='current')
             # Account for Gravity
             rs_R_su = T.R
-            accel_su = -self.data.static[self.pose_names[p]][self.imu_names[i_su]][4:7]
+            accel_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][4:7]
             if np.isnan(accel_su).any():
                 continue
             # logging.debug(accel_su)
