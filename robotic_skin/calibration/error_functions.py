@@ -189,6 +189,9 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
     def initialize(self, data):
         super().initialize(data)
+        self.pose_names = list(data.dynamic.keys())
+        self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
+        self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
 
         if 'mittendorfer' in self.method:
             self.should_use_one_point = True
