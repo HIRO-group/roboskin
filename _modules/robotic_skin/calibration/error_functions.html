@@ -157,7 +157,7 @@
 <span class="c1"># import logging</span>
 
 
-<div class="viewcode-block" id="max_angle_func"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.max_angle_func">[docs]</a><span class="k">def</span> <span class="nf">max_angle_func</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">i_joint</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">delta_t</span><span class="o">=</span><span class="mf">0.08</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="max_angle_func"><a class="viewcode-back" href="../../../robotic_skin.calibration.html#robotic_skin.calibration.error_functions.max_angle_func">[docs]</a><span class="k">def</span> <span class="nf">max_angle_func</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">i_joint</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">delta_t</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes current joint angle at time t</span>
 <span class="sd">    joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.</span>
@@ -389,12 +389,10 @@
                 <span class="n">joint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_names</span><span class="p">[</span><span class="n">rotate_joint</span><span class="p">]</span>
 
                 <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dynamic</span><span class="p">[</span><span class="n">pose</span><span class="p">][</span><span class="n">joint</span><span class="p">][</span><span class="n">su</span><span class="p">]</span>
-                <span class="c1"># acceleration_scale = C.GRAVITATIONAL_CONSTANT / np.linalg.norm(self.data.static[pose][su][4:7])</span>
                 <span class="n">measured_As</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
                 <span class="n">joints</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
                 <span class="n">times</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">10</span><span class="p">]</span>
                 <span class="n">joint_angular_accelerations</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">11</span><span class="p">]</span>
-                <span class="c1"># max_angular_velocity = data[0, 12]</span>
                 <span class="n">joint_angular_velocities</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">13</span><span class="p">]</span>
                 <span class="n">n_eval</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">should_use_one_point</span> <span class="k">else</span> <span class="mi">4</span>
                 <span class="k">for</span> <span class="n">i_eval</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_eval</span><span class="p">):</span>
