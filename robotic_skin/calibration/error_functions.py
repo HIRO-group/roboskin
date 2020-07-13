@@ -7,7 +7,7 @@ from robotic_skin.calibration.utils.rotational_acceleration import estimate_acce
 # import logging
 
 
-def max_angle_func(t: int, i_joint: int, delta_t=0.08, **kwargs):
+def max_angle_func(t: int, i_joint: int, delta_t=0.0, **kwargs):
     """
     Computes current joint angle at time t
     joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.
@@ -239,12 +239,10 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 joint = self.joint_names[rotate_joint]
 
                 data = self.data.dynamic[pose][joint][su]
-                # acceleration_scale = C.GRAVITATIONAL_CONSTANT / np.linalg.norm(self.data.static[pose][su][4:7])
                 measured_As = data[:, :3]
                 joints = data[:, 3:10]
                 times = data[:, 10]
                 joint_angular_accelerations = data[:, 11]
-                # max_angular_velocity = data[0, 12]
                 joint_angular_velocities = data[:, 13]
                 n_eval = 1 if self.should_use_one_point else 4
                 for i_eval in range(n_eval):
