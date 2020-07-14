@@ -3,9 +3,11 @@ import pyquaternion as pyqt
 import robotic_skin.const as C
 from robotic_skin.calibration.utils.quaternion import np_to_pyqt
 from robotic_skin.calibration.utils.rotational_acceleration import estimate_acceleration
+# from robotic_skin.calibration.utils.io import n2s
+# import logging
 
 
-def max_angle_func(t: int):
+def max_angle_func(t: int, i_joint: int, delta_t=0.0, **kwargs):
     """
     Computes current joint angle at time t
     joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.
@@ -15,7 +17,9 @@ def max_angle_func(t: int):
     `t`: `int`
         Current time t
     """
-    return (C.MAX_ANGULAR_VELOCITY / (2*np.pi*C.PATTERN_FREQ)) * (1 - np.cos(2*np.pi*C.PATTERN_FREQ * t))
+    # return joint_angle + t *joint_velocity
+    return (C.MAX_ANGULAR_VELOCITY[i_joint] / (2*np.pi*C.PATTERN_FREQ[i_joint])) *\
+           (1 - np.cos(2*np.pi*C.PATTERN_FREQ[i_joint] * (t - delta_t)))
 
 
 class ErrorFunction():
@@ -98,6 +102,9 @@ class StaticErrorFunction(ErrorFunction):
             # Account for Gravity
             rs_R_su = T.R
             accel_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][4:7]
+            if np.isnan(accel_su).any():
+                continue
+            # logging.debug(accel_su)
             accel_rs = np.dot(rs_R_su, accel_su)
             gravities[p, :] = accel_rs
             # Account of Quaternion
@@ -189,6 +196,9 @@ class MaxAccelerationErrorFunction(ErrorFunction):
 
     def initialize(self, data):
         super().initialize(data)
+        self.pose_names = list(data.dynamic.keys())
+        self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
+        self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
 
         if 'mittendorfer' in self.method:
             self.should_use_one_point = True
@@ -234,7 +244,6 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                 joints = data[:, 3:10]
                 times = data[:, 10]
                 joint_angular_accelerations = data[:, 11]
-                # max_angular_velocity = data[0, 12]
                 joint_angular_velocities = data[:, 13]
                 n_eval = 1 if self.should_use_one_point else 4
                 for i_eval in range(n_eval):

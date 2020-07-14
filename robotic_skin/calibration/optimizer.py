@@ -139,6 +139,7 @@ class IncrementalOptimizerBase(OptimizerBase):
                 quaternion_distance=errors['orientation'])
 
             logging.info('='*100)
+            logging.info(f'Params: {params}')
             logging.info(f'Position: {T.position}')
             logging.info(f'Quaternion: {T.quaternion}')
             logging.info(f"Euclidean distance: {errors['position']}")
@@ -401,6 +402,7 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
                 quaternion_distance=errors['orientation'])
 
             logging.info('='*100)
+            logging.info(f'Params: {params}')
             logging.info(f'Position: {T.position}')
             logging.info(f'Quaternion: {T.quaternion}')
             logging.info(f"Euclidean distance: {errors['position']}")
