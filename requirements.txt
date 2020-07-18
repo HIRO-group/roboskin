@@ -1,17 +1,17 @@
 Cython
 future
 matplotlib
-torch
+# torch
 numpy
-sphinx
-sphinx-autobuild
-sphinx_rtd_theme
+# sphinx
+# sphinx-autobuild
+# sphinx_rtd_theme
 # Installation of RPI.GPIO fails on Mac.
 # This library only works for linux!?
 # Just comment out this line
 # RPI.GPIO
 pycodestyle
-nlopt
+# nlopt
 smbus2
 VL53L1X
 pyquaternion

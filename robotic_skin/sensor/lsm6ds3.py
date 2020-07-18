@@ -1,13 +1,29 @@
 """
 This code is heavily inspired by this wonderful GitHub repo:
-https://github.com/CRImier/python-lsm6ds3
-Thanks Homie!
+https://github.com/CRImier/python-lsm6ds3 Thanks Homie!
 Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf
 """
 import smbus2
 from robotic_skin.sensor import Sensor
 from robotic_skin.const import GRAVITATIONAL_CONSTANT
 from time import sleep
+import numpy as np
+
+class LinearEquation:
+    """
+    y = ax + b
+    """
+    def __init__(self, a=None, b=None):
+        if a is None:
+            a = 1
+        self.a = a
+
+        if b is None:
+            b = 0
+        self.b = b
+
+    def transform(self, x):
+        return self.a * x + self.b
 
 
 class LSM6DS3_IMU(Sensor):
@@ -78,6 +94,7 @@ class LSM6DS3_IMU(Sensor):
             addr = int(addr, 16)
         # Address of the Acceleromter I2C device
         self.addr = addr
+        self.calibrate()
         self.setup()
 
     def calibrate(self):
@@ -89,6 +106,36 @@ class LSM6DS3_IMU(Sensor):
         None
 
         """
+        param_keys = ['MAX_1G_X', 'MIN_1G_X', 'MAX_1G_Y', 'MIN_1G_Y', 'MAX_1G_Z', 'MIN_1G_Z']
+        for param_key in param_keys:
+            if param_key not in self.config_dict:
+                return
+
+        self.linear_equations = {}
+
+        max_1g_x = self.config_dict['MAX_1G_X']
+        max_1g_y = self.config_dict['MAX_1G_Y']
+        max_1g_z = self.config_dict['MAX_1G_Z']
+        min_1g_x = self.config_dict['MIN_1G_X']
+        min_1g_y = self.config_dict['MIN_1G_Y']
+        min_1g_z = self.config_dict['MIN_1G_Z']
+        #self.linear_equations['ax'] = self.__calibrate(min_1g_x, max_1g_x)
+        #self.linear_equations['ay'] = self.__calibrate(min_1g_y, max_1g_y)
+        #self.linear_equations['az'] = self.__calibrate(min_1g_z, max_1g_z)
+        self.linear_equations['ax'] = self.__calibrate(max_1g_x, min_1g_x)
+        self.linear_equations['ay'] = self.__calibrate(max_1g_y, min_1g_y)
+        self.linear_equations['az'] = self.__calibrate(max_1g_z, min_1g_z)
+        self.linear_equations['gx'] = LinearEquation()
+        self.linear_equations['gy'] = LinearEquation()
+        self.linear_equations['gz'] = LinearEquation()
+
+    def __calibrate(self, min_value, max_value):
+        """
+        From min_value and max_value, compute y=ax+b
+        """
+        a = (2*GRAVITATIONAL_CONSTANT) / (max_value - min_value)
+        b = GRAVITATIONAL_CONSTANT - a * max_value
+        return LinearEquation(a, b)
 
     def write_reg(self, reg, val):
         """
@@ -225,7 +272,7 @@ class LSM6DS3_IMU(Sensor):
 
         return [ax, ay, az, gx, gy, gz]
 
-    def _calibrate_value(self, input_value):
+    def _calibrate_value(self, input_value, key):
         """
         Output the calibrated value from the function you manually made.
         #TODO: Make this function an argument and pass it for future use
@@ -240,7 +287,7 @@ class LSM6DS3_IMU(Sensor):
             Returns the calibrated value
 
         """
-        return input_value
+        return self.linear_equations[key].transform(input_value)
 
     def read(self):
         """
@@ -253,7 +300,8 @@ class LSM6DS3_IMU(Sensor):
             [ax, ay, az, gx, gy, gz] respective directions
 
         """
-        return [self._calibrate_value(each_value) for each_value in self._read_raw()]
+        keys = ['ax', 'ay', 'az', 'gx', 'gy', 'gz']
+        return [self._calibrate_value(value, key) for value, key in zip(self._read_raw(), keys)]
 
 
 # useful for debugging
@@ -262,6 +310,14 @@ if __name__ == "__main__":
     # hard coding the path. But this main function is used to debug to check the functionality
     # of the driver.
     lsm6ds3 = LSM6DS3_IMU("/home/hiro/catkin_ws/src/ros_robotic_skin/config/accelerometer_config1.yaml")
+    data = []
     while 1:
-        print(lsm6ds3.read()[0:3])
+        axis = 2
+        A = lsm6ds3._read_raw()[0:3]
+        data.append(A[axis])
+        #print(A[axis], np.mean(data))
+
+        A = lsm6ds3.read()[0:3]
+        print(A)
         sleep(0.5)
+
