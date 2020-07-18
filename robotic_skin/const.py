@@ -3,7 +3,7 @@ This module serves to provide a variety of constants
 for HIRO's robotic skin.
 
 """
-import nlopt
+# import nlopt
 
 ADXL335_XPIN = 0
 ADXL335_YPIN = 1
@@ -29,8 +29,8 @@ MAX_ANGULAR_VELOCITY = [1.5]*7      # rad/s
 # MAX_ANGULAR_VELOCITY = 1.0, 0.5, 0.6, 0.8, 1.0, 1.2, 1.2
 # MAX_ANGULAR_VELOCITY = [0.75, 0.25, 0.35, 0.55, 0.75, 0.9, 0.9]
 T = 0.5                         # s
-GLOBAL_OPTIMIZER = nlopt.G_MLSL_LDS
-LOCAL_OPTIMIZER = nlopt.LN_NEWUOA
-GLOBAL_GRADIENT_OPTIMIZER = nlopt.GD_MLSL
-LOCAL_GRADIENT_OPTIMIZER = nlopt.LD_LBFGS
-GRAVITATIONAL_CONSTANT = 9.819
+#GLOBAL_OPTIMIZER = nlopt.G_MLSL_LDS
+#LOCAL_OPTIMIZER = nlopt.LN_NEWUOA
+#GLOBAL_GRADIENT_OPTIMIZER = nlopt.GD_MLSL
+#LOCAL_GRADIENT_OPTIMIZER = nlopt.LD_LBFGS
+GRAVITATIONAL_CONSTANT = 9.81
