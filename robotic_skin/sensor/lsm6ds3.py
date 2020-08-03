@@ -119,12 +119,9 @@ class LSM6DS3_IMU(Sensor):
         min_1g_x = self.config_dict['MIN_1G_X']
         min_1g_y = self.config_dict['MIN_1G_Y']
         min_1g_z = self.config_dict['MIN_1G_Z']
-        #self.linear_equations['ax'] = self.__calibrate(min_1g_x, max_1g_x)
-        #self.linear_equations['ay'] = self.__calibrate(min_1g_y, max_1g_y)
-        #self.linear_equations['az'] = self.__calibrate(min_1g_z, max_1g_z)
-        self.linear_equations['ax'] = self.__calibrate(max_1g_x, min_1g_x)
-        self.linear_equations['ay'] = self.__calibrate(max_1g_y, min_1g_y)
-        self.linear_equations['az'] = self.__calibrate(max_1g_z, min_1g_z)
+        self.linear_equations['ax'] = self.__calibrate(min_1g_x, max_1g_x)
+        self.linear_equations['ay'] = self.__calibrate(min_1g_y, max_1g_y)
+        self.linear_equations['az'] = self.__calibrate(min_1g_z, max_1g_z)
         self.linear_equations['gx'] = LinearEquation()
         self.linear_equations['gy'] = LinearEquation()
         self.linear_equations['gz'] = LinearEquation()
