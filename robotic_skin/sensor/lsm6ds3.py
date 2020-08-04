@@ -4,6 +4,7 @@ https://github.com/CRImier/python-lsm6ds3 Thanks Homie!
 Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf
 """
 import smbus2
+import argparse
 from robotic_skin.sensor import Sensor
 from robotic_skin.const import GRAVITATIONAL_CONSTANT
 from time import sleep
@@ -301,20 +302,35 @@ class LSM6DS3_IMU(Sensor):
         return [self._calibrate_value(value, key) for value, key in zip(self._read_raw(), keys)]
 
 
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-cn', '--config_file', type=str, default='accelerometer_config1')
+    return parser.parse_args()
+
 # useful for debugging
 if __name__ == "__main__":
     # A ROS Pkg can be used and the config file can be passed so that there is no need of
     # hard coding the path. But this main function is used to debug to check the functionality
     # of the driver.
-    lsm6ds3 = LSM6DS3_IMU("/home/hiro/catkin_ws/src/ros_robotic_skin/config/accelerometer_config1.yaml")
-    data = []
+    args = parse_arguments()
+    lsm6ds3 = LSM6DS3_IMU("/home/hiro/catkin_ws/src/ros_robotic_skin/config/%s.yaml"%(args.config_file))
+    x_data = []
+    y_data = []
+    z_data = []
+
     while 1:
         axis = 2
+        # Raw IMU Data
         A = lsm6ds3._read_raw()[0:3]
-        data.append(A[axis])
-        #print(A[axis], np.mean(data))
+        # Calibrated IMU Data
+        # A = lsm6ds3.read()[0:3]
 
-        A = lsm6ds3.read()[0:3]
-        print(A)
+        x_data.append(A[0])
+        y_data.append(A[1])
+        z_data.append(A[2])
+        print('mean(X)={xmean:.4f}, mean(Y)={ymean:.4f}, mean(Z)={zmean:.4f}'.format(
+            xmean=np.mean(x_data), 
+            ymean=np.mean(y_data), 
+            zmean=np.mean(z_data)))
+
         sleep(0.5)
-
