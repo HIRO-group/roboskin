@@ -22,7 +22,6 @@ robotic\_skin.const module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 
