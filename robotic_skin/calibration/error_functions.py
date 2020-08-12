@@ -114,7 +114,6 @@ class StaticErrorFunction(ErrorFunction):
             d = np.linalg.norm(q_su - T.quaternion)
             error_quaternion[p] = d
 
-        # print(self.loss(gravities, gravity, axis=1))
         return self.loss(gravities, gravity, axis=1)
 
 
