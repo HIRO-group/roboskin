@@ -383,6 +383,7 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
 
             # optimize parameters wrt data
             params = self._optimize(i_su=i_su)
+
             elapsed_time = self.data_logger.end_timer(timer_name=f'SU{i_su+1}')
 
             # Compute necessary data
@@ -553,6 +554,7 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
         local_opt = nlopt.opt(C.LOCAL_OPTIMIZER, self.n_param)
         opt.set_local_optimizer(local_opt)
         params[self.target_index] = opt.optimize(params[self.target_index])
+
         # ################### Then Optimize for Translations ####################
         self.target = 'Position'
         self.constant = 'Orientation'
