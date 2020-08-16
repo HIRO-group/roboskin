@@ -58,7 +58,7 @@ def run_optimizations(measured_data, optimizers, data_loggers, method_names, n_n
 
     for i, noise_sigma in enumerate(noise_sigmas):
         data = copy.deepcopy(measured_data)
-        utils.add_outlier(data, ['static', 'constant', 'dynamic'], sigma=noise_sigma, outlier_ratio=outlier_ratio)
+        utils.add_outlier(data, ['static', 'dynamic'], sigma=noise_sigma, outlier_ratio=outlier_ratio)
         for j, (optimizer, data_logger) in enumerate(zip(optimizers, data_loggers)):
             logging.info(f'Optimizer: {method_names[j]}, sigma={noise_sigma}, Outlier: {outlier_ratio}')
             optimizer.optimize(data)

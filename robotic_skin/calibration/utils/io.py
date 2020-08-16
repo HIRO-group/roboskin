@@ -92,11 +92,10 @@ def load_data(robot, directory):
             return pickle.load(f, encoding='latin1')
 
     static = read_pickle('static_data', robot)
-    constant = read_pickle('constant_data', robot)
     dynamic = read_pickle('dynamic_data', robot)
-    Data = namedtuple('Data', 'static dynamic constant')
+    Data = namedtuple('Data', 'static dynamic')
     # load all of the data!
-    data = Data(static, dynamic, constant)
+    data = Data(static, dynamic)
 
     filepath = os.path.join(directory, 'imu_mappings.pickle')
     with open(filepath, 'rb') as f:
@@ -111,23 +110,21 @@ def add_noise(data, data_types: List[str], sigma=1):
 
 def add_outlier(data, data_types: List[str], sigma=3, outlier_ratio=0.25):  # noqa:#C901
     for data_type in data_types:
-        if data_type not in ['static', 'constant', 'dynamic']:
+        if data_type not in ['static', 'dynamic']:
             raise ValueError('There is no such data_type='+data_type)
 
         d = getattr(data, data_type)
 
         imu_indices = {
             'static': [4, 5, 6],
-            'constant': [4, 5, 6],
             'dynamic': [0, 1, 2]}
         imu_index = imu_indices[data_type]
 
-        pose_names = list(data.constant.keys())
-        joint_names = list(data.constant[pose_names[0]].keys())
-        imu_names = list(data.constant[pose_names[0]][joint_names[0]].keys())
+        pose_names = list(data.dynamic.keys())
+        joint_names = list(data.dynamic[pose_names[0]].keys())
+        imu_names = list(data.dynamic[pose_names[0]][joint_names[0]].keys())
 
         n_dynamic_pose = len(list(data.dynamic.keys()))
-        n_constant_pose = len(list(data.constant.keys()))
         n_static_pose = len(list(data.static.keys()))
 
         if data_type == 'static':
@@ -139,23 +136,15 @@ def add_outlier(data, data_types: List[str], sigma=3, outlier_ratio=0.25):  # no
                     d[pose_names[i]][imu][imu_index] += np.random.normal(0, sigma, size=3)
             return
 
-        n_pose = n_constant_pose if data_type == 'constant' else n_dynamic_pose
+        n_pose = n_dynamic_pose
         for i in range(n_pose):
             for joint in joint_names:
                 for imu in imu_names:
-                    if data_type == 'constant':
-                        data = d[pose_names[i]][joint][imu][0]
-                        index = outlier_index(data, outlier_ratio)
-                        if index is None:
-                            continue
-                        shape = data[index].shape
-                        d[pose_names[i]][joint][imu][0][index] += np.random.normal(0, sigma, size=shape)
-                    else:
-                        flag = np.random.choice([0, 1], p=[1-outlier_ratio, outlier_ratio])
-                        if not flag:
-                            continue
-                        shape = d[pose_names[i]][joint][imu][0][imu_index].shape
-                        d[pose_names[i]][joint][imu][0][imu_index] += np.random.normal(0, sigma, size=shape)
+                    flag = np.random.choice([0, 1], p=[1-outlier_ratio, outlier_ratio])
+                    if not flag:
+                        continue
+                    shape = d[pose_names[i]][joint][imu][0][imu_index].shape
+                    d[pose_names[i]][joint][imu][0][imu_index] += np.random.normal(0, sigma, size=shape)
 
 
 def outlier_index(data, outlier_ratio):

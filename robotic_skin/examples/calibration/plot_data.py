@@ -19,7 +19,7 @@ CONFIGDIR = os.path.join(REPODIR, 'config')
 
 def fit_sin(t, y, rotate_joint):
     def optimize_func(x):
-        x[0]*np.sin(2*np.pi*C.PATTERN_FREQ[rotate_joint]*t+x[1]) + x[2] - y
+        return x[0]*np.sin(2*np.pi*C.PATTERN_FREQ[rotate_joint]*t+x[1]) + x[2] - y
     est_amp, est_phase, est_mean = leastsq(optimize_func, [1, 0, 0])[0]
     return est_amp*np.sin(2*np.pi*C.PATTERN_FREQ[rotate_joint]*t+est_phase) + est_mean
 
@@ -341,12 +341,11 @@ def verify_noise_added_correctly(data, pose_names: List[str],
                                  sigma: float = 1.0, outlier_ratio: float = 0.5):
 
     # Add Noise
-    data_types = ['static', 'dynamic', 'constant']
+    data_types = ['static', 'dynamic']
     data_noise = copy.deepcopy(data)
     utils.add_outlier(data_noise, data_types, sigma=sigma, outlier_ratio=outlier_ratio)
 
     n_dynamic_pose = len(list(data.dynamic.keys()))
-    n_constant_pose = len(list(data.constant.keys()))
     n_static_pose = len(list(data.static.keys()))
 
     # Plot Static Acceleration Data vs. Noise Added
@@ -390,25 +389,6 @@ def verify_noise_added_correctly(data, pose_names: List[str],
                     show=False,
                     save=True)
 
-    # Plot Constant Acceleration Data vs. Noise Added
-    # Prepare Data
-    for i in range(n_constant_pose):
-        for joint in joint_names:
-            for su in su_names:
-                d = data.constant[pose_names[i]][joint][su][0]
-                d_n = data_noise.constant[pose_names[i]][joint][su][0]
-                accelerations = d[:, 4:7]
-                accelerations_noise = d_n[:, 4:7]
-                print(f'{pose_names[i]}, {joint}, {su}')
-                y_dict = {
-                    'Accelerations': accelerations_noise,
-                    'Accelerations + Noise': accelerations_noise}
-                # Plot
-                plot_side_by_side(
-                    y_dict=y_dict,
-                    title=f'{joint}_{su}_{pose_names[i]}',
-                    xlabel='Data Points')
-
 
 def verify_acceleration_estimate(data, pose_names: List[str],
                                  joint_names: List[str], imu_names: List[str],
@@ -434,8 +414,6 @@ def verify_acceleration_estimate(data, pose_names: List[str],
     }
 
     for i_su, su in enumerate(imu_names):
-        if i_su != 5:
-            continue
         # joint which i_su th SU is attached to
         i_joint = kinematic_chain.su_joint_dict[i_su]
         for pose in pose_names:
@@ -443,7 +421,6 @@ def verify_acceleration_estimate(data, pose_names: List[str],
             for rotate_joint in range(max(0, i_joint-2), i_joint+1):
                 joint = joint_names[rotate_joint]
                 static_acceleration = data.static[pose][su][4:7]
-                print(f'[{su}_{pose}_{joint}] {static_acceleration}')
 
                 # Break up the data
                 each_data = data.dynamic[pose][joint][su]
@@ -451,6 +428,9 @@ def verify_acceleration_estimate(data, pose_names: List[str],
 
                 # Prepare for plotting
                 measured_As = each_data[:, indices['measured']]
+                print(f'[{su} {pose} {joint}] {static_acceleration} = {np.linalg.norm(static_acceleration)}', measured_As.shape)
+                if measured_As.shape[0] == 0:
+                    continue
 
                 ax_fit = fit_sin(time, measured_As[:, 0], rotate_joint)
                 ay_fit = fit_sin(time, measured_As[:, 1], rotate_joint)
@@ -477,7 +457,7 @@ def verify_acceleration_estimate(data, pose_names: List[str],
                     xlabel='Time [s]',
                     title=f'{joint}_{su}_{pose}',
                     x=time,
-                    show=True,
+                    show=False,
                     save=False)
 
 

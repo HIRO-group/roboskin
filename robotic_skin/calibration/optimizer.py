@@ -10,7 +10,6 @@ from robotic_skin.calibration.error_functions import (
     StaticErrorFunction,
     CombinedErrorFunction,
     MaxAccelerationErrorFunction,
-    # ConstantRotationErrorFunction,
 )
 from robotic_skin.calibration.error_functions_torch import (
     StaticErrorFunctionTorch,

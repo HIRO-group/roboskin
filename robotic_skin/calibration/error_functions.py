@@ -7,7 +7,7 @@ from robotic_skin.calibration.utils.rotational_acceleration import estimate_acce
 # import logging
 
 
-def max_angle_func(t: int, i_joint: int, delta_t=0.0, **kwargs):
+def max_angle_func(t: int, i_joint: int, delta_t=0.00, **kwargs):
     """
     Computes current joint angle at time t
     joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.
@@ -37,11 +37,10 @@ class ErrorFunction():
     def initialize(self, data):
         self.initialized = True
         self.data = data
-        self.pose_names = list(data.constant.keys())
-        self.joint_names = list(data.constant[self.pose_names[0]].keys())
-        self.imu_names = list(data.constant[self.pose_names[0]][self.joint_names[0]].keys())
+        self.pose_names = list(data.dynamic.keys())
+        self.joint_names = list(data.dynamic[self.pose_names[0]].keys())
+        self.imu_names = list(data.dynamic[self.pose_names[0]][self.joint_names[0]].keys())
         self.n_dynamic_pose = len(list(data.dynamic.keys()))
-        self.n_constant_pose = len(list(data.constant.keys()))
         self.n_static_pose = len(list(data.static.keys()))
 
         self.n_joint = len(self.joint_names)
@@ -115,74 +114,6 @@ class StaticErrorFunction(ErrorFunction):
             error_quaternion[p] = d
 
         return self.loss(gravities, gravity, axis=1)
-
-
-class ConstantRotationErrorFunction(ErrorFunction):
-    """
-    An error function used when a robotic arm's joints
-    are moving at a constant velocity.
-    """
-    def __init__(self, loss):
-        super().__init__(loss)
-
-    def __call__(self, kinematic_chain, i_su):
-        """
-        Arguments
-        ------------
-        i_su: int
-            i_suth sensor
-        kinematic_chain:
-            A Kinematic Chain of the robot
-
-        Returns
-        --------
-        e1: float
-            Static Error
-        """
-        if not self.initialized:
-            raise ValueError('Not Initialized')
-
-        i_joint = kinematic_chain.su_joint_dict[i_su]
-
-        errors = 0.0
-        n_error = 0
-        for p in range(self.n_constant_pose):
-            # for d in range(i+1):
-            for d_joint in range(max(0, i_joint-2), i_joint+1):
-                data = self.data.constant[self.pose_names[p]][self.joint_names[d_joint]][self.imu_names[i_su]][0]
-                # meas_qs = data[:, :4]
-                meas_accels = data[:, 4:7]
-                joints = data[:, 7:14]
-                angular_velocities = data[:, 14]
-
-                # for meas_accel, poses, curr_w in zip(meas_accels, joints, angular_velocities):
-                n_eval = 10
-                for i in range(n_eval):
-                    n_data = data.shape[0]
-                    if n_data <= i:
-                        break
-
-                    idx = i*int(n_data/n_eval)
-                    meas_accel = meas_accels[idx, :]
-                    poses = joints[idx, :]
-                    angular_velocity = angular_velocities[idx]
-
-                    # TODO: parse start_joint. Currently, there is a bug
-                    kinematic_chain.set_poses(poses, end_joint=i_joint)
-                    model_accel = estimate_acceleration(kinematic_chain=kinematic_chain,
-                                                        i_rotate_joint=d_joint,
-                                                        i_su=i_su,
-                                                        joint_angular_velocity=angular_velocity)
-
-                    # logging.debug(f'[Pose{p}, Joint{d_joint}, SU{i_su}@Joint{i_joint}, Data{idx}]\t' +
-                    #               f'Model: {n2s(model_accel, 4)} SU: {n2s(meas_accel, 4)}')
-
-                    error2 = self.loss(model_accel, meas_accel)
-
-                    errors += error2
-                    n_error += 1
-
-        return errors/n_error
 
 
 class MaxAccelerationErrorFunction(ErrorFunction):
