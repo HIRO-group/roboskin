@@ -238,7 +238,7 @@ descending order</p>
 <code class="sig-name descname">convert_to_floating_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">my_number</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.convert_to_floating_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.convert_to_floating_point" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method is used to convert some number like 768 to 0.768. Basically used to add weight value
 :param my_number: Input Number
-:type my_number: <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+:type my_number: int</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>floating point number from the input number</p>
@@ -255,7 +255,7 @@ descending order</p>
 <dd><p>As this is a binary matrix, with values only 0 and 1, equating min value and max value to 0, we can say
 the array is a zero array
 :param input_array: Input matrix is the matrix we want to find out whether it’s a zero array or not.
-:type input_array: <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code></p>
+:type input_array: np.ndarray</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>True if the array is a zero array, otherwise False</p>
@@ -288,7 +288,7 @@ np.ndarray: The Joint ID’s in the order of their arrangement on the robotic ar
 <dd><p>Directly copied from: <a class="reference external" href="https://www.geeksforgeeks.org/program-check-matrix-lower-triangular/">https://www.geeksforgeeks.org/program-check-matrix-lower-triangular/</a>
 And also checked. Will output if input matrix input_array is a lower triangular matrix or not
 :param input_array: The matrix in question, whether it’s lower triangular or not
-:type input_array: <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code></p>
+:type input_array: np.ndarray</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>True if numpy array inputted is lower triangular, else False</p>
@@ -311,7 +311,7 @@ And also checked. Will output if input matrix input_array is a lower triangular 
 <code class="sig-name descname">is_square_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.is_square_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.is_square_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is a function which raises an exception, if the output matrix isn’t square matrix
 :param input_array:
-:type input_array: <code class="xref py py-class docutils literal notranslate"><span class="pre">Input</span> <span class="pre">Matrix</span></code></p>
+:type input_array: Input Matrix</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>It doesn’t return any value, but throws an exception if the passes matrix isn’t a square matrix</p>
@@ -335,9 +335,9 @@ And also checked. Will output if input matrix input_array is a lower triangular 
 <code class="sig-name descname">numpyarray_toint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">my_array</span></em>, <em class="sig-param"><span class="n">reverse</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/convert_to_lowertriangular_matrix.html#ConvertToLT.numpyarray_toint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.numpyarray_toint" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will convert a numpy 1D array which is considered a binary number into a decimal number
 :param my_array: Input array
-:type my_array: <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code>
+:type my_array: np.ndarray
 :param reverse: if reverse MSB is considered first, else last
-:type reverse: <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></p>
+:type reverse: bool</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Decimal number</p>
@@ -363,7 +363,7 @@ References:
 # Stackoverflow links: <a class="reference external" href="https://stackoverflow.com/questions/52216526/sort-array-columns-based-upon-sum/52216674">https://stackoverflow.com/questions/52216526/sort-array-columns-based-upon-sum/52216674</a>
 # <a class="reference external" href="https://stackoverflow.com/questions/7235785/sorting-numpy-array-according-to-the-sum">https://stackoverflow.com/questions/7235785/sorting-numpy-array-according-to-the-sum</a>
 :param input_array: the input array we pass into the function, for it to have it’s rows sorted
-:type input_array: <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code></p>
+:type input_array: np.ndarray</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The array with its rows sorted</p>
@@ -583,12 +583,12 @@ The temporary pose/TM will be reset once init_temp_TM or set_poses are called.</
 <code class="sig-name descname">get_params_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain.html#KinematicChain.get_params_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain.KinematicChain.get_params_at" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>i_su</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – ith SU</p>
+<dd class="field-odd"><p><strong>i_su</strong> (<em>int</em>) – ith SU</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>params</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.array</span></code>) – Next DH parameters to be optimized</p></li>
-<li><p><strong>bounds</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.array</span></code>) – Bounds of each DH parameter</p></li>
+<li><p><strong>params</strong> (<em>np.array</em>) – Next DH parameters to be optimized</p></li>
+<li><p><strong>bounds</strong> (<em>np.array</em>) – Bounds of each DH parameter</p></li>
 </ul>
 </p>
 </dd>
@@ -628,8 +628,8 @@ Origin and Evaluation Poses will never be changed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>i_joint</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – i_joint th joint. i_joint starts from 0 to n-1.</p></li>
-<li><p><strong>params</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code>) – DH Parameters of the i_joint th joint (from its previous joint)</p></li>
+<li><p><strong>i_joint</strong> (<em>int</em>) – i_joint th joint. i_joint starts from 0 to n-1.</p></li>
+<li><p><strong>params</strong> (<em>np.ndarray</em>) – DH Parameters of the i_joint th joint (from its previous joint)</p></li>
 </ul>
 </dd>
 </dl>
@@ -645,8 +645,8 @@ or 10 (all dh params)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>int</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">i</span></code>) – ith joint (sensor)</p></li>
-<li><p><strong>parmas</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.array</span></code>) – DH Parameters</p></li>
+<li><p><strong>int</strong> (<em>i</em>) – ith joint (sensor)</p></li>
+<li><p><strong>parmas</strong> (<em>np.array</em>) – DH Parameters</p></li>
 </ul>
 </dd>
 </dl>
@@ -665,8 +665,8 @@ or 10 (all dh params)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>i_su</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – i_su th SU. i_su starts from 0 to m-1.</p></li>
-<li><p><strong>params</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code>) – DH Parameters of the i_su th SU (from its previous DoF)</p></li>
+<li><p><strong>i_su</strong> (<em>int</em>) – i_su th SU. i_su starts from 0 to m-1.</p></li>
+<li><p><strong>params</strong> (<em>np.ndarray</em>) – DH Parameters of the i_su th SU (from its previous DoF)</p></li>
 </ul>
 </dd>
 </dl>
@@ -714,12 +714,12 @@ The temporary pose/TM will be reset once init_temp_TM or set_poses are called.</
 <code class="sig-name descname">get_params_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/robotic_skin/calibration/kinematic_chain_torch.html#KinematicChainTorch.get_params_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#robotic_skin.calibration.kinematic_chain_torch.KinematicChainTorch.get_params_at" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>i_su</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – ith SU</p>
+<dd class="field-odd"><p><strong>i_su</strong> (<em>int</em>) – ith SU</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>params</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) – Next DH parameters to be optimized</p></li>
-<li><p><strong>bounds</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) – Bounds of each DH parameter</p></li>
+<li><p><strong>params</strong> (<em>torch.Tensor</em>) – Next DH parameters to be optimized</p></li>
+<li><p><strong>bounds</strong> (<em>torch.Tensor</em>) – Bounds of each DH parameter</p></li>
 </ul>
 </p>
 </dd>
@@ -764,8 +764,8 @@ Origin and Evaluation Poses will never be changed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>i_joint</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – i_joint th joint. i_joint starts from 0 to n-1.</p></li>
-<li><p><strong>params</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code>) – DH Parameters of the i_joint th joint (from its previous joint)</p></li>
+<li><p><strong>i_joint</strong> (<em>int</em>) – i_joint th joint. i_joint starts from 0 to n-1.</p></li>
+<li><p><strong>params</strong> (<em>np.ndarray</em>) – DH Parameters of the i_joint th joint (from its previous joint)</p></li>
 </ul>
 </dd>
 </dl>
@@ -781,8 +781,8 @@ or 10 (all dh params)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>int</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">i</span></code>) – ith joint (sensor)</p></li>
-<li><p><strong>parmas</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.array</span></code>) – DH Parameters</p></li>
+<li><p><strong>int</strong> (<em>i</em>) – ith joint (sensor)</p></li>
+<li><p><strong>parmas</strong> (<em>np.array</em>) – DH Parameters</p></li>
 </ul>
 </dd>
 </dl>
@@ -801,8 +801,8 @@ or 10 (all dh params)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>i_su</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – i_su th SU. i_su starts from 0 to m-1.</p></li>
-<li><p><strong>params</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code>) – DH Parameters of the i_su th SU (from its previous DoF)</p></li>
+<li><p><strong>i_su</strong> (<em>int</em>) – i_su th SU. i_su starts from 0 to m-1.</p></li>
+<li><p><strong>params</strong> (<em>np.ndarray</em>) – DH Parameters of the i_su th SU (from its previous DoF)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1014,7 +1014,7 @@ and returns the class.</p>
 <dd><p>Set parameters that have been optimized</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>params</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.array</span></code>) – DH parameters</p>
+<dd class="field-odd"><p><strong>params</strong> (<em>np.array</em>) – DH parameters</p>
 </dd>
 </dl>
 </dd></dl>
