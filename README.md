@@ -15,6 +15,11 @@ pip install --upgrade git+https://github.com/HIRO-group/roboskin.git
 pip install --upgrade git+ssh://git@github.com/HIRO-group/roboskin.git
 ```
 
+# Raspi Installation
+```
+python setup.py install --raspi
+```
+
 # Docker
 
 We have added Docker support for this repository. It is based on the `ros:melodic` image, and also allows Python3 to work with ROS. In order to build:
