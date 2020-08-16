@@ -1,18 +1,18 @@
-![](https://github.com/HIRO-group/robotic_skin/workflows/Python%20application/badge.svg)
+![](https://github.com/HIRO-group/roboskin/workflows/Python%20application/badge.svg)
 
 # HIRO Robotic Skin
 - **Current Release**: `0.0.1` as of 2020/01/14
 - **Target Python versions**: Python 3.7
-- **Documentation**: http://hiro-group.ronc.one/robotic_skin/
+- **Documentation**: http://hiro-group.ronc.one/roboskin/
 
 # HTTPS Installation
 ```
-pip install --upgrade git+https://github.com/HIRO-group/robotic_skin.git
+pip install --upgrade git+https://github.com/HIRO-group/roboskin.git
 ```
 
 # SSH Installation
 ```
-pip install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git
+pip install --upgrade git+ssh://git@github.com/HIRO-group/roboskin.git
 ```
 
 # Docker
@@ -57,13 +57,13 @@ This project is using GitHub flow ([See here for details](https://guides.github.
 
 
 ## Contribution Steps
-1. Add your feature under `./robotic_skin/`
+1. Add your feature under `./roboskin/`
 2. Comment classes and functions with [docstring](https://en.wikipedia.org/wiki/Docstring)
 3. Add Example
 4. Write Unit Test under `./tests/`
 5. Run Test Locally `python setup.py test`
 6. Run Test Remotely (Travis automatically deals this)
-7. Run Pylint Locally with `pylint robotic_skin examples tests`, and correct the errors from this command.
+7. Run Pylint Locally with `pylint roboskin examples tests`, and correct the errors from this command.
 8. Write Documentations under `./docs/`. See [docs/README.md](docs/README.md).
 
 ## Test [MUST]
@@ -91,7 +91,7 @@ When writing tests, for example for feature_module.py, please create test module
 See below. <br>
 
 ```
-├── robotic_skin
+├── roboskin
 │   ├── __init__.py
 │   ...
 │   ├── your_awesome_module.py

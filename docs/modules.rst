@@ -1,7 +1,7 @@
-robotic_skin
-============
+roboskin
+========
 
 .. toctree::
    :maxdepth: 4
 
-   robotic_skin
+   roboskin

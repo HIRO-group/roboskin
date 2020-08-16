@@ -1,7 +1,7 @@
 import unittest
 import argparse
 # import numpy as np
-from robotic_skin.sensor.adxl335 import ADXL335
+from roboskin.sensor.adxl335 import ADXL335
 
 
 class ADXL335Test(unittest.TestCase):

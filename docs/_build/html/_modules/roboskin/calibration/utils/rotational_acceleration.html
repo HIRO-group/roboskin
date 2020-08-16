@@ -1,0 +1,437 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>roboskin.calibration.utils.rotational_acceleration &mdash; roboskin  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> roboskin
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../roboskin.html">roboskin package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">roboskin</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>roboskin.calibration.utils.rotational_acceleration</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for roboskin.calibration.utils.rotational_acceleration</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">roboskin.const</span> <span class="k">as</span> <span class="nn">C</span>
+
+
+<div class="viewcode-block" id="estimate_acceleration"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.rotational_acceleration.estimate_acceleration">[docs]</a><span class="k">def</span> <span class="nf">estimate_acceleration</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_rotate_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span>
+                          <span class="n">joint_angular_velocity</span><span class="p">,</span> <span class="n">joint_angular_acceleration</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                          <span class="n">current_time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">angle_func</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute an acceleration value from positions.</span>
+<span class="sd">    .. math:: `a = \frac{f({\Delta t}) + f({\Delta t) - 2 f(0)}{h^2}`</span>
+
+<span class="sd">    This equation came from Taylor Expansion to get the second derivative from f(t).</span>
+<span class="sd">    .. math:: f(t+{\Delta t}) = f(t) + hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)</span>
+<span class="sd">    .. math:: f(t-{\Delta t}) = f(t) - hf^{\prime}(t) + \frac{h^2}{2}f^{\prime\prime}(t)</span>
+
+<span class="sd">    Add both equations and plug t=0 to get the above equation</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ------------</span>
+<span class="sd">    `kinematic_chain`: `roboskin.calibration.kinematic_chain.KinematicChain`</span>
+<span class="sd">        Robot&#39;s Kinematic Chain</span>
+<span class="sd">    `i_rotate_joint`: `int`</span>
+<span class="sd">        dof `d`</span>
+<span class="sd">    `i_su`: `int`</span>
+<span class="sd">        `i`th SU</span>
+<span class="sd">    `joint_angular_velocity`: `float`</span>
+<span class="sd">        Angular velocity</span>
+<span class="sd">    &#39;max_angular_velocity&#39;: &#39;float&#39;</span>
+<span class="sd">        Maximum angular velocity</span>
+<span class="sd">    `current_time`: `float`</span>
+<span class="sd">        Current Time</span>
+<span class="sd">    `method`: `str`</span>
+<span class="sd">        Determines if we are using `analytical`, `our`, `mittendorfer` or `modified_mittendorfer`</span>
+<span class="sd">        methods (which we modified due to some possible missing terms).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;analytical&#39;</span><span class="p">,</span> <span class="s1">&#39;our&#39;</span><span class="p">,</span> <span class="s1">&#39;mittendorfer&#39;</span><span class="p">,</span> <span class="s1">&#39;modified_mittendorfer&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">methods</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;There is no method called </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span>
+                         <span class="sa">f</span><span class="s1">&#39;Please Choose from </span><span class="si">{</span><span class="n">methods</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">angle_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">_angle_func</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">joint_angular_velocity</span><span class="o">*</span><span class="n">t</span>
+        <span class="n">angle_func</span> <span class="o">=</span> <span class="n">_angle_func</span>
+
+    <span class="n">rs_T_su</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span>
+        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
+
+    <span class="n">dof_T_su</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span>
+        <span class="n">start_joint</span><span class="o">=</span><span class="n">i_rotate_joint</span><span class="p">,</span>
+        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
+        <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
+
+    <span class="n">rs_T_dof</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_joint_TM</span><span class="p">(</span>
+        <span class="n">i_joint</span><span class="o">=</span><span class="n">i_rotate_joint</span><span class="p">,</span>
+        <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
+
+    <span class="c1"># In any joint (DoF) coordinate,</span>
+    <span class="c1"># the the rotational axis is always pointing its z direction.</span>
+    <span class="c1"># This is how DH parameters are defined.</span>
+    <span class="n">dof_w_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">joint_angular_velocity</span><span class="p">])</span>
+    <span class="n">dof_alpha_su</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">joint_angular_acceleration</span><span class="p">])</span>
+    <span class="c1"># Compute acceleration based on the simple physics</span>
+    <span class="n">su_g</span><span class="p">,</span> <span class="n">su_Ac</span><span class="p">,</span> <span class="n">su_At</span> <span class="o">=</span> <span class="n">compute_acceleration_analytically</span><span class="p">(</span>
+        <span class="n">inert_w_body</span><span class="o">=</span><span class="n">dof_w_su</span><span class="p">,</span>
+        <span class="n">inert_r_body</span><span class="o">=</span><span class="n">dof_T_su</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+        <span class="n">inert_alpha_body</span><span class="o">=</span><span class="n">dof_alpha_su</span><span class="p">,</span>
+        <span class="n">body_R_inert</span><span class="o">=</span><span class="n">dof_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+        <span class="n">body_R_world</span><span class="o">=</span><span class="n">rs_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+        <span class="n">coordinate</span><span class="o">=</span><span class="s1">&#39;body&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;analytical&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">su_g</span> <span class="o">+</span> <span class="n">su_Ac</span> <span class="o">+</span> <span class="n">su_At</span>
+
+    <span class="c1"># The following will run if method is mittendorfer&#39;s method</span>
+    <span class="n">rs_A</span> <span class="o">=</span> <span class="n">compute_acceleration_numerically</span><span class="p">(</span>
+        <span class="n">kinematic_chain</span><span class="o">=</span><span class="n">kinematic_chain</span><span class="p">,</span>
+        <span class="n">i_rotate_joint</span><span class="o">=</span><span class="n">i_rotate_joint</span><span class="p">,</span>
+        <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
+        <span class="n">current_time</span><span class="o">=</span><span class="n">current_time</span><span class="p">,</span>
+        <span class="n">angle_func</span><span class="o">=</span><span class="n">angle_func</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;mittendorfer&#39;</span> <span class="ow">in</span> <span class="n">method</span><span class="p">:</span>
+        <span class="n">su_At</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rs_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">rs_A</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;mittendorfer&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">su_At</span>
+
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;modified_mittendorfer&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">su_g</span> <span class="o">+</span> <span class="n">su_Ac</span> <span class="o">+</span> <span class="n">su_At</span>
+
+    <span class="n">su_At</span> <span class="o">=</span> <span class="n">remove_centripetal_component</span><span class="p">(</span><span class="n">rs_A</span><span class="p">,</span> <span class="n">rs_T_dof</span><span class="p">,</span> <span class="n">dof_T_su</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">su_g</span> <span class="o">+</span> <span class="n">su_Ac</span> <span class="o">+</span> <span class="n">su_At</span></div>
+
+
+<div class="viewcode-block" id="centripetal_acceleration"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.rotational_acceleration.centripetal_acceleration">[docs]</a><span class="k">def</span> <span class="nf">centripetal_acceleration</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. math:: `a = \omega \times \omega \times r`</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ------------</span>
+<span class="sd">    `r`: `float`</span>
+<span class="sd">        Position vector r of the body in the inertial coordinate</span>
+<span class="sd">    `w`: `float`</span>
+<span class="sd">        Angular Velocity of an axis in the inertial coordinate.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># a = w x w x r</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="tangential_acceleration"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.rotational_acceleration.tangential_acceleration">[docs]</a><span class="k">def</span> <span class="nf">tangential_acceleration</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. math:: `a = \alpha \times r`</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ----------</span>
+<span class="sd">    `r`: `float`</span>
+<span class="sd">        Position vector r of the body in the inertial coordinate</span>
+<span class="sd">    `alpha`: `float`</span>
+<span class="sd">        Angular Acceleration of an axis in the inertial coordinate.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># a = al x r</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="compute_acceleration_analytically"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.rotational_acceleration.compute_acceleration_analytically">[docs]</a><span class="k">def</span> <span class="nf">compute_acceleration_analytically</span><span class="p">(</span><span class="n">inert_w_body</span><span class="p">,</span> <span class="n">inert_r_body</span><span class="p">,</span> <span class="n">inert_alpha_body</span><span class="p">,</span>
+                                      <span class="n">body_R_inert</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">body_R_world</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inert_R_world</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                      <span class="n">coordinate</span><span class="o">=</span><span class="s1">&#39;body&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    There are 3 coordinates to remember.</span>
+<span class="sd">    1. World Frame (Fixed to the world)</span>
+<span class="sd">    2. Inertial Frame (each Rotating Joint Coordinate)</span>
+<span class="sd">    3. Body Frame (SU Coordinate)</span>
+
+<span class="sd">    We use the following notation `coord1_variable_coord2`.</span>
+<span class="sd">    This represents a variable of coord2 defined in coord1.</span>
+
+<span class="sd">    For example, SU&#39;s linear accelerations can be represented as rs_A_su.</span>
+<span class="sd">    It represents the acceleration A measured in SU coordinate defined in the world coordinate.</span>
+<span class="sd">    This is what we can measure from the real IMU as well.</span>
+
+<span class="sd">    We use the same notation for the rotation matrix `coord1_R_coord2`,</span>
+<span class="sd">    but this represents how you can rotate soem vector from `coord2 to `coord1`.</span>
+
+<span class="sd">    For example, if you want the gravity in the su coordinate,</span>
+<span class="sd">    su_g = su_R_rs * rs_g</span>
+<span class="sd">    As a result, the gravity defined in the RS frame is converted to the SU coordinate.</span>
+
+<span class="sd">    The inverse of the Rotation Matrix is its transpose.</span>
+<span class="sd">    Therefore, one can rotate it back to its original frame by</span>
+<span class="sd">    rs_g = rs_R_su * su_g = su_R_rs.T * su_g</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">world_g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">C</span><span class="o">.</span><span class="n">GRAVITATIONAL_CONSTANT</span><span class="p">])</span>
+    <span class="n">inert_Ac_body</span> <span class="o">=</span> <span class="n">centripetal_acceleration</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="n">inert_r_body</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">inert_w_body</span><span class="p">)</span>
+    <span class="n">inert_At_body</span> <span class="o">=</span> <span class="n">tangential_acceleration</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="n">inert_r_body</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">inert_alpha_body</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">coordinate</span> <span class="o">==</span> <span class="s1">&#39;body&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">body_R_inert</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">body_R_world</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;You must provide Rotation matrices body_R_inert and body_R_world&#39;</span><span class="p">)</span>
+        <span class="c1"># Convert to body coordinate</span>
+        <span class="n">body_g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">body_R_world</span><span class="p">,</span> <span class="n">world_g</span><span class="p">)</span>
+        <span class="n">body_Ac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">body_R_inert</span><span class="p">,</span> <span class="n">inert_Ac_body</span><span class="p">)</span>
+        <span class="n">body_At</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">body_R_inert</span><span class="p">,</span> <span class="n">inert_At_body</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">body_g</span><span class="p">,</span> <span class="n">body_Ac</span><span class="p">,</span> <span class="n">body_At</span>
+
+    <span class="k">elif</span> <span class="n">coordinate</span> <span class="o">==</span> <span class="s1">&#39;world&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">inert_R_world</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;You must provide a Rotation Matrix inert_R_world&#39;</span><span class="p">)</span>
+        <span class="c1"># Convert to world coordinate</span>
+        <span class="n">world_Ac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">inert_R_world</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">inert_Ac_body</span><span class="p">)</span>
+        <span class="n">world_At</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">inert_R_world</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">inert_At_body</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">world_g</span><span class="p">,</span> <span class="n">world_Ac</span><span class="p">,</span> <span class="n">world_At</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Coordinate name &quot;</span><span class="si">{</span><span class="n">coordinate</span><span class="si">}</span><span class="s1">&quot; is invalid</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span>
+                       <span class="s1">&#39;Please choose from &quot;body&quot;, &quot;inertial&quot;, or &quot;world&quot;&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="compute_2nd_order_derivative"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.rotational_acceleration.compute_2nd_order_derivative">[docs]</a><span class="k">def</span> <span class="nf">compute_2nd_order_derivative</span><span class="p">(</span><span class="n">x_func</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Take 2nd order derivative of x_func</span>
+<span class="sd">    This computation comes from the Taylor Expansion</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        x(t+dt) = x(t) + x&#39;(t)*dt + 1/2 * x&#39;&#39;(t)*dt^2</span>
+
+<span class="sd">        x(t-dt) = x(t) - x&#39;(t)*dt + 1/2 * x&#39;&#39;(t)*dt^2</span>
+
+<span class="sd">        x(t+dt) + x(t-dt) = 2*x(t) + x&#39;&#39;(t)*dt^2</span>
+
+<span class="sd">        x&#39;&#39;(t) = \frac{x(t+dt) + x(t-dt) - 2*x(t)}{dt^2}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># dt should be small value, recommended to use 1/(1000 * freq)</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">x_func</span><span class="p">(</span><span class="n">t</span><span class="o">+</span><span class="n">dt</span><span class="p">)</span> <span class="o">+</span> <span class="n">x_func</span><span class="p">(</span><span class="n">t</span><span class="o">-</span><span class="n">dt</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">x_func</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">dt</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="compute_acceleration_numerically"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.rotational_acceleration.compute_acceleration_numerically">[docs]</a><span class="k">def</span> <span class="nf">compute_acceleration_numerically</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">i_rotate_joint</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span>
+                                     <span class="n">current_time</span><span class="p">,</span> <span class="n">angle_func</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns tangential acceleration in RS coordinate.</span>
+<span class="sd">    The acceleration is computed by taking 2nd derivative of the position.</span>
+<span class="sd">    This small change in position in Rotating Coordinate is only in the</span>
+<span class="sd">    tangential direction. Thus, you can only compute the tangential acceleration,</span>
+<span class="sd">    from this method.</span>
+
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    `kinematic_chain`: `roboskin.calibration.kinematic_chain.KinematicChain`</span>
+<span class="sd">        Robot&#39;s Kinematic Chain</span>
+<span class="sd">    &#39;i_rotate_joint&#39;: &#39;int&#39;</span>
+<span class="sd">        dof &#39;d&#39;</span>
+<span class="sd">    `i`: `int`</span>
+<span class="sd">        imu `i`</span>
+<span class="sd">    `current_time`: float`</span>
+<span class="sd">        Current Time</span>
+<span class="sd">    `angle_func`: function</span>
+<span class="sd">        A function to compute the current angle at time t</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">current_su_position</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+        <span class="n">angle</span> <span class="o">=</span> <span class="n">angle_func</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">i_joint</span><span class="o">=</span><span class="n">i_rotate_joint</span><span class="p">)</span>
+        <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">init_temp_TM</span><span class="p">(</span><span class="n">i_joint</span><span class="o">=</span><span class="n">i_rotate_joint</span><span class="p">,</span> <span class="n">additional_pose</span><span class="o">=</span><span class="n">angle</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">T</span><span class="o">.</span><span class="n">position</span>
+
+    <span class="c1"># Compute the Acceleration from 3 close positions</span>
+    <span class="n">rs_A</span> <span class="o">=</span> <span class="n">compute_2nd_order_derivative</span><span class="p">(</span><span class="n">x_func</span><span class="o">=</span><span class="n">current_su_position</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">current_time</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">rs_A</span></div>
+
+
+<div class="viewcode-block" id="remove_centripetal_component"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.rotational_acceleration.remove_centripetal_component">[docs]</a><span class="k">def</span> <span class="nf">remove_centripetal_component</span><span class="p">(</span><span class="n">rs_A</span><span class="p">,</span> <span class="n">rs_T_dof</span><span class="p">,</span> <span class="n">dof_T_su</span><span class="p">):</span>
+    <span class="c1"># Convert rs_A to dof_A</span>
+    <span class="n">dof_A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rs_T_dof</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">rs_A</span><span class="p">)</span>
+
+    <span class="c1"># Compute a tangential vector</span>
+    <span class="c1"># (Tangential to a circle at time t)</span>
+    <span class="n">e_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dof_T_su</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+    <span class="n">e_t</span> <span class="o">=</span> <span class="n">e_t</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">e_t</span><span class="p">)</span>
+
+    <span class="c1"># Only retrieve the tangential element of dof_A,</span>
+    <span class="c1"># because dof_A also includes unnecessary centripetal acceleration</span>
+    <span class="n">dof_At</span> <span class="o">=</span> <span class="n">e_t</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">e_t</span><span class="p">,</span> <span class="n">dof_A</span><span class="p">)</span>
+    <span class="n">su_At</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dof_T_su</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">dof_At</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">su_At</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Kandai Watanabe
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

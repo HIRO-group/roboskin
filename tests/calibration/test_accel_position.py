@@ -3,7 +3,7 @@ Testing acceleration position module.
 """
 import unittest
 # import numpy as np
-# from robotic_skin.calibration.accel_position import KinematicEstimator
+# from roboskin.calibration.accel_position import KinematicEstimator
 
 
 class KinematicEstimatorTest(unittest.TestCase):
