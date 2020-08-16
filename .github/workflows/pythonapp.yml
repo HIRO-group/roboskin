@@ -27,7 +27,4 @@ jobs:
     - name: Test code from Docker
       run: |
         python3 --version
-        sudo apt-get install docker
-        docker pull ros:melodic
-        docker build . -t gh-actions-ros
-        docker run gh-actions-ros /bin/bash -c "cd roboskin; python3 setup.py test"
+        sudo apt install docker-ce && docker pull ros:melodic && docker build . -t gh-actions-ros && docker run gh-actions-ros /bin/bash -c "cd robotic_skin; python3 setup.py test"

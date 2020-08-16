@@ -100,7 +100,6 @@ roboskin.calibration.transformation\_matrix module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 
