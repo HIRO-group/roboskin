@@ -6,12 +6,12 @@
 - **Documentation**: http://hiro-group.ronc.one/robotic_skin/
 
 # HTTPS Installation
-```
+```sh
 pip install --upgrade git+https://github.com/HIRO-group/robotic_skin.git
 ```
 
 # SSH Installation
-```
+```sh
 pip install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git
 ```
 
@@ -71,18 +71,18 @@ This project is using GitHub flow ([See here for details](https://guides.github.
 When adding new feature such as `function`/`class`, you always and must write test(s) unless it will be rejected. <br>
 Then run the test
 
-```
+```sh
 python setup.py test
 ```
 
 You can also use `pycodestyle`:
 
-```
+```sh
 pycodestyle <script-name>.py
 ```
 
 ### Flake8 Test
-```
+```sh
 flake8 . --count --max-complexity=10 --max-line-length=140 --statistics --exclude setup.py --ignore=E121,E123,E126,E226,E24,E704,W503,W504,E999
 ```
 
@@ -107,7 +107,7 @@ See below. <br>
 ## Testing Hardware:
 To test the hardware whether it's working or not, whether the PCB is designed perfectly or not
 run the below command in Raspberry Pi:
-```bash
+```sh
 sudo watch -n 1 i2cdetect -y bus_num
 ```
 Where bus_num is the I2C bus number in Raspbbery pi.
