@@ -52,7 +52,6 @@ robotic\_skin.sensor.vl53l1x module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

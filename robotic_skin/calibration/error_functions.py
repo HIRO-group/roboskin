@@ -108,9 +108,9 @@ class StaticErrorFunction(ErrorFunction):
             gravities[p, :] = accel_rs
             # Account of Quaternion
             q_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][:4]
+
             d = pyqt.Quaternion.absolute_distance(T.q, np_to_pyqt(q_su))
             d = np.linalg.norm(q_su - T.quaternion)
-            # logging.debug(f'Measured: {q_su}, Model: {T.quaternion}')
             error_quaternion[p] = d
 
         return self.loss(gravities, gravity, axis=1)
