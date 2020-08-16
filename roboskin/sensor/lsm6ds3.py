@@ -16,6 +16,7 @@ class LSM6DS3_IMU(Sensor):
     related to the device.
     """
 
+    # def __init__(self, raspi_bus=1, i2c_address='0x6b'):  # noqa: E999
     def __init__(self, config_file):  # noqa: E999
         """
         Initializes the LSM6DS3 accelerometer. Checks for the I2C connection and checks whether it's the correct

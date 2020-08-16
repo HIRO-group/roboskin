@@ -13,6 +13,7 @@ class VL53L1X_ProximitySensor(Sensor):
     Code for VL53L1X distance sensor class.
     """
 
+    # def __init__(self, raspi_bus=1, i2c_address=0x29, range_value=0, timing_budget=33000, inter_measurement_period=33):
     def __init__(self, config_file, range_value=0, timing_budget=33000, inter_measurement_period=33):
         """
         Initialize the VL53L1X sensor, test if the python code can reach it or not, if not throw an exception.
