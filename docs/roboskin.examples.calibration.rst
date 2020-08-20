@@ -36,7 +36,6 @@ roboskin.examples.calibration.stats\_generator module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

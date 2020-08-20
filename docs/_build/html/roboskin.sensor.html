@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,12 +11,18 @@
   
 
   
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
   
   
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -25,15 +30,11 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="roboskin.examples.calibration package" href="roboskin.examples.calibration.html" /> 
@@ -50,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> roboskin
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> roboskin
           
 
           
@@ -73,6 +74,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -88,8 +90,8 @@
 <li class="toctree-l3"><a class="reference internal" href="roboskin.examples.html">roboskin.examples package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">roboskin.sensor package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-roboskin.sensor.adxl335">roboskin.sensor.adxl335 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-roboskin.sensor.flexiforce">roboskin.sensor.flexiforce module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#roboskin-sensor-adxl335-module">roboskin.sensor.adxl335 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#roboskin-sensor-flexiforce-module">roboskin.sensor.flexiforce module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-roboskin.sensor.lsm6ds3">roboskin.sensor.lsm6ds3 module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-roboskin.sensor.sensor">roboskin.sensor.sensor module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-roboskin.sensor.vl53l1x">roboskin.sensor.vl53l1x module</a></li>
@@ -108,6 +110,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -146,7 +149,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="roboskin.html">roboskin package</a> &raquo;</li>
         
@@ -174,51 +177,11 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-roboskin.sensor.adxl335">
-<span id="roboskin-sensor-adxl335-module"></span><h2>roboskin.sensor.adxl335 module<a class="headerlink" href="#module-roboskin.sensor.adxl335" title="Permalink to this headline">¶</a></h2>
-<p>ADXL335 Sensor Module.</p>
-<dl class="py class">
-<dt id="roboskin.sensor.adxl335.ADXL335">
-<em class="property">class </em><code class="sig-prename descclassname">roboskin.sensor.adxl335.</code><code class="sig-name descname">ADXL335</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpin</span></em>, <em class="sig-param"><span class="n">ypin</span></em>, <em class="sig-param"><span class="n">zpin</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/adxl335.html#ADXL335"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.adxl335.ADXL335" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#roboskin.sensor.sensor.Sensor" title="roboskin.sensor.sensor.Sensor"><code class="xref py py-class docutils literal notranslate"><span class="pre">roboskin.sensor.sensor.Sensor</span></code></a></p>
-<p>ADXL335 Sensor class.</p>
-<dl class="py method">
-<dt id="roboskin.sensor.adxl335.ADXL335.calibrate">
-<code class="sig-name descname">calibrate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/adxl335.html#ADXL335.calibrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.adxl335.ADXL335.calibrate" title="Permalink to this definition">¶</a></dt>
-<dd><p>How dumb can it be to write some shit like this that calibrate = True in calibrate function?
-Well we gotta calibrate it before. It isn’t automated, which I hate, but I gotta do what I gotta do
-This is basically implemented to satisfy the Sensor class, as I have to override the class for sure</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="roboskin.sensor.adxl335.ADXL335.read">
-<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/adxl335.html#ADXL335.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.adxl335.ADXL335.read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read raw ADC values from the sensor
-How this equation came up, look for my blog:
-<a class="reference external" href="https://krishnachaitanya9.github.io/posts/RPi_Calibrating_ADXL335_Accelerometer/">https://krishnachaitanya9.github.io/posts/RPi_Calibrating_ADXL335_Accelerometer/</a>
-There is a more detailed explanation
-which can’t be fit into comments. So please go look, and lemme know if there is any problem with the logic</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="roboskin-sensor-adxl335-module">
+<h2>roboskin.sensor.adxl335 module<a class="headerlink" href="#roboskin-sensor-adxl335-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-roboskin.sensor.flexiforce">
-<span id="roboskin-sensor-flexiforce-module"></span><h2>roboskin.sensor.flexiforce module<a class="headerlink" href="#module-roboskin.sensor.flexiforce" title="Permalink to this headline">¶</a></h2>
-<p>FlexiForce module</p>
-<dl class="py class">
-<dt id="roboskin.sensor.flexiforce.FlexiForce">
-<em class="property">class </em><code class="sig-prename descclassname">roboskin.sensor.flexiforce.</code><code class="sig-name descname">FlexiForce</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pin</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/flexiforce.html#FlexiForce"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.flexiforce.FlexiForce" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>FlexiForce class</p>
-<dl class="py method">
-<dt id="roboskin.sensor.flexiforce.FlexiForce.read">
-<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/flexiforce.html#FlexiForce.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.flexiforce.FlexiForce.read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read a force value</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="roboskin-sensor-flexiforce-module">
+<h2>roboskin.sensor.flexiforce module<a class="headerlink" href="#roboskin-sensor-flexiforce-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-roboskin.sensor.lsm6ds3">
 <span id="roboskin-sensor-lsm6ds3-module"></span><h2>roboskin.sensor.lsm6ds3 module<a class="headerlink" href="#module-roboskin.sensor.lsm6ds3" title="Permalink to this headline">¶</a></h2>
@@ -455,11 +418,19 @@ function you need to put while(True) loop for continuous acquisition of accelero
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2020, Kandai Watanabe
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -470,7 +441,6 @@ function you need to put while(True) loop for continuous acquisition of accelero
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

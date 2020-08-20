@@ -1,9 +1,7 @@
 
 
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -13,12 +11,18 @@
   
 
   
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
   
   
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -26,15 +30,11 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" /> 
 </head>
@@ -50,7 +50,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> roboskin
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> roboskin
           
 
           
@@ -73,6 +73,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -88,6 +89,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -126,7 +128,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Index</li>
     
@@ -204,8 +206,6 @@
       </ul></li>
       <li><a href="roboskin.calibration.html#roboskin.calibration.data_logger.DataLogger.add_trial">add_trial() (roboskin.calibration.data_logger.DataLogger method)</a>
 </li>
-      <li><a href="roboskin.sensor.html#roboskin.sensor.adxl335.ADXL335">ADXL335 (class in roboskin.sensor.adxl335)</a>
-</li>
       <li><a href="roboskin.calibration.utils.html#roboskin.calibration.utils.angle_between_quaternions">angle_between_quaternions() (in module roboskin.calibration.utils)</a>
 
       <ul>
@@ -224,11 +224,9 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="roboskin.examples.calibration.html#roboskin.examples.calibration.plot_data.calc_ylim">calc_ylim() (in module roboskin.examples.calibration.plot_data)</a>
 </li>
-      <li><a href="roboskin.sensor.html#roboskin.sensor.adxl335.ADXL335.calibrate">calibrate() (roboskin.sensor.adxl335.ADXL335 method)</a>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.calibrate">calibrate() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
 
       <ul>
-        <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.calibrate">(roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
-</li>
         <li><a href="roboskin.sensor.html#roboskin.sensor.sensor.Sensor.calibrate">(roboskin.sensor.sensor.Sensor method)</a>
 </li>
         <li><a href="roboskin.sensor.html#roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.calibrate">(roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor method)</a>
@@ -334,12 +332,10 @@
 </li>
       <li><a href="roboskin.examples.calibration.html#roboskin.examples.calibration.plot_data.fit_sin">fit_sin() (in module roboskin.examples.calibration.plot_data)</a>
 </li>
-      <li><a href="roboskin.sensor.html#roboskin.sensor.flexiforce.FlexiForce">FlexiForce (class in roboskin.sensor.flexiforce)</a>
+      <li><a href="roboskin.calibration.html#roboskin.calibration.transformation_matrix.TransformationMatrix.from_bounds">from_bounds() (roboskin.calibration.transformation_matrix.TransformationMatrix class method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="roboskin.calibration.html#roboskin.calibration.transformation_matrix.TransformationMatrix.from_bounds">from_bounds() (roboskin.calibration.transformation_matrix.TransformationMatrix class method)</a>
-</li>
       <li><a href="roboskin.calibration.html#roboskin.calibration.transformation_matrix.TransformationMatrix.from_dict">from_dict() (roboskin.calibration.transformation_matrix.TransformationMatrix class method)</a>
 </li>
       <li><a href="roboskin.calibration.html#roboskin.calibration.transformation_matrix.TransformationMatrix.from_list">from_list() (roboskin.calibration.transformation_matrix.TransformationMatrix class method)</a>
@@ -560,10 +556,6 @@
 </li>
         <li><a href="roboskin.sensor.html#module-roboskin.sensor">roboskin.sensor</a>
 </li>
-        <li><a href="roboskin.sensor.html#module-roboskin.sensor.adxl335">roboskin.sensor.adxl335</a>
-</li>
-        <li><a href="roboskin.sensor.html#module-roboskin.sensor.flexiforce">roboskin.sensor.flexiforce</a>
-</li>
         <li><a href="roboskin.sensor.html#module-roboskin.sensor.lsm6ds3">roboskin.sensor.lsm6ds3</a>
 </li>
         <li><a href="roboskin.sensor.html#module-roboskin.sensor.sensor">roboskin.sensor.sensor</a>
@@ -699,13 +691,9 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="roboskin.calibration.html#roboskin.calibration.transformation_matrix.TransformationMatrix.R">R() (roboskin.calibration.transformation_matrix.TransformationMatrix property)</a>
 </li>
-      <li><a href="roboskin.sensor.html#roboskin.sensor.adxl335.ADXL335.read">read() (roboskin.sensor.adxl335.ADXL335 method)</a>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read">read() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
 
       <ul>
-        <li><a href="roboskin.sensor.html#roboskin.sensor.flexiforce.FlexiForce.read">(roboskin.sensor.flexiforce.FlexiForce method)</a>
-</li>
-        <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read">(roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
-</li>
         <li><a href="roboskin.sensor.html#roboskin.sensor.sensor.Sensor.read">(roboskin.sensor.sensor.Sensor method)</a>
 </li>
         <li><a href="roboskin.sensor.html#roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.read">(roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor method)</a>
@@ -809,6 +797,8 @@
         <li><a href="roboskin.calibration.html#module-roboskin.calibration.stop_conditions">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     roboskin.calibration.transformation_matrix
 
@@ -816,8 +806,6 @@
         <li><a href="roboskin.calibration.html#module-roboskin.calibration.transformation_matrix">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     roboskin.calibration.utils
 
@@ -907,20 +895,6 @@
 
       <ul>
         <li><a href="roboskin.sensor.html#module-roboskin.sensor">module</a>
-</li>
-      </ul></li>
-      <li>
-    roboskin.sensor.adxl335
-
-      <ul>
-        <li><a href="roboskin.sensor.html#module-roboskin.sensor.adxl335">module</a>
-</li>
-      </ul></li>
-      <li>
-    roboskin.sensor.flexiforce
-
-      <ul>
-        <li><a href="roboskin.sensor.html#module-roboskin.sensor.flexiforce">module</a>
 </li>
       </ul></li>
       <li>
@@ -1111,11 +1085,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2020, Kandai Watanabe
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -1126,7 +1108,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

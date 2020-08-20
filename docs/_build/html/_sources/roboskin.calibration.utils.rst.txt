@@ -36,7 +36,6 @@ roboskin.calibration.utils.rotational\_acceleration\_torch module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

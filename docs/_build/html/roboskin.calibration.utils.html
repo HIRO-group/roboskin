@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,12 +11,18 @@
   
 
   
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
   
   
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -25,15 +30,11 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="roboskin.examples package" href="roboskin.examples.html" />
@@ -51,7 +52,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> roboskin
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> roboskin
           
 
           
@@ -74,6 +75,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -116,6 +118,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -154,7 +157,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="roboskin.html">roboskin package</a> &raquo;</li>
         
@@ -583,61 +586,14 @@ methods (which we modified due to some possible missing terms).</p></li>
 <div class="section" id="module-roboskin.calibration.utils">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-roboskin.calibration.utils" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt id="roboskin.calibration.utils.tf_to_pyqt">
-<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">tf_to_pyqt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/quaternion.html#tf_to_pyqt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.tf_to_pyqt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a tf quaternion to a pyqt array.
-Order of a tf quaternion
-q = (x, y, z, w)</p>
-<p>Order of a pyqt quaternion
-q = (w, x, y, z)</p>
-</dd></dl>
+<dt id="roboskin.calibration.utils.add_noise">
+<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">add_noise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">data_types</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/io.html#add_noise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.add_noise" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
-<dt id="roboskin.calibration.utils.pyqt_to_tf">
-<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">pyqt_to_tf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/quaternion.html#pyqt_to_tf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.pyqt_to_tf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a pyqt quaternion to a tf array.
-Order of a tf quaternion
-q = (x, y, z, w)</p>
-<p>Order of a pyqt quaternion
-q = (w, x, y, z)</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="roboskin.calibration.utils.pyqt_to_np">
-<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">pyqt_to_np</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/quaternion.html#pyqt_to_np"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.pyqt_to_np" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a pyqt quaternion to a numpy array.
-Order of a numpy quaternion
-q = (x, y, z, w)</p>
-<p>Order of a pyqt quaternion
-q = (w, x, y, z)</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="roboskin.calibration.utils.np_to_pyqt">
-<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">np_to_pyqt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/quaternion.html#np_to_pyqt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.np_to_pyqt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a numpyp quaternion to a pyqt array.
-Order of a numpy quaternion
-q = (x, y, z, w)</p>
-<p>Order of a pyqt quaternion
-q = (w, x, y, z)</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="roboskin.calibration.utils.quaternion_l2_distance">
-<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">quaternion_l2_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q1</span></em>, <em class="sig-param"><span class="n">q2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/quaternion.html#quaternion_l2_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.quaternion_l2_distance" title="Permalink to this definition">¶</a></dt>
-<dd><p>A metric for computing the distance
-between 2 quaternions.
-sources:
-- <a class="reference external" href="https://fgiesen.wordpress.com/2013/01/07/small-note-on-quaternion-distance-metrics/">https://fgiesen.wordpress.com/2013/01/07/small-note-on-quaternion-distance-metrics/</a>
-- <a class="reference external" href="http://kieranwynn.github.io/pyquaternion/#accessing-individual-elements">http://kieranwynn.github.io/pyquaternion/#accessing-individual-elements</a></p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="roboskin.calibration.utils.quaternion_from_two_vectors">
-<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">quaternion_from_two_vectors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">target</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/quaternion.html#quaternion_from_two_vectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.quaternion_from_two_vectors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes the quaternion from vector <cite>source</cite>
-to vector <cite>target</cite>.</p>
-</dd></dl>
+<dt id="roboskin.calibration.utils.add_outlier">
+<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">add_outlier</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">data_types</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">outlier_ratio</span><span class="o">=</span><span class="default_value">0.25</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/io.html#add_outlier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.add_outlier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt id="roboskin.calibration.utils.angle_between_quaternions">
@@ -670,32 +626,6 @@ Angle between quaternions in degrees</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="roboskin.calibration.utils.n2s">
-<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">n2s</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/io.html#n2s"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.n2s" title="Permalink to this definition">¶</a></dt>
-<dd><p>converts numpy array to string.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<cite>np.array</cite>) – The numpy array to convert to a string.</p></li>
-<li><p><strong>precision</strong> (<cite>int</cite>) – The precision desired on each entry in the array.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="roboskin.calibration.utils.load_robot_configs">
-<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">load_robot_configs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">configdir</span></em>, <em class="sig-param"><span class="n">robot</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/io.html#load_robot_configs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.load_robot_configs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads robot’s DH parameters, SUs’ DH parameters and their poses</p>
-<dl class="simple">
-<dt>configdir: str</dt><dd><p>Path to the config directory where robot yaml files exist</p>
-</dd>
-<dt>robot: str</dt><dd><p>Name of the robot</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt id="roboskin.calibration.utils.initialize_logging">
 <code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">initialize_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">log_level</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/io.html#initialize_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.initialize_logging" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize Logging Module with given log_lvel</p>
@@ -716,19 +646,92 @@ Angle between quaternions in degrees</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="roboskin.calibration.utils.load_robot_configs">
+<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">load_robot_configs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">configdir</span></em>, <em class="sig-param"><span class="n">robot</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/io.html#load_robot_configs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.load_robot_configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads robot’s DH parameters, SUs’ DH parameters and their poses</p>
+<dl class="simple">
+<dt>configdir: str</dt><dd><p>Path to the config directory where robot yaml files exist</p>
+</dd>
+<dt>robot: str</dt><dd><p>Name of the robot</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="roboskin.calibration.utils.n2s">
+<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">n2s</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/io.html#n2s"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.n2s" title="Permalink to this definition">¶</a></dt>
+<dd><p>converts numpy array to string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<cite>np.array</cite>) – The numpy array to convert to a string.</p></li>
+<li><p><strong>precision</strong> (<cite>int</cite>) – The precision desired on each entry in the array.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="roboskin.calibration.utils.np_to_pyqt">
+<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">np_to_pyqt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/quaternion.html#np_to_pyqt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.np_to_pyqt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a numpyp quaternion to a pyqt array.
+Order of a numpy quaternion
+q = (x, y, z, w)</p>
+<p>Order of a pyqt quaternion
+q = (w, x, y, z)</p>
+</dd></dl>
+
+<dl class="py function">
 <dt id="roboskin.calibration.utils.parse_datadir">
 <code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">parse_datadir</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">datadir</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/io.html#parse_datadir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.parse_datadir" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="roboskin.calibration.utils.add_noise">
-<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">add_noise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">data_types</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/io.html#add_noise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.add_noise" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="roboskin.calibration.utils.pyqt_to_np">
+<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">pyqt_to_np</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/quaternion.html#pyqt_to_np"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.pyqt_to_np" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a pyqt quaternion to a numpy array.
+Order of a numpy quaternion
+q = (x, y, z, w)</p>
+<p>Order of a pyqt quaternion
+q = (w, x, y, z)</p>
+</dd></dl>
 
 <dl class="py function">
-<dt id="roboskin.calibration.utils.add_outlier">
-<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">add_outlier</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">data_types</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">outlier_ratio</span><span class="o">=</span><span class="default_value">0.25</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/io.html#add_outlier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.add_outlier" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="roboskin.calibration.utils.pyqt_to_tf">
+<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">pyqt_to_tf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/quaternion.html#pyqt_to_tf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.pyqt_to_tf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a pyqt quaternion to a tf array.
+Order of a tf quaternion
+q = (x, y, z, w)</p>
+<p>Order of a pyqt quaternion
+q = (w, x, y, z)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="roboskin.calibration.utils.quaternion_from_two_vectors">
+<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">quaternion_from_two_vectors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">target</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/quaternion.html#quaternion_from_two_vectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.quaternion_from_two_vectors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the quaternion from vector <cite>source</cite>
+to vector <cite>target</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="roboskin.calibration.utils.quaternion_l2_distance">
+<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">quaternion_l2_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q1</span></em>, <em class="sig-param"><span class="n">q2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/quaternion.html#quaternion_l2_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.quaternion_l2_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>A metric for computing the distance
+between 2 quaternions.
+sources:
+- <a class="reference external" href="https://fgiesen.wordpress.com/2013/01/07/small-note-on-quaternion-distance-metrics/">https://fgiesen.wordpress.com/2013/01/07/small-note-on-quaternion-distance-metrics/</a>
+- <a class="reference external" href="http://kieranwynn.github.io/pyquaternion/#accessing-individual-elements">http://kieranwynn.github.io/pyquaternion/#accessing-individual-elements</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="roboskin.calibration.utils.tf_to_pyqt">
+<code class="sig-prename descclassname">roboskin.calibration.utils.</code><code class="sig-name descname">tf_to_pyqt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/utils/quaternion.html#tf_to_pyqt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.utils.tf_to_pyqt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a tf quaternion to a pyqt array.
+Order of a tf quaternion
+q = (x, y, z, w)</p>
+<p>Order of a pyqt quaternion
+q = (w, x, y, z)</p>
+</dd></dl>
 
 </div>
 </div>
@@ -753,11 +756,19 @@ Angle between quaternions in degrees</p>
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2020, Kandai Watanabe
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -768,7 +779,6 @@ Angle between quaternions in degrees</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {
