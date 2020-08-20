@@ -18,10 +18,17 @@ CONFIGDIR = os.path.join(REPODIR, 'config')
 
 
 def fit_sin(t, y, rotate_joint):
+    omega = 2 * np.pi * C.PATTERN_FREQ[rotate_joint]
+
     def optimize_func(x):
-        return x[0]*np.sin(2*np.pi*C.PATTERN_FREQ[rotate_joint]*t+x[1]) + x[2] - y
-    est_amp, est_phase, est_mean = leastsq(optimize_func, [1, 0, 0])[0]
-    return est_amp*np.sin(2*np.pi*C.PATTERN_FREQ[rotate_joint]*t+est_phase) + est_mean
+        amp = x[0]
+        phase = x[1]
+        offset = x[2]
+        return amp * np.sin(omega * t + phase) + offset - y
+
+    est_amp, est_phase, est_offset = leastsq(optimize_func, [1, 0, 0])[0]
+
+    return est_amp * np.sin(omega * t + est_phase) + est_offset
 
 
 def hampel_filter_forloop(input_series, window_size, n_sigmas=3):

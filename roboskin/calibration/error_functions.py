@@ -7,7 +7,7 @@ from roboskin.calibration.utils.rotational_acceleration import estimate_accelera
 # import logging
 
 
-def max_angle_func(t: int, i_joint: int, delta_t=0.00, **kwargs):
+def max_angle_func(t: int, i_joint: int, delta_t=0.0, **kwargs):
     """
     Computes current joint angle at time t
     joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.
