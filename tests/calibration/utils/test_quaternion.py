@@ -4,7 +4,7 @@ Testing utils module
 import unittest
 import numpy as np
 from pyquaternion import Quaternion
-from robotic_skin.calibration import utils
+from roboskin.calibration import utils
 
 
 class QuaternionTest(unittest.TestCase):

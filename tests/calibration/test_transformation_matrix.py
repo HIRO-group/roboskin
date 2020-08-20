@@ -5,9 +5,9 @@ import os
 import unittest
 import numpy as np
 import pyquaternion as pyqt
-from robotic_skin.calibration.utils.io import load_robot_configs
-from robotic_skin.calibration.utils.quaternion import pyqt_to_np
-from robotic_skin.calibration.transformation_matrix import TransformationMatrix as TM
+from roboskin.calibration.utils.io import load_robot_configs
+from roboskin.calibration.utils.quaternion import pyqt_to_np
+from roboskin.calibration.transformation_matrix import TransformationMatrix as TM
 
 
 repodir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -1,0 +1,859 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>roboskin.calibration.optimizer &mdash; roboskin  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> roboskin
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../roboskin.html">roboskin package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">roboskin</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>roboskin.calibration.optimizer</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for roboskin.calibration.optimizer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">nlopt</span>
+
+<span class="c1"># import roboskin</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">roboskin.const</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">from</span> <span class="nn">roboskin.calibration.error_functions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ErrorFunction</span><span class="p">,</span>
+    <span class="n">StaticErrorFunction</span><span class="p">,</span>
+    <span class="n">CombinedErrorFunction</span><span class="p">,</span>
+    <span class="n">MaxAccelerationErrorFunction</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">roboskin.calibration.error_functions_torch</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">StaticErrorFunctionTorch</span><span class="p">,</span>
+    <span class="n">MaxAccelerationErrorFunctionTorch</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">roboskin.calibration.stop_conditions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">StopCondition</span><span class="p">,</span>
+    <span class="n">DeltaXStopCondition</span><span class="p">,</span>
+    <span class="c1"># PassThroughStopCondition</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">roboskin.calibration.loss</span> <span class="kn">import</span> <span class="n">L2Loss</span><span class="p">,</span> <span class="n">L2LossTorch</span>
+<span class="kn">from</span> <span class="nn">roboskin.calibration.utils.io</span> <span class="kn">import</span> <span class="n">n2s</span><span class="p">,</span> <span class="n">t2s</span>
+
+
+<div class="viewcode-block" id="choose_optimizer"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.choose_optimizer">[docs]</a><span class="k">def</span> <span class="nf">choose_optimizer</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span> <span class="n">optimize_all</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;OM&#39;</span><span class="p">:</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">OurMethodOptimizer</span><span class="p">(</span>
+            <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span>
+            <span class="n">optimize_all</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">error_functions</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">stop_conditions</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;MM&#39;</span><span class="p">:</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">MittendorferMethodOptimizer</span><span class="p">(</span>
+            <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span>
+            <span class="n">optimize_all</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">error_functions</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">stop_conditions</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;mittendorfer&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;mMM&#39;</span><span class="p">:</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">MittendorferMethodOptimizer</span><span class="p">(</span>
+            <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span>
+            <span class="n">optimize_all</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">error_functions</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">stop_conditions</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;modified_mittendorfer&#39;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;TM&#39;</span><span class="p">:</span>
+        <span class="c1"># method using pytorch&#39;s autograd, and optimization methods</span>
+        <span class="c1"># that require gradients.</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">TorchOptimizerBase</span><span class="p">(</span>
+            <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span>
+            <span class="n">optimize_all</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">error_functions</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">stop_conditions</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;There is no such method name=</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">method</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">optimizer</span></div>
+
+
+<div class="viewcode-block" id="OptimizerBase"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.OptimizerBase">[docs]</a><span class="k">class</span> <span class="nc">OptimizerBase</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: All Optimizer will inherit this class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span> <span class="n">optimize_all</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span> <span class="o">=</span> <span class="n">kinematic_chain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span> <span class="o">=</span> <span class="n">evaluator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span> <span class="o">=</span> <span class="n">data_logger</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimize_all</span> <span class="o">=</span> <span class="n">optimize_all</span>
+
+<div class="viewcode-block" id="OptimizerBase.optimize"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.OptimizerBase.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Optimize, evaluate and log</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return dict</span>
+<span class="sd">        - average_errors of all SU</span>
+<span class="sd">            - euclidean_distance</span>
+<span class="sd">            - quaternion_distance</span>
+<span class="sd">        - best</span>
+<span class="sd">            - errors for all SU</span>
+<span class="sd">                - euclidean_distance</span>
+<span class="sd">                - quaternion_distance</span>
+<span class="sd">            - params for all SU</span>
+<span class="sd">            - positions for all SU</span>
+<span class="sd">            - orientations for all Su</span>
+<span class="sd">        - trials</span>
+<span class="sd">            - params</span>
+<span class="sd">            - pose</span>
+<span class="sd">            - positions</span>
+<span class="sd">            - orientations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="IncrementalOptimizerBase"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.IncrementalOptimizerBase">[docs]</a><span class="k">class</span> <span class="nc">IncrementalOptimizerBase</span><span class="p">(</span><span class="n">OptimizerBase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span> <span class="n">optimize_all</span><span class="p">,</span>
+                 <span class="n">error_functions</span><span class="p">,</span> <span class="n">stop_conditions</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span> <span class="n">optimize_all</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">error_functions</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error_functions</span><span class="p">,</span> <span class="n">ErrorFunction</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;error_functions must be either dict or ErrorFunction&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span> <span class="o">=</span> <span class="n">error_functions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span> <span class="o">=</span> <span class="n">stop_conditions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_step</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="IncrementalOptimizerBase.optimize"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.IncrementalOptimizerBase.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Optimize SU from Base to the End-Effector incrementally</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">start_timer</span><span class="p">(</span><span class="s1">&#39;total&#39;</span><span class="p">)</span>
+        <span class="c1"># Initilialize error functions with data</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">error_function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">error_function</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="p">,</span> <span class="n">ErrorFunction</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Skipping 0th IMU&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i_su</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">n_su</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Optimizing </span><span class="si">%i</span><span class="s2">th SU ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i_su</span><span class="p">))</span>
+
+            <span class="c1"># optimize parameters wrt data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">start_timer</span><span class="p">(</span><span class="n">timer_name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;SU</span><span class="si">{</span><span class="n">i_su</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimize</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">)</span>
+            <span class="n">elapsed_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">end_timer</span><span class="p">(</span><span class="n">timer_name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;SU</span><span class="si">{</span><span class="n">i_su</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Compute necessary data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;eval&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Evalute and print to terminal</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
+            <span class="c1"># Append to a logger and save every loop</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">add_best</span><span class="p">(</span>
+                <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
+                <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+                <span class="n">position</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+                <span class="n">orientation</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">quaternion</span><span class="p">,</span>
+                <span class="n">elapsed_time</span><span class="o">=</span><span class="n">elapsed_time</span><span class="p">,</span>
+                <span class="n">euclidean_distance</span><span class="o">=</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">],</span>
+                <span class="n">quaternion_distance</span><span class="o">=</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;orientation&#39;</span><span class="p">])</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Params: </span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Position: </span><span class="si">{</span><span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Quaternion: </span><span class="si">{</span><span class="n">T</span><span class="o">.</span><span class="n">quaternion</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Euclidean distance: </span><span class="si">{</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Elapsed Time </span><span class="si">{</span><span class="n">elapsed_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span>
+        <span class="n">elapsed_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">end_timer</span><span class="p">(</span><span class="s1">&#39;total&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_su</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Optimize i_su sensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Initialize local_step when this function is called</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_step</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Increement internally at every optimization step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="TorchOptimizerBase"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.TorchOptimizerBase">[docs]</a><span class="k">class</span> <span class="nc">TorchOptimizerBase</span><span class="p">(</span><span class="n">IncrementalOptimizerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    torch optimizer. This optimizer is the only optimizer</span>
+<span class="sd">    that takes into account gradients during runtime. This is done</span>
+<span class="sd">    through the .backward() function of PyTorch tensors (with `is_grad`</span>
+<span class="sd">    set to `True`), which will automatically calculate the gradients</span>
+<span class="sd">    of the parameters (DH parameters) based on the error.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span>
+                 <span class="n">optimize_all</span><span class="p">,</span> <span class="n">error_function_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop_condition_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">method</span><span class="o">=</span><span class="s1">&#39;our&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        initialization for torch optimizer. For best results,</span>
+<span class="sd">        by default, this optimizer uses static error and max accel</span>
+<span class="sd">        error functions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">error_function</span> <span class="o">=</span> <span class="n">CombinedErrorFunction</span><span class="p">(</span>
+            <span class="n">e1</span><span class="o">=</span><span class="n">StaticErrorFunctionTorch</span><span class="p">(</span>
+                <span class="n">loss</span><span class="o">=</span><span class="n">L2LossTorch</span><span class="p">()),</span>
+            <span class="n">e2</span><span class="o">=</span><span class="n">MaxAccelerationErrorFunctionTorch</span><span class="p">(</span>
+                <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+                <span class="n">loss</span><span class="o">=</span><span class="n">L2LossTorch</span><span class="p">())</span>
+            <span class="p">)</span>
+        <span class="n">stop_condition</span> <span class="o">=</span> <span class="n">DeltaXStopCondition</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error_function_</span><span class="p">,</span> <span class="n">ErrorFunction</span><span class="p">):</span>
+            <span class="n">error_function</span> <span class="o">=</span> <span class="n">error_function_</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stop_condition_</span><span class="p">,</span> <span class="n">StopCondition</span><span class="p">):</span>
+            <span class="n">stop_condition</span> <span class="o">=</span> <span class="n">stop_condition_</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span>
+                         <span class="n">optimize_all</span><span class="p">,</span> <span class="n">error_function</span><span class="p">,</span> <span class="n">stop_condition</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TorchOptimizerBase.vanilla_optimizer"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.TorchOptimizerBase.vanilla_optimizer">[docs]</a>    <span class="k">def</span> <span class="nf">vanilla_optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        uses pytorch for vanilla SGD in order</span>
+<span class="sd">        to optimize the DH parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># clone params</span>
+        <span class="n">temp_params</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="n">min_loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">best_params</span> <span class="o">=</span> <span class="n">temp_params</span>
+        <span class="n">prev_val</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># randomly intialize dh parameters within kinematic chain.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">dof_T_vdof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">vdof_T_su</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">dof_T_su</span> <span class="o">=</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">predefined_or_rand_sus</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">sudh_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">bound_dict</span><span class="p">)</span>
+            <span class="n">params</span><span class="p">,</span> <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">get_params_at</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">)</span>
+
+            <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+                <span class="n">params</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">get_params_at</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">)</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+                <span class="n">params_for_optim</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">double</span><span class="p">()</span>
+                <span class="n">clamped_params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span><span class="o">.</span><span class="n">double</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">params_for_optim</span><span class="p">):</span>
+                    <span class="n">clamped_params</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">bounds</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">bounds</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
+                <span class="c1"># use parameters in calculation of error</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">clamped_params</span><span class="o">.</span><span class="n">clone</span><span class="p">())</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">)</span>
+                <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">([</span><span class="n">params_for_optim</span><span class="p">],</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:&quot;</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">prev_val</span> <span class="o">-</span> <span class="n">e</span><span class="o">.</span><span class="n">item</span><span class="p">()))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+                <span class="n">prev_val</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+                    <span class="n">sum_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">10</span><span class="p">:</span> <span class="n">i</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">sum_val</span> <span class="o">&lt;=</span> <span class="mf">0.1</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="k">if</span> <span class="n">sum_val</span> <span class="o">&lt;=</span> <span class="mf">0.0001</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">min_loss</span><span class="p">:</span>
+                            <span class="n">min_loss</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="n">best_params</span><span class="p">)</span>
+                            <span class="n">best_params</span> <span class="o">=</span> <span class="n">params_for_optim</span>
+                        <span class="k">break</span>
+
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+
+        <span class="c1"># res = self.stop_conditions.update(params, None, e)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="c1"># Evaluate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">best_params</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_poses</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">7</span><span class="p">))</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
+        <span class="c1"># T = self.kinematic_chain.compute_su_TM(self.i_su, pose_type=&#39;eval&#39;)</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
+        <span class="c1"># Log</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="n">quat</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">quaternion</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">add_trial</span><span class="p">(</span>
+            <span class="n">global_step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">global_step</span><span class="p">,</span>
+            <span class="n">imu_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span>
+            <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+            <span class="n">position</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span>
+            <span class="n">orientation</span><span class="o">=</span><span class="n">quat</span><span class="p">,</span>
+            <span class="n">euclidean_distance</span><span class="o">=</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">],</span>
+            <span class="n">quaternion_distance</span><span class="o">=</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;orientation&#39;</span><span class="p">])</span>
+        <span class="c1"># print to terminal</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;e=</span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">, res=</span><span class="si">{</span><span class="n">res</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">, params:</span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span> <span class="o">+</span>
+                     <span class="sa">f</span><span class="s1">&#39;P:</span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s1">, Q:</span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">quat</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_step</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">best_params</span></div>
+
+<div class="viewcode-block" id="TorchOptimizerBase.get_gradients"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.TorchOptimizerBase.get_gradients">[docs]</a>    <span class="k">def</span> <span class="nf">get_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        gets the gradients of each dh parameter (which are</span>
+<span class="sd">        set to `params`).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+        <span class="n">params</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">get_params_at</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="n">params_for_optim</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">double</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">params_for_optim</span><span class="o">.</span><span class="n">clone</span><span class="p">())</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="c1"># return gradient</span>
+        <span class="k">return</span> <span class="n">e</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">params_for_optim</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="TorchOptimizerBase.nlopt_objective"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.TorchOptimizerBase.nlopt_objective">[docs]</a>    <span class="k">def</span> <span class="nf">nlopt_objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">grad</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        objective function *with* gradients already having been calculated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">error</span><span class="p">,</span> <span class="n">gradients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gradients</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="n">res</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grad</span><span class="p">)):</span>
+            <span class="n">grad</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gradients</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="c1"># Evaluate</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;eval&#39;</span><span class="p">)</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
+        <span class="c1"># Log</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">add_trial</span><span class="p">(</span>
+            <span class="n">global_step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">global_step</span><span class="p">,</span>
+            <span class="n">imu_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span>
+            <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+            <span class="n">position</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+            <span class="n">orientation</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">quaternion</span><span class="p">,</span>
+            <span class="n">euclidean_distance</span><span class="o">=</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">],</span>
+            <span class="n">quaternion_distance</span><span class="o">=</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;orientation&#39;</span><span class="p">])</span>
+        <span class="c1"># print to terminal</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;e=</span><span class="si">{</span><span class="n">error</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">, res=</span><span class="si">{</span><span class="n">res</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">, params:</span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span> <span class="o">+</span>
+                     <span class="sa">f</span><span class="s1">&#39;P:</span><span class="si">{</span><span class="n">t2s</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="p">)</span><span class="si">}</span><span class="s1">, Q:</span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">quaternion</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_step</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">res</span></div>
+
+    <span class="k">def</span> <span class="nf">_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        optimizes one skin unit, `i_su`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">params</span><span class="p">,</span> <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">get_params_at</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_param</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i_su</span> <span class="o">=</span> <span class="n">i_su</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">nlopt</span><span class="o">.</span><span class="n">GD_MLSL_LDS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_param</span><span class="p">)</span>
+
+        <span class="c1"># The objective function only accepts x and grad arguments.</span>
+        <span class="c1"># This is the only way to pass other arguments to opt</span>
+        <span class="c1"># https://github.com/JuliaOpt/NLopt.jl/issues/27</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">previous_params</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1">#</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_min_objective</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlopt_objective</span><span class="p">)</span>
+        <span class="c1"># Set boundaries</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_lower_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_upper_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="c1"># set stopping threshold</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_stopval</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">GLOBAL_STOP</span><span class="p">)</span>
+
+        <span class="c1"># Need to set a local optimizer for the global optimizer</span>
+        <span class="n">local_opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">nlopt</span><span class="o">.</span><span class="n">LD_LBFGS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_param</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_local_optimizer</span><span class="p">(</span><span class="n">local_opt</span><span class="p">)</span>
+
+        <span class="c1"># this is where most of the time is spent - in optimization</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+
+        <span class="c1"># params = self.objective(params, bounds)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_param</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># optimize parameter, feet in data first.</span>
+        <span class="k">return</span> <span class="n">params</span>
+
+<div class="viewcode-block" id="TorchOptimizerBase.optimize"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.TorchOptimizerBase.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pytorch optimization. Simply calculates the gradients.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">start_timer</span><span class="p">(</span><span class="s1">&#39;total&#39;</span><span class="p">)</span>
+
+        <span class="c1"># iterate through each SU</span>
+        <span class="c1"># Initilialize error functions with data</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">error_function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">error_function</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="p">,</span> <span class="n">ErrorFunction</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Skipping 0th IMU.&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">n_su</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i_su</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">n_su</span><span class="p">):</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Optimizing </span><span class="si">%i</span><span class="s2">th SU ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i_su</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">start_timer</span><span class="p">(</span><span class="n">timer_name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;SU</span><span class="si">{</span><span class="n">i_su</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="c1"># optimize parameters wrt data</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimize</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">)</span>
+
+            <span class="n">elapsed_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">end_timer</span><span class="p">(</span><span class="n">timer_name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;SU</span><span class="si">{</span><span class="n">i_su</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Compute necessary data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;eval&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Evalute and print to terminal</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
+            <span class="c1"># Append to a logger and save every loop</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">add_best</span><span class="p">(</span>
+                <span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">,</span>
+                <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+                <span class="n">position</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+                <span class="n">orientation</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">quaternion</span><span class="p">,</span>
+                <span class="n">euclidean_distance</span><span class="o">=</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">],</span>
+                <span class="n">quaternion_distance</span><span class="o">=</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;orientation&#39;</span><span class="p">])</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Params: </span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Position: </span><span class="si">{</span><span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Quaternion: </span><span class="si">{</span><span class="n">T</span><span class="o">.</span><span class="n">quaternion</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Euclidean distance: </span><span class="si">{</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Elapsed Time </span><span class="si">{</span><span class="n">elapsed_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span>
+        <span class="n">elapsed_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">end_timer</span><span class="p">(</span><span class="s1">&#39;total&#39;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="MixedIncrementalOptimizer"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.MixedIncrementalOptimizer">[docs]</a><span class="k">class</span> <span class="nc">MixedIncrementalOptimizer</span><span class="p">(</span><span class="n">IncrementalOptimizerBase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span> <span class="n">optimize_all</span><span class="p">,</span>
+                 <span class="n">error_function</span><span class="p">:</span> <span class="n">ErrorFunction</span><span class="p">,</span> <span class="n">stop_condition</span><span class="p">:</span> <span class="n">StopCondition</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span> <span class="n">optimize_all</span><span class="p">,</span>
+                         <span class="n">error_function</span><span class="p">,</span> <span class="n">stop_condition</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets up the optimizer and runs the model.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        i_su: int</span>
+<span class="sd">            i_su th Su</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        params</span>
+<span class="sd">            Predicted parameters from the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">params</span><span class="p">,</span> <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">get_params_at</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i_su</span> <span class="o">=</span> <span class="n">i_su</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_step</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_param</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+        <span class="c1"># Construct an global optimizer</span>
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">GLOBAL_OPTIMIZER</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_param</span><span class="p">)</span>
+        <span class="c1"># The objective function only accepts x and grad arguments.</span>
+        <span class="c1"># This is the only way to pass other arguments to opt</span>
+        <span class="c1"># https://github.com/JuliaOpt/NLopt.jl/issues/27</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">previous_params</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_min_objective</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>
+        <span class="c1"># Set boundaries</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_lower_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_upper_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="c1"># set stopping threshold</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_stopval</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">GLOBAL_STOP</span><span class="p">)</span>
+        <span class="c1"># Need to set a local optimizer for the global optimizer</span>
+        <span class="n">local_opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">LOCAL_OPTIMIZER</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_param</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_local_optimizer</span><span class="p">(</span><span class="n">local_opt</span><span class="p">)</span>
+
+        <span class="c1"># this is where most of the time is spent - in optimization</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">params</span>
+
+<div class="viewcode-block" id="MixedIncrementalOptimizer.objective"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.MixedIncrementalOptimizer.objective">[docs]</a>    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">grad</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Objective function used in the optimizer.</span>
+<span class="sd">        Called continuouly until a stopping condition is met.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        `params`</span>
+<span class="sd">            Predicted DH Parameters</span>
+
+<span class="sd">        `grad`</span>
+<span class="sd">            Gradient</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+        <span class="n">params</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">get_params_at</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">)</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">)</span>
+        <span class="n">res</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+
+        <span class="c1"># Evaluate</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;eval&#39;</span><span class="p">)</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
+        <span class="c1"># Log</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">add_trial</span><span class="p">(</span>
+            <span class="n">global_step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">global_step</span><span class="p">,</span>
+            <span class="n">imu_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span>
+            <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+            <span class="n">position</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+            <span class="n">orientation</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">quaternion</span><span class="p">,</span>
+            <span class="n">euclidean_distance</span><span class="o">=</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">],</span>
+            <span class="n">quaternion_distance</span><span class="o">=</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;orientation&#39;</span><span class="p">])</span>
+        <span class="c1"># print to terminal</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;e=</span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">, res=</span><span class="si">{</span><span class="n">res</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">, params:</span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s1"> &#39;</span> <span class="o">+</span>
+                      <span class="sa">f</span><span class="s1">&#39;P:</span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s1">, Q:</span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">quaternion</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_step</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">res</span></div></div>
+
+
+<div class="viewcode-block" id="SeparateIncrementalOptimizer"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.SeparateIncrementalOptimizer">[docs]</a><span class="k">class</span> <span class="nc">SeparateIncrementalOptimizer</span><span class="p">(</span><span class="n">IncrementalOptimizerBase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span>
+                 <span class="n">optimize_all</span><span class="p">,</span> <span class="n">error_functions</span><span class="p">,</span> <span class="n">stop_conditions</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span> <span class="n">optimize_all</span><span class="p">,</span>
+                         <span class="n">error_functions</span><span class="p">,</span> <span class="n">stop_conditions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">targets</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Position&#39;</span><span class="p">,</span> <span class="s1">&#39;Orientation&#39;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">dictionary</span> <span class="ow">in</span> <span class="p">[</span><span class="n">error_functions</span><span class="p">,</span> <span class="n">stop_conditions</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dictionary</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;All dict Keys must be </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># indices vary based on optimizing all dh params.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimize_all</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="s1">&#39;Orientation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="s1">&#39;Position&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="s1">&#39;Orientation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="s1">&#39;Position&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_su</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function will optimize the given parameters in two steps.</span>
+<span class="sd">        First it optimizes for rotational parameters and then</span>
+<span class="sd">        optimizes for translational parameters. Hence, the name</span>
+<span class="sd">        &quot;Separate&quot; Optimizer. We don&#39;t combine losses into one function,</span>
+<span class="sd">        like a traditional optimizer (and neural network) will do.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        i_su: int</span>
+<span class="sd">            ith IMU to be optimized</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">params</span><span class="p">,</span> <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">get_params_at</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="n">i_su</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i_su</span> <span class="o">=</span> <span class="n">i_su</span>
+
+        <span class="c1"># optimizing half of them at each time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_param</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># ################### First Optimize Rotations ####################</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;Orientation&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant</span> <span class="o">=</span> <span class="s1">&#39;Position&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">constant</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">]</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant_params</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">constant_index</span><span class="p">]</span>
+
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">GLOBAL_OPTIMIZER</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_param</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_min_objective</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_lower_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_upper_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_index</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_stopval</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">ROT_GLOBAL_STOP</span><span class="p">)</span>
+        <span class="n">local_opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">LOCAL_OPTIMIZER</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_param</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_local_optimizer</span><span class="p">(</span><span class="n">local_opt</span><span class="p">)</span>
+        <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_index</span><span class="p">])</span>
+
+        <span class="c1"># ################### Then Optimize for Translations ####################</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;Position&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant</span> <span class="o">=</span> <span class="s1">&#39;Orientation&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">constant</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">]</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant_params</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">constant_index</span><span class="p">]</span>
+
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">GLOBAL_OPTIMIZER</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_param</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_min_objective</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_lower_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_upper_bounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_index</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_stopval</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">POS_GLOBAL_STOP</span><span class="p">)</span>
+        <span class="n">local_opt</span> <span class="o">=</span> <span class="n">nlopt</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">LOCAL_OPTIMIZER</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_param</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">set_local_optimizer</span><span class="p">(</span><span class="n">local_opt</span><span class="p">)</span>
+        <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_index</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">params</span>
+
+<div class="viewcode-block" id="SeparateIncrementalOptimizer.objective"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.SeparateIncrementalOptimizer.objective">[docs]</a>    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_params</span><span class="p">,</span> <span class="n">grad</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes an error e_T = e_1 + e_2 from current parameters</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+<span class="sd">        target_params: list of floats</span>
+<span class="sd">            Target parameters to be estimated</span>
+<span class="sd">        grad: np.ndarray</span>
+<span class="sd">            Gradient, but we do not use any gradient information</span>
+<span class="sd">            (We could in the future)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        error: float</span>
+<span class="sd">            Error between measured values and estimated model outputs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># update self.Tdofs</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_param</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">target_params</span>
+        <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">constant_index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_params</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+        <span class="n">params</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">get_params_at</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">)</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_functions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">)</span>
+        <span class="n">res</span><span class="p">,</span> <span class="n">target_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_conditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_index</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+
+        <span class="c1"># Evaluate</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">compute_su_TM</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">pose_type</span><span class="o">=</span><span class="s1">&#39;eval&#39;</span><span class="p">)</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">i_su</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
+        <span class="c1"># Log</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">add_trial</span><span class="p">(</span>
+            <span class="n">global_step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">global_step</span><span class="p">,</span>
+            <span class="n">imu_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">i_su</span><span class="p">,</span>
+            <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+            <span class="n">position</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+            <span class="n">orientation</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">quaternion</span><span class="p">,</span>
+            <span class="n">euclidean_distance</span><span class="o">=</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">],</span>
+            <span class="n">quaternion_distance</span><span class="o">=</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;orientation&#39;</span><span class="p">])</span>
+        <span class="c1"># print to terminal</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;e=</span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">, res=</span><span class="si">{</span><span class="n">res</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">, params:</span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">target_params</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s1"> &#39;</span> <span class="o">+</span>
+                      <span class="sa">f</span><span class="s1">&#39;P:</span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s1">, Q:</span><span class="si">{</span><span class="n">n2s</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">quaternion</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_step</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">res</span></div></div>
+
+
+<div class="viewcode-block" id="MittendorferMethodOptimizer"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.MittendorferMethodOptimizer">[docs]</a><span class="k">class</span> <span class="nc">MittendorferMethodOptimizer</span><span class="p">(</span><span class="n">MixedIncrementalOptimizer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span>
+                 <span class="n">optimize_all</span><span class="p">,</span> <span class="n">error_function_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop_condition_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">method</span><span class="o">=</span><span class="s1">&#39;mittendorfer&#39;</span><span class="p">):</span>
+        <span class="n">error_function</span> <span class="o">=</span> <span class="n">CombinedErrorFunction</span><span class="p">(</span>
+            <span class="n">e1</span><span class="o">=</span><span class="n">StaticErrorFunction</span><span class="p">(</span>
+                <span class="n">loss</span><span class="o">=</span><span class="n">L2Loss</span><span class="p">()),</span>
+            <span class="n">e2</span><span class="o">=</span><span class="n">MaxAccelerationErrorFunction</span><span class="p">(</span>
+                <span class="n">loss</span><span class="o">=</span><span class="n">L2Loss</span><span class="p">(),</span>
+                <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">stop_condition</span> <span class="o">=</span> <span class="n">DeltaXStopCondition</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error_function_</span><span class="p">,</span> <span class="n">ErrorFunction</span><span class="p">):</span>
+            <span class="n">error_function</span> <span class="o">=</span> <span class="n">error_function_</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stop_condition_</span><span class="p">,</span> <span class="n">StopCondition</span><span class="p">):</span>
+            <span class="n">stop_condition</span> <span class="o">=</span> <span class="n">stop_condition_</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span>
+                         <span class="n">optimize_all</span><span class="p">,</span> <span class="n">error_function</span><span class="p">,</span> <span class="n">stop_condition</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OurMethodOptimizer"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.OurMethodOptimizer">[docs]</a><span class="k">class</span> <span class="nc">OurMethodOptimizer</span><span class="p">(</span><span class="n">SeparateIncrementalOptimizer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span> <span class="n">optimize_all</span><span class="p">,</span>
+                 <span class="n">error_functions_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop_conditions_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;our&#39;</span><span class="p">):</span>
+        <span class="n">error_functions</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Position&#39;</span><span class="p">:</span> <span class="n">MaxAccelerationErrorFunction</span><span class="p">(</span><span class="n">L2Loss</span><span class="p">(),</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">),</span>
+            <span class="s1">&#39;Orientation&#39;</span><span class="p">:</span> <span class="n">StaticErrorFunction</span><span class="p">(</span><span class="n">L2Loss</span><span class="p">())}</span>
+        <span class="n">stop_conditions</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Position&#39;</span><span class="p">:</span> <span class="n">DeltaXStopCondition</span><span class="p">(),</span>
+            <span class="s1">&#39;Orientation&#39;</span><span class="p">:</span> <span class="n">DeltaXStopCondition</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.000001</span><span class="p">),</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error_functions_</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">error_functions_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">error_functions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">error_functions</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stop_conditions_</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">stop_conditions_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">error_functions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">stop_conditions</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Stop Condition Set&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span>
+                         <span class="n">optimize_all</span><span class="p">,</span> <span class="n">error_functions</span><span class="p">,</span> <span class="n">stop_conditions</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Kandai Watanabe
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
