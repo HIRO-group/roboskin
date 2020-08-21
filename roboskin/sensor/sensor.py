@@ -1,34 +1,16 @@
 """
 Generic Sensor Module
 """
-import yaml
-import os
 
 
 class Sensor(object):
     """
     Sensor Class
     """
-    def __init__(self, config_file):
+    def __init__(self):
         """
-        Sensor initialization. This class requires these fields to be set in yaml configuration file for it's working:
-        ros_core_ip: The ROS Master IP
-        ros_core_port: The port no at which roscore is running (It's usually 11311)
-        RPi_IP: The IP of the raspberry PI/PC on which this code is currently running
-        Parameters
-        ----------
-        config_file: str
-            The input is full path string from where the class can read the yaml configuration file
+        Sensor initialization
         """
-        with open(config_file, 'r') as cf:
-            # We would be saving everything in a dictionary, so that if there are any duplicates
-            # It would raise an error
-            self.config_dict = yaml.load(cf)
-        # Now we have included all required config files
-        # Now set the environment variables
-        os.environ["ROS_MASTER_URI"] = 'http://%s:%d' % (self.config_dict['ros_core_ip'],
-                                                         self.config_dict['ros_core_port'])
-        os.environ["ROS_IP"] = self.config_dict['RPi_IP']
 
     def calibrate(self):
         """
