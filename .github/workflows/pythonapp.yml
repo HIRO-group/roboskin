@@ -30,4 +30,4 @@ jobs:
     - name: Test code from Docker
       run: |
         python3 --version
-        docker pull ros:melodic && docker build . -t gh-actions-ros && docker run gh-actions-ros /bin/bash -c "cd robotic_skin; python3 setup.py test"
+        docker pull ros:melodic && docker build . -t gh-actions-ros && docker run gh-actions-ros /bin/bash -c "cd roboskin; python3 setup.py test"
