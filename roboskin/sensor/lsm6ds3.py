@@ -247,7 +247,6 @@ class LSM6DS3_IMU(Sensor):
         ]
 
 
-
 # useful for debugging
 if __name__ == "__main__":
     # A ROS Pkg can be used and the config file can be passed so that there is no need of

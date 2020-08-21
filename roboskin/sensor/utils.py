@@ -19,6 +19,7 @@ def make_16bit_value(vh, vl):
     # return v
     return (twos_comp(v, 16))  # / math.pow(2, 14)
 
+
 def twos_comp(val, num_of_bits):
     """
     compute the 2's complement of int value val. Reference:
