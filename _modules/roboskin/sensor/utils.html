@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>roboskin.sensor.sensor &mdash; roboskin  documentation</title>
+  <title>roboskin.sensor.utils &mdash; roboskin  documentation</title>
   
 
   
@@ -132,7 +132,7 @@
         
           <li><a href="../../index.html">Module code</a> &raquo;</li>
         
-      <li>roboskin.sensor.sensor</li>
+      <li>roboskin.sensor.utils</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -147,32 +147,51 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for roboskin.sensor.sensor</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Generic Sensor Module</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
-
-<div class="viewcode-block" id="Sensor"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.sensor.Sensor">[docs]</a><span class="k">class</span> <span class="nc">Sensor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+  <h1>Source code for roboskin.sensor.utils</h1><div class="highlight"><pre>
+<div class="viewcode-block" id="make_16bit_value"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.utils.make_16bit_value">[docs]</a><span></span><span class="k">def</span> <span class="nf">make_16bit_value</span><span class="p">(</span><span class="n">vh</span><span class="p">,</span> <span class="n">vl</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Sensor Class</span>
+<span class="sd">    The acceleration is usually from 2 Byte sized registers. We obtain acceleration value in 2&#39;s complement form</span>
+<span class="sd">    So first we obtain both MSByte as well as LSByte, combine them both, and convert them into 2&#39;s complement form</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vh : int</span>
+<span class="sd">        The MSByte</span>
+<span class="sd">    vl : int</span>
+<span class="sd">        The LSByte</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Acceleration Value in G</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sensor initialization</span>
-<span class="sd">        &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Sensor.calibrate"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.sensor.Sensor.calibrate">[docs]</a>    <span class="k">def</span> <span class="nf">calibrate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calibrate the sensor</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">vl</span> <span class="o">|</span> <span class="p">(</span><span class="n">vh</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="c1"># return v</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">twos_comp</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span>  <span class="c1"># / math.pow(2, 14)</span></div>
 
-<div class="viewcode-block" id="Sensor.read"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.sensor.Sensor.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Fetch sensor data</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
+
+<div class="viewcode-block" id="twos_comp"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.utils.twos_comp">[docs]</a><span class="k">def</span> <span class="nf">twos_comp</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">num_of_bits</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    compute the 2&#39;s complement of int value val. Reference:</span>
+<span class="sd">    https://en.wikipedia.org/wiki/Two%27s_complement</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    val : int</span>
+<span class="sd">        The original value, which we have to convert to 2&#39;s complement</span>
+<span class="sd">    num_of_bits : int</span>
+<span class="sd">        # of bits, this is particularly important because if you don&#39;t know bit size, you dont what&#39;s the</span>
+<span class="sd">        MS Bit, and entire thing can go wrong. Fortunately our both Accelerometer registers combined are of 16 bit</span>
+<span class="sd">        length. So that&#39;s what we will pass</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        Two&#39;s complement value of passed value</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">val</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">num_of_bits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># if sign bit is set e.g., 8bit: 128-255</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">num_of_bits</span><span class="p">)</span>  <span class="c1"># compute negative value</span>
+    <span class="k">return</span> <span class="n">val</span></div>
 </pre></div>
 
            </div>
