@@ -38,6 +38,9 @@ class LSM6DS3_IMU(Sensor):
         self._initialize_registers()
 
     def _setup_register_values(self):
+        """
+        Setup register values that were in the data sheet
+        """
         # Below are Accelerometer Output registers
         self.OUTX_L_XL = 0x28
         self.OUTX_H_XL = 0x29
@@ -203,21 +206,49 @@ class LSM6DS3_IMU(Sensor):
         return [self._calibrate_value(each_value) for each_value in self.read_raw()]
 
     def read_raw_accelX(self):
+        """
+        Read a raw acceleration value for x axis
+
+        Returns
+        -------
+        accelX: float
+        """
         axh = self._read_reg(self.OUTX_H_XL)
         axl = self._read_reg(self.OUTX_L_XL)
         return utils.make_16bit_value(axh, axl) * 0.061 * 0.001 * GRAVITATIONAL_CONSTANT
 
     def read_raw_accelY(self):
+        """
+        Read a raw acceleration value for y axis
+
+        Returns
+        -------
+        accelY: float
+        """
         ayh = self._read_reg(self.OUTY_H_XL)
         ayl = self._read_reg(self.OUTY_L_XL)
         return utils.make_16bit_value(ayh, ayl) * 0.061 * 0.001 * GRAVITATIONAL_CONSTANT
 
     def read_raw_accelZ(self):
+        """
+        Read a raw acceleration value for z axis
+
+        Returns
+        -------
+        accelZ: float
+        """
         azh = self._read_reg(self.OUTZ_H_XL)
         azl = self._read_reg(self.OUTZ_L_XL)
         return utils.make_16bit_value(azh, azl) * 0.061 * 0.001 * GRAVITATIONAL_CONSTANT
 
     def read_raw_accels(self):
+        """
+        Read raw acceleration values for all axis
+
+        Returns
+        -------
+        accels: List[float]
+        """
         return [
             self.read_raw_accelX(),
             self.read_raw_accelY(),
@@ -225,21 +256,49 @@ class LSM6DS3_IMU(Sensor):
         ]
 
     def read_raw_gyroX(self):
+        """
+        Read a raw angular velocity value for x axis
+
+        Returns
+        -------
+        gyroX: float
+        """
         gxh = self._read_reg(self.OUTX_H_G)
         gxl = self._read_reg(self.OUTX_L_G)
         return utils.make_16bit_value(gxh, gxl)
 
     def read_raw_gyroY(self):
+        """
+        Read a raw angular velocity value for y axis
+
+        Returns
+        -------
+        gyroY: float
+        """
         gyh = self._read_reg(self.OUTY_H_G)
         gyl = self._read_reg(self.OUTY_L_G)
         return utils.make_16bit_value(gyh, gyl)
 
     def read_raw_gyroZ(self):
+        """
+        Read a raw angular velocity value for z axis
+
+        Returns
+        -------
+        gyroZ: float
+        """
         gzh = self._read_reg(self.OUTZ_H_G)
         gzl = self._read_reg(self.OUTZ_L_G)
         return utils.make_16bit_value(gzh, gzl)
 
     def read_raw_gyros(self):
+        """
+        Read raw angular velocity values for all axis
+
+        Returns
+        -------
+        gyros: List[float]
+        """
         return [
             self.read_raw_gyroX(),
             self.read_raw_gyroY(),
