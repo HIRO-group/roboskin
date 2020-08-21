@@ -171,7 +171,6 @@
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
- | <a href="#W"><strong>W</strong></a>
  | <a href="#Y"><strong>Y</strong></a>
  
 </div>
@@ -298,8 +297,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="roboskin.calibration.html#roboskin.calibration.stop_conditions.DeltaXStopCondition">DeltaXStopCondition (class in roboskin.calibration.stop_conditions)</a>
 </li>
-      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.detect">detect() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
-</li>
   </ul></td>
 </tr></table>
 
@@ -348,12 +345,16 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.get_bus_number">get_bus_number() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
+</li>
       <li><a href="roboskin.calibration.html#roboskin.calibration.optimizer.TorchOptimizerBase.get_gradients">get_gradients() (roboskin.calibration.optimizer.TorchOptimizerBase method)</a>
 </li>
-      <li><a href="roboskin.calibration.html#roboskin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.get_lt_matrix_infos">get_lt_matrix_infos() (roboskin.calibration.convert_to_lowertriangular_matrix.ConvertToLT method)</a>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.get_i2c_address">get_i2c_address() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="roboskin.calibration.html#roboskin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.get_lt_matrix_infos">get_lt_matrix_infos() (roboskin.calibration.convert_to_lowertriangular_matrix.ConvertToLT method)</a>
+</li>
       <li><a href="roboskin.calibration.html#roboskin.calibration.kinematic_chain.KinematicChain.get_params_at">get_params_at() (roboskin.calibration.kinematic_chain.KinematicChain method)</a>
 
       <ul>
@@ -397,6 +398,8 @@
 </li>
         <li><a href="roboskin.calibration.html#roboskin.calibration.stop_conditions.StopCondition.initialize">(roboskin.calibration.stop_conditions.StopCondition method)</a>
 </li>
+        <li><a href="roboskin.sensor.html#roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.initialize">(roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor method)</a>
+</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -415,6 +418,8 @@
       <li><a href="roboskin.examples.calibration.html#roboskin.examples.calibration.plot_data.is_left">is_left() (in module roboskin.examples.calibration.plot_data)</a>
 </li>
       <li><a href="roboskin.calibration.html#roboskin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.is_lower_triangular_fn">is_lower_triangular_fn() (roboskin.calibration.convert_to_lowertriangular_matrix.ConvertToLT method)</a>
+</li>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.is_lsm6ds3">is_lsm6ds3() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
 </li>
       <li><a href="roboskin.calibration.html#roboskin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.is_matrix_lt_convertible">is_matrix_lt_convertible() (roboskin.calibration.convert_to_lowertriangular_matrix.ConvertToLT method)</a>
 </li>
@@ -476,7 +481,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="roboskin.calibration.html#roboskin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.main_algorithm">main_algorithm() (roboskin.calibration.convert_to_lowertriangular_matrix.ConvertToLT method)</a>
 </li>
-      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.make_16bit_value">make_16bit_value() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.utils.make_16bit_value">make_16bit_value() (in module roboskin.sensor.utils)</a>
 </li>
       <li><a href="roboskin.calibration.html#roboskin.calibration.error_functions.max_angle_func">max_angle_func() (in module roboskin.calibration.error_functions)</a>
 
@@ -559,6 +564,8 @@
         <li><a href="roboskin.sensor.html#module-roboskin.sensor.lsm6ds3">roboskin.sensor.lsm6ds3</a>
 </li>
         <li><a href="roboskin.sensor.html#module-roboskin.sensor.sensor">roboskin.sensor.sensor</a>
+</li>
+        <li><a href="roboskin.sensor.html#module-roboskin.sensor.utils">roboskin.sensor.utils</a>
 </li>
         <li><a href="roboskin.sensor.html#module-roboskin.sensor.vl53l1x">roboskin.sensor.vl53l1x</a>
 </li>
@@ -699,7 +706,27 @@
         <li><a href="roboskin.sensor.html#roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.read">(roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor method)</a>
 </li>
       </ul></li>
-      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_reg">read_reg() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw">read_raw() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
+
+      <ul>
+        <li><a href="roboskin.sensor.html#roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.read_raw">(roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor method)</a>
+</li>
+      </ul></li>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accels">read_raw_accels() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
+</li>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accelX">read_raw_accelX() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
+</li>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accelY">read_raw_accelY() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
+</li>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accelZ">read_raw_accelZ() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
+</li>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyros">read_raw_gyros() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
+</li>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyroX">read_raw_gyroX() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
+</li>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyroY">read_raw_gyroY() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
+</li>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyroZ">read_raw_gyroZ() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
 </li>
       <li><a href="roboskin.calibration.utils.html#roboskin.calibration.utils.rotational_acceleration.remove_centripetal_component">remove_centripetal_component() (in module roboskin.calibration.utils.rotational_acceleration)</a>
 </li>
@@ -790,6 +817,8 @@
         <li><a href="roboskin.calibration.html#module-roboskin.calibration.optimizer">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     roboskin.calibration.stop_conditions
 
@@ -797,8 +826,6 @@
         <li><a href="roboskin.calibration.html#module-roboskin.calibration.stop_conditions">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     roboskin.calibration.transformation_matrix
 
@@ -912,6 +939,13 @@
 </li>
       </ul></li>
       <li>
+    roboskin.sensor.utils
+
+      <ul>
+        <li><a href="roboskin.sensor.html#module-roboskin.sensor.utils">module</a>
+</li>
+      </ul></li>
+      <li>
     roboskin.sensor.vl53l1x
 
       <ul>
@@ -952,22 +986,20 @@
         <li><a href="roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_params_at">(roboskin.calibration.kinematic_chain_torch.KinematicChainTorch method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="roboskin.calibration.html#roboskin.calibration.kinematic_chain.KinematicChain.set_poses">set_poses() (roboskin.calibration.kinematic_chain.KinematicChain method)</a>
 
       <ul>
         <li><a href="roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_poses">(roboskin.calibration.kinematic_chain_torch.KinematicChainTorch method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="roboskin.calibration.html#roboskin.calibration.kinematic_chain.KinematicChain.set_sudh">set_sudh() (roboskin.calibration.kinematic_chain.KinematicChain method)</a>
 
       <ul>
         <li><a href="roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_sudh">(roboskin.calibration.kinematic_chain_torch.KinematicChainTorch method)</a>
 </li>
       </ul></li>
-      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.setup">setup() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
-</li>
       <li><a href="roboskin.calibration.html#roboskin.calibration.loss.SmoothL1LossTorch">SmoothL1LossTorch (class in roboskin.calibration.loss)</a>
 </li>
       <li><a href="roboskin.calibration.html#roboskin.calibration.convert_to_lowertriangular_matrix.ConvertToLT.sort_columns_in_descending_order">sort_columns_in_descending_order() (roboskin.calibration.convert_to_lowertriangular_matrix.ConvertToLT method)</a>
@@ -1014,7 +1046,7 @@
 </li>
       <li><a href="roboskin.calibration.html#roboskin.calibration.transformation_matrix.TransformationMatrix">TransformationMatrix (class in roboskin.calibration.transformation_matrix)</a>
 </li>
-      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.twos_comp">twos_comp() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
+      <li><a href="roboskin.sensor.html#roboskin.sensor.utils.twos_comp">twos_comp() (in module roboskin.sensor.utils)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1053,14 +1085,6 @@
       <li><a href="roboskin.examples.calibration.html#roboskin.examples.calibration.plot_data.verify_noise_added_correctly">verify_noise_added_correctly() (in module roboskin.examples.calibration.plot_data)</a>
 </li>
       <li><a href="roboskin.sensor.html#roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor">VL53L1X_ProximitySensor (class in roboskin.sensor.vl53l1x)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="W">W</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.write_reg">write_reg() (roboskin.sensor.lsm6ds3.LSM6DS3_IMU method)</a>
 </li>
   </ul></td>
 </tr></table>

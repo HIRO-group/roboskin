@@ -36,6 +36,14 @@ roboskin.sensor.sensor module
    :undoc-members:
    :show-inheritance:
 
+roboskin.sensor.utils module
+----------------------------
+
+.. automodule:: roboskin.sensor.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 roboskin.sensor.vl53l1x module
 ------------------------------
 
