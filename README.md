@@ -6,17 +6,17 @@
 - **Documentation**: http://hiro-group.ronc.one/roboskin/
 
 # HTTPS Installation
-```
+```sh
 pip install --upgrade git+https://github.com/HIRO-group/roboskin.git
 ```
 
 # SSH Installation
-```
+```sh
 pip install --upgrade git+ssh://git@github.com/HIRO-group/roboskin.git
 ```
 
 # Raspi Installation
-```
+```sh
 python setup.py install --raspi
 ```
 
@@ -45,7 +45,7 @@ docker run -it <docker-image-name>
 ```
 
 # Example
-```
+```sh
 python examples/calibration/calibrate_imu_poses.py
 ```
 
