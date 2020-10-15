@@ -1,4 +1,4 @@
-# documentation generation for robotic_skin
+# documentation generation for roboskin
 name: Documentation Generation Github Pages
 
 # only deploys documentation on pushes to master
@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      
+
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
       with:
@@ -21,7 +21,7 @@ jobs:
     - name: Install and Build
       run: |
         sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-        ls robotic_skin
+        ls roboskin
         sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
         sudo apt update
 
@@ -33,11 +33,11 @@ jobs:
         pip3 install sphinx_rtd_theme
         pip3 install .
         source /opt/ros/melodic/setup.bash
-        sphinx-apidoc -f -o docs robotic_skin
+        sphinx-apidoc -f -o docs roboskin
         cd docs
         make clean
         make html
-      
+
     - name: Commit files
       run: |
         git config --local user.email "action@github.com"

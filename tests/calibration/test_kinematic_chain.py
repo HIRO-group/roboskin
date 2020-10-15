@@ -5,8 +5,8 @@ import os
 import unittest
 import numpy as np
 import pyquaternion as pyqt
-from robotic_skin.calibration.utils.io import load_robot_configs
-from robotic_skin.calibration.kinematic_chain import KinematicChain
+from roboskin.calibration.utils.io import load_robot_configs
+from roboskin.calibration.kinematic_chain import KinematicChain
 
 repodir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 robot_config = load_robot_configs(os.path.join(repodir, 'config'), 'panda')

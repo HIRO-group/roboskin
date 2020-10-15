@@ -1,0 +1,516 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>roboskin.sensor.lsm6ds3 &mdash; roboskin  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> roboskin
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../roboskin.html">roboskin package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">roboskin</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>roboskin.sensor.lsm6ds3</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for roboskin.sensor.lsm6ds3</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This code is heavily inspired by this wonderful GitHub repo:</span>
+<span class="sd">https://github.com/CRImier/python-lsm6ds3</span>
+<span class="sd">Thanks Homie!</span>
+<span class="sd">Datasheet Link: https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">smbus2</span>
+<span class="kn">from</span> <span class="nn">roboskin.sensor</span> <span class="kn">import</span> <span class="n">Sensor</span>
+<span class="kn">from</span> <span class="nn">roboskin.sensor</span> <span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">roboskin.const</span> <span class="kn">import</span> <span class="n">GRAVITATIONAL_CONSTANT</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+
+<div class="viewcode-block" id="LSM6DS3_IMU"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU">[docs]</a><span class="k">class</span> <span class="nc">LSM6DS3_IMU</span><span class="p">(</span><span class="n">Sensor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the Python Class for LSM6DS3. This includes all subroutines including calibration to handle everything</span>
+<span class="sd">    related to the device.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raspi_bus_number</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">i2c_address</span><span class="o">=</span><span class="s1">&#39;0x6b&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the LSM6DS3 accelerometer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">LSM6DS3_IMU</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Setting the SMBus</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_raspi_bus_number</span> <span class="o">=</span> <span class="n">raspi_bus_number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bus</span> <span class="o">=</span> <span class="n">smbus2</span><span class="o">.</span><span class="n">SMBus</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_raspi_bus_number</span><span class="p">)</span>
+
+        <span class="c1"># If int is not passed, then convert it to int</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i2c_address</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">i2c_address</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i2c_address</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="c1"># Address of the Acceleromter I2C device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_i2c_address</span> <span class="o">=</span> <span class="n">i2c_address</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_register_values</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_lsm6ds3</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_registers</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_setup_register_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Setup register values that were in the data sheet</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Below are Accelerometer Output registers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OUTX_L_XL</span> <span class="o">=</span> <span class="mh">0x28</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OUTX_H_XL</span> <span class="o">=</span> <span class="mh">0x29</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OUTY_L_XL</span> <span class="o">=</span> <span class="mh">0x2A</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OUTY_H_XL</span> <span class="o">=</span> <span class="mh">0x2B</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OUTZ_L_XL</span> <span class="o">=</span> <span class="mh">0x2C</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OUTZ_H_XL</span> <span class="o">=</span> <span class="mh">0x2D</span>
+
+        <span class="c1"># Below are Gyroscope Output registers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OUTX_L_G</span> <span class="o">=</span> <span class="mh">0x22</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OUTX_H_G</span> <span class="o">=</span> <span class="mh">0x23</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OUTY_L_G</span> <span class="o">=</span> <span class="mh">0x24</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OUTY_H_G</span> <span class="o">=</span> <span class="mh">0x25</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OUTZ_L_G</span> <span class="o">=</span> <span class="mh">0x26</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OUTZ_H_G</span> <span class="o">=</span> <span class="mh">0x27</span>
+        <span class="c1"># Below is a register used to find out if the device is LSM6DS3 or not</span>
+        <span class="c1"># According to Page 51 this register will always output 0x69</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">WHO_AM_I</span> <span class="o">=</span> <span class="mh">0x0F</span>
+        <span class="c1"># Below are control registers used to set specific preferences</span>
+
+        <span class="c1"># FOR LATER: Explore more of this settings for our Optimal Use</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CTRL1_XL</span> <span class="o">=</span> <span class="mh">0x10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CTRL2_G</span> <span class="o">=</span> <span class="mh">0x11</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CTRL3_C</span> <span class="o">=</span> <span class="mh">0x12</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CTRL4_C</span> <span class="o">=</span> <span class="mh">0x13</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CTRL5_C</span> <span class="o">=</span> <span class="mh">0x14</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CTRL6_C</span> <span class="o">=</span> <span class="mh">0x15</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CTRL7_G</span> <span class="o">=</span> <span class="mh">0x16</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CTRL8_XL</span> <span class="o">=</span> <span class="mh">0x17</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CTRL9_XL</span> <span class="o">=</span> <span class="mh">0x18</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CTRL10_C</span> <span class="o">=</span> <span class="mh">0x19</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LSM6DS3_RegisterIdentification_NUM</span> <span class="o">=</span> <span class="mh">0x69</span>
+        <span class="c1"># Below are initial register values along with their respective names in initial_registers list</span>
+        <span class="c1"># these will be used to set values to registers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_reg_values</span> <span class="o">=</span> <span class="p">[</span><span class="mh">0x70</span><span class="p">,</span> <span class="mh">0x4c</span><span class="p">,</span> <span class="mh">0x44</span><span class="p">,</span> <span class="mh">0x0</span><span class="p">,</span> <span class="mh">0x0</span><span class="p">,</span>
+                                   <span class="mh">0x0</span><span class="p">,</span> <span class="mh">0x50</span><span class="p">,</span> <span class="mh">0x0</span><span class="p">,</span> <span class="mh">0x38</span><span class="p">,</span> <span class="mh">0x38</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_registers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CTRL1_XL&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL2_G&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL3_C&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL4_C&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL5_C&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;CTRL6_C&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL7_G&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL8_XL&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL9_XL&#39;</span><span class="p">,</span> <span class="s1">&#39;CTRL10_C&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.is_lsm6ds3"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.is_lsm6ds3">[docs]</a>    <span class="k">def</span> <span class="nf">is_lsm6ds3</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function will detect if the accelerometer is LSM6DS3 or not</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Bool</span>
+<span class="sd">            True if the detected accelerometer is LSM6DS3, otherwise false</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">WHO_AM_I</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">LSM6DS3_RegisterIdentification_NUM</span><span class="p">),</span> <span class="s2">&quot;Identification register value </span><span class="se">\</span>
+<span class="s2">                                                       is wrong! Pass &#39;detect=False&#39; </span><span class="se">\</span>
+<span class="s2">                                                       to setup() to disable the check.&quot;</span></div>
+
+    <span class="k">def</span> <span class="nf">_initialize_registers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Setup the LSM6DS3 accelerometer with the preferences hexadecimal values from initial register values.</span>
+<span class="sd">        It also checks if the accelerometer is LSM6DS3 or not.</span>
+<span class="sd">        Execution of this function without any problems is a litmus</span>
+<span class="sd">        test that attached device is LSM6DS3.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Bool</span>
+<span class="sd">            Return True if all assert statements are executed and all code is executed without exceptions,</span>
+<span class="sd">            else False</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Safety check</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_reg_values</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_registers</span><span class="p">)),</span> \
+            <span class="s2">&quot;Number of initial registers is not equal to number of initial </span><span class="se">\</span>
+<span class="s2">                 register values. Set &#39;lsm.initial_registers&#39; properly!&quot;</span>
+
+        <span class="c1"># Writing initial values into registers</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">reg_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_registers</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_reg</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_reg_values</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.get_bus_number"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.get_bus_number">[docs]</a>    <span class="k">def</span> <span class="nf">get_bus_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raspi_bus_number</span></div>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.get_i2c_address"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.get_i2c_address">[docs]</a>    <span class="k">def</span> <span class="nf">get_i2c_address</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_i2c_address</span></div>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.calibrate"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.calibrate">[docs]</a>    <span class="k">def</span> <span class="nf">calibrate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        # Need to implement this function</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+    <span class="k">def</span> <span class="nf">_write_reg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write value to the register specified</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        reg : int</span>
+<span class="sd">            Value of the register to which you want the write some value</span>
+<span class="sd">        val : int</span>
+<span class="sd">            Value you want to write to the register</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bus</span><span class="o">.</span><span class="n">write_byte_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_i2c_address</span><span class="p">,</span> <span class="n">reg</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read the Register Value in form of int</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        reg : int</span>
+<span class="sd">            Register from which you want to read the value from</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            int value read from register</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bus</span><span class="o">.</span><span class="n">read_byte_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_i2c_address</span><span class="p">,</span> <span class="n">reg</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.read_raw"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw">[docs]</a>    <span class="k">def</span> <span class="nf">read_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">accels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_raw_accels</span><span class="p">()</span>
+        <span class="n">gyros</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_raw_gyros</span><span class="p">()</span>
+
+        <span class="c1"># Addition of lists</span>
+        <span class="c1"># [a, b, c] + [d, e, f] -&gt; [a, b, c, d, e, f]</span>
+        <span class="k">return</span> <span class="n">accels</span> <span class="o">+</span> <span class="n">gyros</span></div>
+
+    <span class="k">def</span> <span class="nf">_calibrate_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Output the calibrated value from the function you manually made.</span>
+<span class="sd">        #TODO: Make this function an argument and pass it for future use</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_value : float</span>
+<span class="sd">            Original value which you want to convert it to calibrated value</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Returns the calibrated value</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">input_value</span>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.read"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads the sensor values and continuously streams them back to the function whoever called it. This is the</span>
+<span class="sd">        function you need to put while(True) loop for continuous acquisition of accelerometer values.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of floats with Acceleration values and angular velocity values in G in the form of</span>
+<span class="sd">            [ax, ay, az, gx, gy, gz] respective directions</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_calibrate_value</span><span class="p">(</span><span class="n">each_value</span><span class="p">)</span> <span class="k">for</span> <span class="n">each_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_raw</span><span class="p">()]</span></div>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.read_raw_accelX"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accelX">[docs]</a>    <span class="k">def</span> <span class="nf">read_raw_accelX</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read a raw acceleration value for x axis</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        accelX: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">axh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTX_H_XL</span><span class="p">)</span>
+        <span class="n">axl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTX_L_XL</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">axh</span><span class="p">,</span> <span class="n">axl</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.061</span> <span class="o">*</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span></div>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.read_raw_accelY"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accelY">[docs]</a>    <span class="k">def</span> <span class="nf">read_raw_accelY</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read a raw acceleration value for y axis</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        accelY: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ayh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTY_H_XL</span><span class="p">)</span>
+        <span class="n">ayl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTY_L_XL</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">ayh</span><span class="p">,</span> <span class="n">ayl</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.061</span> <span class="o">*</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span></div>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.read_raw_accelZ"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accelZ">[docs]</a>    <span class="k">def</span> <span class="nf">read_raw_accelZ</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read a raw acceleration value for z axis</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        accelZ: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">azh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTZ_H_XL</span><span class="p">)</span>
+        <span class="n">azl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTZ_L_XL</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">azh</span><span class="p">,</span> <span class="n">azl</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.061</span> <span class="o">*</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span></div>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.read_raw_accels"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accels">[docs]</a>    <span class="k">def</span> <span class="nf">read_raw_accels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read raw acceleration values for all axis</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        accels: List[float]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">read_raw_accelX</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">read_raw_accelY</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">read_raw_accelZ</span><span class="p">()</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.read_raw_gyroX"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyroX">[docs]</a>    <span class="k">def</span> <span class="nf">read_raw_gyroX</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read a raw angular velocity value for x axis</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        gyroX: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">gxh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTX_H_G</span><span class="p">)</span>
+        <span class="n">gxl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTX_L_G</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">gxh</span><span class="p">,</span> <span class="n">gxl</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.read_raw_gyroY"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyroY">[docs]</a>    <span class="k">def</span> <span class="nf">read_raw_gyroY</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read a raw angular velocity value for y axis</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        gyroY: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">gyh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTY_H_G</span><span class="p">)</span>
+        <span class="n">gyl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTY_L_G</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">gyh</span><span class="p">,</span> <span class="n">gyl</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.read_raw_gyroZ"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyroZ">[docs]</a>    <span class="k">def</span> <span class="nf">read_raw_gyroZ</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read a raw angular velocity value for z axis</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        gyroZ: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">gzh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTZ_H_G</span><span class="p">)</span>
+        <span class="n">gzl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_reg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTZ_L_G</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">make_16bit_value</span><span class="p">(</span><span class="n">gzh</span><span class="p">,</span> <span class="n">gzl</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LSM6DS3_IMU.read_raw_gyros"><a class="viewcode-back" href="../../../roboskin.sensor.html#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyros">[docs]</a>    <span class="k">def</span> <span class="nf">read_raw_gyros</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read raw angular velocity values for all axis</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        gyros: List[float]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">read_raw_gyroX</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">read_raw_gyroY</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">read_raw_gyroZ</span><span class="p">()</span>
+        <span class="p">]</span></div></div>
+
+
+<span class="c1"># useful for debugging</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># A ROS Pkg can be used and the config file can be passed so that there is no need of</span>
+    <span class="c1"># hard coding the path. But this main function is used to debug to check the functionality</span>
+    <span class="c1"># of the driver.</span>
+    <span class="n">lsm6ds3</span> <span class="o">=</span> <span class="n">LSM6DS3_IMU</span><span class="p">(</span><span class="n">raspi_bus_number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">lsm6ds3</span><span class="o">.</span><span class="n">read</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Kandai Watanabe
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

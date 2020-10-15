@@ -1,0 +1,693 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>roboskin.calibration.kinematic_chain_torch &mdash; roboskin  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> roboskin
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../roboskin.html">roboskin package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">roboskin</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>roboskin.calibration.kinematic_chain_torch</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for roboskin.calibration.kinematic_chain_torch</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">roboskin.calibration.transformation_matrix</span> <span class="kn">import</span> <span class="n">TransformationMatrix</span> <span class="k">as</span> <span class="n">TM</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="n">BOUNDS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+    <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">],</span>    <span class="c1"># th</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>        <span class="c1"># d</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>        <span class="c1"># a     (radius)</span>
+    <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]])</span>   <span class="c1"># alpha</span>
+<span class="n">BOUNDS_SU</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+    <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">],</span>    <span class="c1"># th</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>        <span class="c1"># d</span>
+    <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">],</span>    <span class="c1"># th</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>        <span class="c1"># d</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>        <span class="c1"># a     # 0 gives error</span>
+    <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]])</span>   <span class="c1"># alpha</span>
+
+
+<div class="viewcode-block" id="construct_kinematic_chain"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.construct_kinematic_chain">[docs]</a><span class="k">def</span> <span class="nf">construct_kinematic_chain</span><span class="p">(</span><span class="n">robot_configs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">imu_mappings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+                              <span class="n">test_code</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">optimize_all</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">su_joint_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">joints</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">imu_str</span><span class="p">,</span> <span class="n">link_str</span> <span class="ow">in</span> <span class="n">imu_mappings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">su_joint_dict</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">imu_str</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">link_str</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">joints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">link_str</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">joints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">joints</span><span class="p">)</span>
+    <span class="n">bound_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;link&#39;</span><span class="p">:</span> <span class="n">BOUNDS</span><span class="p">,</span> <span class="s1">&#39;su&#39;</span><span class="p">:</span> <span class="n">BOUNDS_SU</span><span class="p">}</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dh_parameter&#39;</span><span class="p">,</span> <span class="s1">&#39;su_dh_parameter&#39;</span><span class="p">,</span> <span class="s1">&#39;eval_poses&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">robot_configs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Keys </span><span class="si">{</span><span class="n">keys</span><span class="si">}</span><span class="s1"> should exist in robot yaml file&#39;</span><span class="p">)</span>
+    <span class="n">linkdh_dict</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">optimize_all</span> <span class="k">else</span> <span class="n">robot_configs</span><span class="p">[</span><span class="s1">&#39;dh_parameter&#39;</span><span class="p">]</span>
+    <span class="n">sudh_dict</span> <span class="o">=</span> <span class="n">robot_configs</span><span class="p">[</span><span class="s1">&#39;su_dh_parameter&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">test_code</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">eval_poses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">robot_configs</span><span class="p">[</span><span class="s1">&#39;eval_poses&#39;</span><span class="p">])</span>
+    <span class="n">kinematic_chain</span> <span class="o">=</span> <span class="n">KinematicChainTorch</span><span class="p">(</span>
+        <span class="n">n_joint</span><span class="o">=</span><span class="n">joints</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+        <span class="n">su_joint_dict</span><span class="o">=</span><span class="n">su_joint_dict</span><span class="p">,</span>
+        <span class="n">bound_dict</span><span class="o">=</span><span class="n">bound_dict</span><span class="p">,</span>
+        <span class="n">linkdh_dict</span><span class="o">=</span><span class="n">linkdh_dict</span><span class="p">,</span>
+        <span class="n">sudh_dict</span><span class="o">=</span><span class="n">sudh_dict</span><span class="p">,</span>
+        <span class="n">eval_poses</span><span class="o">=</span><span class="n">eval_poses</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">optimize_all</span><span class="p">:</span>
+        <span class="n">linkdh0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">robot_configs</span><span class="p">[</span><span class="s1">&#39;dh_parameter&#39;</span><span class="p">][</span><span class="s1">&#39;joint1&#39;</span><span class="p">])</span>
+        <span class="n">su0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">linkdh0</span><span class="p">,</span> <span class="n">su0</span><span class="p">]</span>
+        <span class="n">kinematic_chain</span><span class="o">.</span><span class="n">set_params_at</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">kinematic_chain</span></div>
+
+
+<div class="viewcode-block" id="KinematicChainTorch"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch">[docs]</a><span class="k">class</span> <span class="nc">KinematicChainTorch</span><span class="p">():</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_joint</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">su_joint_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>  <span class="c1"># noqa: E999</span>
+                 <span class="n">bound_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">linkdh_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>     <span class="c1"># noqa: E999</span>
+                 <span class="n">sudh_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">eval_poses</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Defines a kinematic chain.</span>
+<span class="sd">        This class enables users to easily retrieve</span>
+<span class="sd">        Transformation Matrices to all joints and Skin Units (SU),</span>
+<span class="sd">        and their poses (positions and orientations).</span>
+
+<span class="sd">        :math:`dof_T*_dof` represents a list of Transformation Matrices</span>
+<span class="sd">        between each joint</span>
+<span class="sd">        :math:`rs_T*_dof` represents a list of Transformation Matrices</span>
+<span class="sd">        from RS frame to each joint</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        -----------</span>
+<span class="sd">        su_joint_dict: dict</span>
+<span class="sd">            Which SU is attached to which joint.</span>
+<span class="sd">            The dict is {i_su: i_joint} where</span>
+
+<span class="sd">            ..math::</span>
+<span class="sd">                i_su = 0, ..., n_su-1</span>
+<span class="sd">                i_joint = 0, ..., n_joint-1</span>
+
+<span class="sd">        n_joint: int</span>
+<span class="sd">            number of joints</span>
+<span class="sd">        bound_dict: dict</span>
+<span class="sd">            Bounds of DH Parameters</span>
+<span class="sd">            {&#39;link&#39;: np.ndarray (4, 2), &#39;su&#39;: np.ndarray (6, 2)}</span>
+<span class="sd">        linkdh_dict: dict</span>
+<span class="sd">            DH Parameters of all links.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ------------</span>
+<span class="sd">        self.dof_T0_dof: List[TransformationMatrix]</span>
+<span class="sd">            Transformation Matices betw. joints at Origin Poses</span>
+<span class="sd">        self.dof_Tc_dof: List[TransformationMatrix]</span>
+<span class="sd">            Transformation Matices betw. joints at Current Poses</span>
+<span class="sd">        self.rs_T0_dof: List[TransformationMatrix]</span>
+<span class="sd">            Transformation Matices from RS to each joint at Origin Poses</span>
+<span class="sd">        self.rs_Tc_dof: List[TransformationMatrix]</span>
+<span class="sd">            Transformation Matices from RS to each joint at Current Poses</span>
+<span class="sd">        self.eval_poses: np.ndarray</span>
+<span class="sd">            Joint Poses at when each SU pose is evaluated.</span>
+<span class="sd">        self.current_poses: np.ndarray</span>
+<span class="sd">            Current Pose :math:`\vec{\theta}`</span>
+<span class="sd">        self.dof_T_vdof:</span>
+<span class="sd">            Transformation Mtarices from each joint to SU&#39;s virtual joint</span>
+<span class="sd">        self.vdof_T_su:</span>
+<span class="sd">            Transformation Mtarices from a virtual joint to its SU</span>
+<span class="sd">        self.dof_T_su:</span>
+<span class="sd">            Transformation Mtarices from each joint to its SU</span>
+<span class="sd">            Multiplication of self.dof_T_vdof and self.vdof_T_su</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n_joint</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">su_joint_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bound_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">su_joint_dict</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="s1">&#39;link&#39;</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">bound_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">assert</span> <span class="s1">&#39;su&#39;</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">bound_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">assert</span> <span class="n">bound_dict</span><span class="p">[</span><span class="s1">&#39;link&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">bound_dict</span><span class="p">[</span><span class="s1">&#39;su&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">linkdh_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">linkdh_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">linkdh_dict</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_joint</span>
+        <span class="k">if</span> <span class="n">sudh_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sudh_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">sudh_dict</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">su_joint_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">su_joint_dict</span> <span class="o">=</span> <span class="n">su_joint_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_su</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">su_joint_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span> <span class="o">=</span> <span class="n">n_joint</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bound_dict</span> <span class="o">=</span> <span class="n">bound_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linkdh_dict</span> <span class="o">=</span> <span class="n">linkdh_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sudh_dict</span> <span class="o">=</span> <span class="n">sudh_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_poses</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_joint</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span> <span class="k">if</span> <span class="n">eval_poses</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">eval_poses</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_poses</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+
+        <span class="c1"># At Original Poses (joints == 0 rad)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_T0_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__predefined_or_rand_dofs</span><span class="p">(</span><span class="n">linkdh_dict</span><span class="p">,</span> <span class="n">bound_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rs_T0_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__initialize_chains</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_T0_dof</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rs_Te_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_transmat_torch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rs_T0_dof</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_Te_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__apply_poses</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_poses</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_T0_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Te_dof</span><span class="p">)</span>
+        <span class="c1"># At CURRENT pose (joints == current_poses)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tc_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_transmat_torch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_T0_dof</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tc_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_transmat_torch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rs_T0_dof</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_poses</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tt_dof</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Construct Transformation Matrices for each SU from its previous joint</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_T_vdof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vdof_T_su</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_T_su</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">predefined_or_rand_sus</span><span class="p">(</span><span class="n">sudh_dict</span><span class="p">,</span> <span class="n">bound_dict</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_copy_transmat_torch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transmats</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        copy transformation matrix in torch. Requires</span>
+<span class="sd">        a few extra steps.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shallow_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">transmats</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">shallow_copy</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">matrix</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">q</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">shallow_copy</span>
+
+    <span class="k">def</span> <span class="nf">__predefined_or_rand_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">linkdh_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">bound_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">linkdh_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Initialize DH parameters randomly within the given bounds</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">TM</span><span class="o">.</span><span class="n">from_bounds</span><span class="p">(</span><span class="n">bound_dict</span><span class="p">[</span><span class="s1">&#39;link&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Specified DH Parameters</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">TM</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="n">linkdh_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;joint</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span><span class="p">)]</span>
+
+<div class="viewcode-block" id="KinematicChainTorch.predefined_or_rand_sus"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.predefined_or_rand_sus">[docs]</a>    <span class="k">def</span> <span class="nf">predefined_or_rand_sus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sudh_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">bound_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">]:</span>
+        <span class="n">dof_T_vdof</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">vdof_T_su</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dof_T_su</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_su</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">sudh_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_dof_T_vdof</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_bounds</span><span class="p">(</span><span class="n">bound_dict</span><span class="p">[</span><span class="s1">&#39;su&#39;</span><span class="p">][:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:],</span> <span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span>
+                <span class="n">_vdof_T_su</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_bounds</span><span class="p">(</span><span class="n">bound_dict</span><span class="p">[</span><span class="s1">&#39;su&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">:,</span> <span class="p">:])</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_dof_T_vdof</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="n">sudh_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;su</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">][:</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span>
+                <span class="n">_vdof_T_su</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="n">sudh_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;su</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">:])</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span>
+            <span class="n">dof_T_vdof</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_dof_T_vdof</span><span class="p">)</span>
+            <span class="n">vdof_T_su</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_vdof_T_su</span><span class="p">)</span>
+            <span class="n">dof_T_su</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_dof_T_vdof</span> <span class="o">*</span> <span class="n">_vdof_T_su</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dof_T_vdof</span><span class="p">,</span> <span class="n">vdof_T_su</span><span class="p">,</span> <span class="n">dof_T_su</span></div>
+
+    <span class="k">def</span> <span class="nf">__initialize_chains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dof_T_dof</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        initialize chains (rs to dof matrices) from</span>
+<span class="sd">        dof to dof matrices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start_joint</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># list of nones - to be filled in later</span>
+        <span class="n">rs_T_dof</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__update_chains</span><span class="p">(</span><span class="n">dof_T_dof</span><span class="p">,</span> <span class="n">rs_T_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rs_T_dof</span>
+
+    <span class="k">def</span> <span class="nf">__update_chains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dof_T_dof</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">],</span> <span class="n">rs_T_dof</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">],</span>
+                        <span class="n">start_joint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">end_joint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates rs to dof matrices based on dof to dof matrices.</span>
+
+<span class="sd">        Unlike other functions, since this is a private function.</span>
+<span class="sd">        i_joint should start from 0 to n-1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dof_T_dof</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rs_T_dof</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">dof_T_dof</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">rs_T_dof</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">end_joint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">end_joint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="c1"># Start from the previous DoF (or base if i_joint==0)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span> <span class="k">if</span> <span class="n">start_joint</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">rs_T_dof</span><span class="p">[</span><span class="n">start_joint</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># construct reference segment to dof matrix from dof to dof matrix.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_joint</span><span class="p">,</span> <span class="n">end_joint</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">dof_T_dof</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">rs_T_dof</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span>
+
+    <span class="k">def</span> <span class="nf">__apply_poses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">poses</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">dof_T_dof</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">],</span> <span class="n">rs_T_dof</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">],</span>
+                      <span class="n">start_joint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">end_joint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        based on `poses` and specified start and end joints,</span>
+<span class="sd">        applies a pose.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">poses</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">poses</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">poses</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">dof_T_dof</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">poses</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">end_joint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">end_joint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="c1"># Start from the previous DoF (or base if i_joint==0)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span> <span class="k">if</span> <span class="n">start_joint</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">rs_T_dof</span><span class="p">[</span><span class="n">start_joint</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">dof_Tc_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_transmat_torch</span><span class="p">(</span><span class="n">dof_T_dof</span><span class="p">)</span>
+
+        <span class="c1"># dof_Tc_dof = copy.deepcopy(dof_T_dof)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_joint</span><span class="p">,</span> <span class="n">end_joint</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">dof_Tc_dof</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dof_T_dof</span><span class="p">[</span><span class="n">i</span><span class="p">](</span><span class="n">poses</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">dof_Tc_dof</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">rs_T_dof</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span>
+        <span class="k">return</span> <span class="n">dof_Tc_dof</span>
+
+<div class="viewcode-block" id="KinematicChainTorch.reset_poses"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.reset_poses">[docs]</a>    <span class="k">def</span> <span class="nf">reset_poses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resets current and temporary poses to 0s.</span>
+<span class="sd">        Origin and Evaluation Poses will never be changed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_poses</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tc_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_transmat_torch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_T0_dof</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tc_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_transmat_torch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rs_T0_dof</span><span class="p">)</span></div>
+        <span class="c1"># self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)</span>
+        <span class="c1"># self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)</span>
+
+<div class="viewcode-block" id="KinematicChainTorch.set_poses"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_poses">[docs]</a>    <span class="k">def</span> <span class="nf">set_poses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">poses</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                  <span class="n">start_joint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">end_joint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        sets poses from start_joint to end_joint.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">poses</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">poses</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">poses</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">poses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span>
+        <span class="k">if</span> <span class="n">end_joint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">end_joint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="c1"># Set current pose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_poses</span><span class="p">[</span><span class="n">start_joint</span><span class="p">:</span><span class="n">end_joint</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">poses</span><span class="p">[</span><span class="n">start_joint</span><span class="p">:</span><span class="n">end_joint</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Compute dof_Tc_dof and update rs_Tc_dof</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tc_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__apply_poses</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_poses</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_T0_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tc_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="p">,</span> <span class="n">end_joint</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tt_dof</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_poses</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="KinematicChainTorch.init_temp_TM"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.init_temp_TM">[docs]</a>    <span class="k">def</span> <span class="nf">init_temp_TM</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_joint</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">additional_pose</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a temporary Transformation Matrices by adding</span>
+<span class="sd">        an extra joint angle to Current Tranformation Matrices.</span>
+<span class="sd">        Current Pose will not be updated.</span>
+<span class="sd">        The temporary pose/TM will be reset once init_temp_TM or set_poses are called.</span>
+
+<span class="sd">        TODO: Allow multiple additional poses</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        `i_joint`: `int`</span>
+<span class="sd">            i_joint th joint</span>
+<span class="sd">        `additional_pose`: `float`</span>
+<span class="sd">            Additional pose added to the pose (copied from the current pose).</span>
+<span class="sd">            Current pose will not be updated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_poses</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_poses</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_transmat_torch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_Tc_dof</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tt_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_transmat_torch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rs_Tc_dof</span><span class="p">)</span>
+
+        <span class="c1"># Update current poses and copy them to temporary poses</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_poses</span><span class="p">[</span><span class="n">i_joint</span><span class="p">]</span> <span class="o">+=</span> <span class="n">additional_pose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span><span class="p">[</span><span class="n">i_joint</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span><span class="p">[</span><span class="n">i_joint</span><span class="p">](</span><span class="n">theta</span><span class="o">=</span><span class="n">additional_pose</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__update_chains</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tt_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="o">=</span><span class="n">i_joint</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KinematicChainTorch.add_temp_pose"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.add_temp_pose">[docs]</a>    <span class="k">def</span> <span class="nf">add_temp_pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_joint</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">additional_pose</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a pose to the temporary pose/TM</span>
+<span class="sd">        It does not initialize the temporary pose</span>
+<span class="sd">        nor overwrite the current pose.</span>
+<span class="sd">        The temporary pose/TM will be reset once init_temp_TM or set_poses are called.</span>
+
+<span class="sd">        TODO: Allow multiple additional poses</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_poses</span><span class="p">[</span><span class="n">i_joint</span><span class="p">]</span> <span class="o">+=</span> <span class="n">additional_pose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span><span class="p">[</span><span class="n">i_joint</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span><span class="p">[</span><span class="n">i_joint</span><span class="p">](</span><span class="n">theta</span><span class="o">=</span><span class="n">additional_pose</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__update_chains</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tt_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="o">=</span><span class="n">i_joint</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__compute_joint_TM</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_joint</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dof_T_dof</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">],</span> <span class="n">rs_T_dof</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">],</span>
+                           <span class="n">start_joint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TM</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        i_joint should also start from 0 to n-1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i_joint</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> \
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;i_joint Should be in between 0 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">start_joint</span> <span class="o">&lt;=</span> <span class="n">i_joint</span><span class="p">,</span> \
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;i_joint=</span><span class="si">{</span><span class="n">i_joint</span><span class="si">}</span><span class="s1"> should be &gt;= than start_joint </span><span class="si">{</span><span class="n">start_joint</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">start_joint</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">rs_T_dof</span><span class="p">[</span><span class="n">i_joint</span><span class="p">]</span>
+
+        <span class="n">T</span> <span class="o">=</span> <span class="n">dof_T_dof</span><span class="p">[</span><span class="n">start_joint</span><span class="p">]</span>
+        <span class="c1"># compute transformations up to end joint.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_joint</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">i_joint</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">dof_T_dof</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">T</span>
+
+<div class="viewcode-block" id="KinematicChainTorch.compute_joint_TM"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.compute_joint_TM">[docs]</a>    <span class="k">def</span> <span class="nf">compute_joint_TM</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_joint</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pose_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_joint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TM</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a TransformationMatrix to the i_joint th joint</span>
+
+<span class="sd">        Based on `pose_type`, computes transformation matrix to joint.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pose_type</span> <span class="o">==</span> <span class="s1">&#39;orgin&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compute_joint_TM</span><span class="p">(</span><span class="n">i_joint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_T0_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_T0_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pose_type</span> <span class="o">==</span> <span class="s1">&#39;eval&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compute_joint_TM</span><span class="p">(</span><span class="n">i_joint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_Te_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Te_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pose_type</span> <span class="o">==</span> <span class="s1">&#39;current&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compute_joint_TM</span><span class="p">(</span><span class="n">i_joint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tc_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tc_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">pose_type</span> <span class="o">==</span> <span class="s1">&#39;temp&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tt_dof</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Temprary Pose is not set&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compute_joint_TM</span><span class="p">(</span><span class="n">i_joint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tt_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Not such pose as </span><span class="si">{</span><span class="n">pose_type</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__compute_su_TM</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_su</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dof_T_dof</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">],</span> <span class="n">rs_T_dof</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TM</span><span class="p">],</span>
+                        <span class="n">start_joint</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TM</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        i_su should also start from 0 to m-1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i_su</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_su</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> \
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;i_su Should be in between 0 and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_su</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Get corresponding joint number</span>
+        <span class="n">i_joint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">su_joint_dict</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span>
+
+        <span class="k">assert</span> <span class="n">start_joint</span> <span class="o">&lt;=</span> <span class="n">i_joint</span><span class="p">,</span> \
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;i_joint </span><span class="si">{</span><span class="n">i_joint</span><span class="si">}</span><span class="s1"> which i_su </span><span class="si">{</span><span class="n">i_su</span><span class="si">}</span><span class="s1"> is attached to </span><span class="se">\</span>
+<span class="s1">                    should be larger than or equal to start_joint </span><span class="si">{</span><span class="n">start_joint</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">start_joint</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">rs_T_dof</span><span class="p">[</span><span class="n">i_joint</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_T_su</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span>
+
+        <span class="n">T</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_joint</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">i_joint</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="n">dof_T_dof</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">T</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_T_su</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span>
+
+<div class="viewcode-block" id="KinematicChainTorch.compute_su_TM"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.compute_su_TM">[docs]</a>    <span class="k">def</span> <span class="nf">compute_su_TM</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_su</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pose_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_joint</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TM</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a TransformationMatrix to the i_su th su</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pose_type</span> <span class="o">==</span> <span class="s1">&#39;origin&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_T0_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_T0_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pose_type</span> <span class="o">==</span> <span class="s1">&#39;eval&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_Te_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Te_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pose_type</span> <span class="o">==</span> <span class="s1">&#39;current&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tc_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tc_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">pose_type</span> <span class="o">==</span> <span class="s1">&#39;temp&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tt_dof</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Temprary Pose is not set&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compute_su_TM</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tt_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tt_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;There is no such pose_type as </span><span class="si">{</span><span class="n">pose_type</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KinematicChainTorch.set_sudh"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_sudh">[docs]</a>    <span class="k">def</span> <span class="nf">set_sudh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_su</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set i_su th SU DH Parameters</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        i_su: int</span>
+<span class="sd">            i_su th SU. i_su starts from 0 to m-1.</span>
+<span class="sd">        params: np.ndarray</span>
+<span class="sd">            DH Parameters of the i_su th SU (from its previous DoF)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i_su</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_su</span><span class="o">-</span><span class="mi">1</span>
+        <span class="k">assert</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">6</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_T_vdof</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">params</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vdof_T_su</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_T_su</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_T_vdof</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">vdof_T_su</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="KinematicChainTorch.set_linkdh"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_linkdh">[docs]</a>    <span class="k">def</span> <span class="nf">set_linkdh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_joint</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set i_su th SU DH Parameters</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        i_joint: int</span>
+<span class="sd">            i_joint th joint. i_joint starts from 0 to n-1.</span>
+<span class="sd">        params: np.ndarray</span>
+<span class="sd">            DH Parameters of the i_joint th joint (from its previous joint)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i_joint</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_joint</span><span class="o">-</span><span class="mi">1</span>
+        <span class="k">assert</span> <span class="n">params</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">4</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_T0_dof</span><span class="p">[</span><span class="n">i_joint</span><span class="p">]</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__update_chains</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_T0_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_T0_dof</span><span class="p">,</span> <span class="n">start_joint</span><span class="o">=</span><span class="n">i_joint</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_Tc_dof</span><span class="p">[</span><span class="n">i_joint</span><span class="p">]</span> <span class="o">=</span> <span class="n">TM</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rs_Tc_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_transmat_torch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rs_T0_dof</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rs_Te_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_transmat_torch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rs_T0_dof</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof_Te_dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__apply_poses</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_poses</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_T0_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs_Te_dof</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KinematicChainTorch.get_params_at"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.get_params_at">[docs]</a>    <span class="k">def</span> <span class="nf">get_params_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_su</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------------</span>
+<span class="sd">        i_su: int</span>
+<span class="sd">            ith SU</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        --------</span>
+<span class="sd">        params: torch.Tensor</span>
+<span class="sd">            Next DH parameters to be optimized</span>
+<span class="sd">        bounds: torch.Tensor</span>
+<span class="sd">            Bounds of each DH parameter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">i_joint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">su_joint_dict</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">linkdh_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="c1"># optimizing all dh parameters</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_T0_dof</span><span class="p">[</span><span class="n">i_joint</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span>  <span class="c1"># 4</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">dof_T_vdof</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span>  <span class="c1"># 2</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">vdof_T_su</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="p">))</span>  <span class="c1"># 4</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">bound_dict</span><span class="p">[</span><span class="s1">&#39;link&#39;</span><span class="p">],</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">bound_dict</span><span class="p">[</span><span class="s1">&#39;su&#39;</span><span class="p">]))</span>
+            <span class="k">assert</span> <span class="n">params</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">10</span>
+            <span class="k">assert</span> <span class="n">bounds</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># optimizing just su dh params.</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_T_vdof</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span>  <span class="c1"># 2</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">vdof_T_su</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="p">))</span>  <span class="c1"># 4</span>
+
+            <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bound_dict</span><span class="p">[</span><span class="s1">&#39;su&#39;</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">6</span>
+            <span class="k">assert</span> <span class="n">bounds</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">params</span><span class="p">,</span> <span class="n">bounds</span></div>
+
+<div class="viewcode-block" id="KinematicChainTorch.set_params_at"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_params_at">[docs]</a>    <span class="k">def</span> <span class="nf">set_params_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_su</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set DH parameters</span>
+<span class="sd">        Depending of if we</span>
+<span class="sd">        are optimizing 6 (just su params)</span>
+<span class="sd">        or 10 (all dh params)</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ------------</span>
+<span class="sd">        int: i</span>
+<span class="sd">            ith joint (sensor)</span>
+<span class="sd">        parmas: np.array</span>
+<span class="sd">            DH Parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">!=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="n">i_joint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">su_joint_dict</span><span class="p">[</span><span class="n">i_su</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">linkdh_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_linkdh</span><span class="p">(</span><span class="n">i_joint</span><span class="p">,</span> <span class="n">params</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sudh_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_sudh</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="mi">4</span><span class="p">:])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sudh_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_sudh</span><span class="p">(</span><span class="n">i_su</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Kandai Watanabe
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

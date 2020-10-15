@@ -1,18 +1,23 @@
-![](https://github.com/HIRO-group/robotic_skin/workflows/Python%20application/badge.svg)
+![](https://github.com/HIRO-group/roboskin/workflows/Python%20application/badge.svg)
 
 # HIRO Robotic Skin
 - **Current Release**: `0.0.1` as of 2020/01/14
 - **Target Python versions**: Python 3.7
-- **Documentation**: http://hiro-group.ronc.one/robotic_skin/
+- **Documentation**: http://hiro-group.ronc.one/roboskin/
 
 # HTTPS Installation
-```
-pip install --upgrade git+https://github.com/HIRO-group/robotic_skin.git
+```sh
+pip install --upgrade git+https://github.com/HIRO-group/roboskin.git
 ```
 
 # SSH Installation
+```sh
+pip install --upgrade git+ssh://git@github.com/HIRO-group/roboskin.git
 ```
-pip install --upgrade git+ssh://git@github.com/HIRO-group/robotic_skin.git
+
+# Raspi Installation
+```sh
+python setup.py install --raspi
 ```
 
 # Docker
@@ -40,7 +45,7 @@ docker run -it <docker-image-name>
 ```
 
 # Example
-```
+```sh
 python examples/calibration/calibrate_imu_poses.py
 ```
 
@@ -57,13 +62,13 @@ This project is using GitHub flow ([See here for details](https://guides.github.
 
 
 ## Contribution Steps
-1. Add your feature under `./robotic_skin/`
+1. Add your feature under `./roboskin/`
 2. Comment classes and functions with [docstring](https://en.wikipedia.org/wiki/Docstring)
 3. Add Example
 4. Write Unit Test under `./tests/`
 5. Run Test Locally `python setup.py test`
 6. Run Test Remotely (Travis automatically deals this)
-7. Run Pylint Locally with `pylint robotic_skin examples tests`, and correct the errors from this command.
+7. Run Pylint Locally with `pylint roboskin examples tests`, and correct the errors from this command.
 8. Write Documentations under `./docs/`. See [docs/README.md](docs/README.md).
 
 ## Test [MUST]
@@ -71,18 +76,18 @@ This project is using GitHub flow ([See here for details](https://guides.github.
 When adding new feature such as `function`/`class`, you always and must write test(s) unless it will be rejected. <br>
 Then run the test
 
-```
+```sh
 python setup.py test
 ```
 
 You can also use `pycodestyle`:
 
-```
+```sh
 pycodestyle <script-name>.py
 ```
 
 ### Flake8 Test
-```
+```sh
 flake8 . --count --max-complexity=10 --max-line-length=140 --statistics --exclude setup.py --ignore=E121,E123,E126,E226,E24,E704,W503,W504,E999
 ```
 
@@ -91,7 +96,7 @@ When writing tests, for example for feature_module.py, please create test module
 See below. <br>
 
 ```
-├── robotic_skin
+├── roboskin
 │   ├── __init__.py
 │   ...
 │   ├── your_awesome_module.py
@@ -107,7 +112,7 @@ See below. <br>
 ## Testing Hardware:
 To test the hardware whether it's working or not, whether the PCB is designed perfectly or not
 run the below command in Raspberry Pi:
-```bash
+```sh
 sudo watch -n 1 i2cdetect -y bus_num
 ```
 Where bus_num is the I2C bus number in Raspbbery pi.

@@ -1,0 +1,556 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>roboskin.sensor package &mdash; roboskin  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="roboskin.examples.calibration package" href="roboskin.examples.calibration.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> roboskin
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="roboskin.html">roboskin package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="roboskin.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="roboskin.calibration.html">roboskin.calibration package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="roboskin.examples.html">roboskin.examples package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">roboskin.sensor package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#roboskin-sensor-adxl335-module">roboskin.sensor.adxl335 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#roboskin-sensor-flexiforce-module">roboskin.sensor.flexiforce module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-roboskin.sensor.lsm6ds3">roboskin.sensor.lsm6ds3 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-roboskin.sensor.sensor">roboskin.sensor.sensor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-roboskin.sensor.utils">roboskin.sensor.utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-roboskin.sensor.vl53l1x">roboskin.sensor.vl53l1x module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-roboskin.sensor">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="roboskin.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="roboskin.html#module-roboskin.const">roboskin.const module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="roboskin.html#module-roboskin">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">roboskin</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="roboskin.html">roboskin package</a> &raquo;</li>
+        
+      <li>roboskin.sensor package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/roboskin.sensor.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="roboskin-sensor-package">
+<h1>roboskin.sensor package<a class="headerlink" href="#roboskin-sensor-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="roboskin-sensor-adxl335-module">
+<h2>roboskin.sensor.adxl335 module<a class="headerlink" href="#roboskin-sensor-adxl335-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="roboskin-sensor-flexiforce-module">
+<h2>roboskin.sensor.flexiforce module<a class="headerlink" href="#roboskin-sensor-flexiforce-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-roboskin.sensor.lsm6ds3">
+<span id="roboskin-sensor-lsm6ds3-module"></span><h2>roboskin.sensor.lsm6ds3 module<a class="headerlink" href="#module-roboskin.sensor.lsm6ds3" title="Permalink to this headline">¶</a></h2>
+<p>This code is heavily inspired by this wonderful GitHub repo:
+<a class="reference external" href="https://github.com/CRImier/python-lsm6ds3">https://github.com/CRImier/python-lsm6ds3</a>
+Thanks Homie!
+Datasheet Link: <a class="reference external" href="https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf">https://cdn.sparkfun.com/assets/learn_tutorials/4/1/6/DM00133076.pdf</a></p>
+<dl class="py class">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU">
+<em class="property">class </em><code class="sig-prename descclassname">roboskin.sensor.lsm6ds3.</code><code class="sig-name descname">LSM6DS3_IMU</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raspi_bus_number</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">i2c_address</span><span class="o">=</span><span class="default_value">'0x6b'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#roboskin.sensor.sensor.Sensor" title="roboskin.sensor.sensor.Sensor"><code class="xref py py-class docutils literal notranslate"><span class="pre">roboskin.sensor.sensor.Sensor</span></code></a></p>
+<p>This is the Python Class for LSM6DS3. This includes all subroutines including calibration to handle everything
+related to the device.</p>
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.calibrate">
+<code class="sig-name descname">calibrate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.calibrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.calibrate" title="Permalink to this definition">¶</a></dt>
+<dd><p># Need to implement this function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.get_bus_number">
+<code class="sig-name descname">get_bus_number</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.get_bus_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.get_bus_number" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.get_i2c_address">
+<code class="sig-name descname">get_i2c_address</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.get_i2c_address"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.get_i2c_address" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.is_lsm6ds3">
+<code class="sig-name descname">is_lsm6ds3</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.is_lsm6ds3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.is_lsm6ds3" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will detect if the accelerometer is LSM6DS3 or not</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if the detected accelerometer is LSM6DS3, otherwise false</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the sensor values and continuously streams them back to the function whoever called it. This is the
+function you need to put while(True) loop for continuous acquisition of accelerometer values.
+:returns: List of floats with Acceleration values and angular velocity values in G in the form of</p>
+<blockquote>
+<div><p>[ax, ay, az, gx, gy, gz] respective directions</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw">
+<code class="sig-name descname">read_raw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.read_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accelX">
+<code class="sig-name descname">read_raw_accelX</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.read_raw_accelX"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accelX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a raw acceleration value for x axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>accelX</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accelY">
+<code class="sig-name descname">read_raw_accelY</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.read_raw_accelY"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accelY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a raw acceleration value for y axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>accelY</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accelZ">
+<code class="sig-name descname">read_raw_accelZ</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.read_raw_accelZ"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accelZ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a raw acceleration value for z axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>accelZ</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accels">
+<code class="sig-name descname">read_raw_accels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.read_raw_accels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_accels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read raw acceleration values for all axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>accels</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyroX">
+<code class="sig-name descname">read_raw_gyroX</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.read_raw_gyroX"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyroX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a raw angular velocity value for x axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>gyroX</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyroY">
+<code class="sig-name descname">read_raw_gyroY</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.read_raw_gyroY"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyroY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a raw angular velocity value for y axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>gyroY</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyroZ">
+<code class="sig-name descname">read_raw_gyroZ</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.read_raw_gyroZ"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyroZ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a raw angular velocity value for z axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>gyroZ</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyros">
+<code class="sig-name descname">read_raw_gyros</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/lsm6ds3.html#LSM6DS3_IMU.read_raw_gyros"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.lsm6ds3.LSM6DS3_IMU.read_raw_gyros" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read raw angular velocity values for all axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>gyros</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-roboskin.sensor.sensor">
+<span id="roboskin-sensor-sensor-module"></span><h2>roboskin.sensor.sensor module<a class="headerlink" href="#module-roboskin.sensor.sensor" title="Permalink to this headline">¶</a></h2>
+<p>Generic Sensor Module</p>
+<dl class="py class">
+<dt id="roboskin.sensor.sensor.Sensor">
+<em class="property">class </em><code class="sig-prename descclassname">roboskin.sensor.sensor.</code><code class="sig-name descname">Sensor</code><a class="reference internal" href="_modules/roboskin/sensor/sensor.html#Sensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.sensor.Sensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Sensor Class</p>
+<dl class="py method">
+<dt id="roboskin.sensor.sensor.Sensor.calibrate">
+<code class="sig-name descname">calibrate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/sensor.html#Sensor.calibrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.sensor.Sensor.calibrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calibrate the sensor</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.sensor.Sensor.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/sensor.html#Sensor.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.sensor.Sensor.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch sensor data</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-roboskin.sensor.utils">
+<span id="roboskin-sensor-utils-module"></span><h2>roboskin.sensor.utils module<a class="headerlink" href="#module-roboskin.sensor.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="roboskin.sensor.utils.make_16bit_value">
+<code class="sig-prename descclassname">roboskin.sensor.utils.</code><code class="sig-name descname">make_16bit_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vh</span></em>, <em class="sig-param"><span class="n">vl</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/utils.html#make_16bit_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.utils.make_16bit_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The acceleration is usually from 2 Byte sized registers. We obtain acceleration value in 2’s complement form
+So first we obtain both MSByte as well as LSByte, combine them both, and convert them into 2’s complement form
+:param vh: The MSByte
+:type vh: int
+:param vl: The LSByte
+:type vl: int</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Acceleration Value in G</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="roboskin.sensor.utils.twos_comp">
+<code class="sig-prename descclassname">roboskin.sensor.utils.</code><code class="sig-name descname">twos_comp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span></em>, <em class="sig-param"><span class="n">num_of_bits</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/utils.html#twos_comp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.utils.twos_comp" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute the 2’s complement of int value val. Reference:
+<a class="reference external" href="https://en.wikipedia.org/wiki/Two%27s_complement">https://en.wikipedia.org/wiki/Two%27s_complement</a>
+:param val: The original value, which we have to convert to 2’s complement
+:type val: int
+:param num_of_bits: # of bits, this is particularly important because if you don’t know bit size, you dont what’s the</p>
+<blockquote>
+<div><p>MS Bit, and entire thing can go wrong. Fortunately our both Accelerometer registers combined are of 16 bit
+length. So that’s what we will pass</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Two’s complement value of passed value</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-roboskin.sensor.vl53l1x">
+<span id="roboskin-sensor-vl53l1x-module"></span><h2>roboskin.sensor.vl53l1x module<a class="headerlink" href="#module-roboskin.sensor.vl53l1x" title="Permalink to this headline">¶</a></h2>
+<p>This is a python class for VL53L1X Proximity Sensor
+Datasheet Link: <a class="reference external" href="https://www.st.com/resource/en/datasheet/vl53l1x.pdf">https://www.st.com/resource/en/datasheet/vl53l1x.pdf</a>
+This library heavily uses VL53L1X pip application: pip install VL53L1X</p>
+<dl class="py class">
+<dt id="roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor">
+<em class="property">class </em><code class="sig-prename descclassname">roboskin.sensor.vl53l1x.</code><code class="sig-name descname">VL53L1X_ProximitySensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raspi_bus_number</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">i2c_address</span><span class="o">=</span><span class="default_value">41</span></em>, <em class="sig-param"><span class="n">range_value</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">timing_budget</span><span class="o">=</span><span class="default_value">33000</span></em>, <em class="sig-param"><span class="n">inter_measurement_period</span><span class="o">=</span><span class="default_value">33</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/vl53l1x.html#VL53L1X_ProximitySensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#roboskin.sensor.sensor.Sensor" title="roboskin.sensor.sensor.Sensor"><code class="xref py py-class docutils literal notranslate"><span class="pre">roboskin.sensor.sensor.Sensor</span></code></a></p>
+<p>Code for VL53L1X distance sensor class.</p>
+<dl class="py method">
+<dt id="roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.calibrate">
+<code class="sig-name descname">calibrate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/vl53l1x.html#VL53L1X_ProximitySensor.calibrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.calibrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the calibration function.
+# TODO: Decide whether you have to implement it or not
+:returns:
+:rtype: None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">range_value</span></em>, <em class="sig-param"><span class="n">timing_budget</span></em>, <em class="sig-param"><span class="n">inter_measurement_period</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/vl53l1x.html#VL53L1X_ProximitySensor.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/vl53l1x.html#VL53L1X_ProximitySensor.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the sensor values and continuously streams them back to the function whoever called it. This is the
+function you need to put while(True) loop for continuous acquisition of accelerometer values.
+:returns: Continuous stream of floats from the proximity sensor
+:rtype: float</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.read_raw">
+<code class="sig-name descname">read_raw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/vl53l1x.html#VL53L1X_ProximitySensor.read_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.read_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function which reads the raw values from the sensor, and gives them back to you, unchanged</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Raw sensor reading from the proximity sensor</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/sensor/vl53l1x.html#VL53L1X_ProximitySensor.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.sensor.vl53l1x.VL53L1X_ProximitySensor.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop VL53L1X ToF Sensor Ranging</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-roboskin.sensor">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-roboskin.sensor" title="Permalink to this headline">¶</a></h2>
+<p>Init for our Sensors.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="roboskin.examples.calibration.html" class="btn btn-neutral float-left" title="roboskin.examples.calibration package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Kandai Watanabe
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

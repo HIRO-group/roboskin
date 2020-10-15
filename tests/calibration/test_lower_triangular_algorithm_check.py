@@ -3,7 +3,7 @@ Tests for Lower Traingular Matrix generation
 """
 import unittest
 import numpy as np
-from robotic_skin.calibration.convert_to_lowertriangular_matrix import ConvertToLT
+from roboskin.calibration.convert_to_lowertriangular_matrix import ConvertToLT
 
 
 class TestlMatrix(unittest.TestCase):

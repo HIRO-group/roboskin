@@ -1,0 +1,13 @@
+Cython
+future
+matplotlib
+numpy
+RPI.GPIO
+pycodestyle
+smbus2
+VL53L1X
+pyquaternion
+pyyaml
+flake8
+tabulate
+rospkg
