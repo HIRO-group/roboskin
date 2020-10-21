@@ -393,10 +393,8 @@ class KinematicChainTorch():
         -------
         : TM
         """
-        assert 0 <= i_joint <= self.n_joint-1, \
-            print('i_joint Should be in between 0 and {}'.format(self.n_joint-1))
-        assert start_joint <= i_joint, \
-            print('i_joint={} should be >= than start_joint {}'.format(i_joint, start_joint))
+        assert 0 <= i_joint <= self.n_joint-1  #, print('i_joint Should be in between 0 and {}'.format(self.n_joint-1))
+        assert start_joint <= i_joint  #, print('i_joint={} should be >= than start_joint {}'.format(i_joint, start_joint))
 
         if start_joint == -1:
             return rs_T_dof[i_joint]
@@ -451,15 +449,12 @@ class KinematicChainTorch():
         --------
         : TM
         """
-        assert 0 <= i_su <= self.n_su-1, \
-            print('i_su Should be in between 0 and {}'.format(self.n_su-1))
+        assert 0 <= i_su <= self.n_su-1  #, print('i_su Should be in between 0 and {}'.format(self.n_su-1))
 
         # Get corresponding joint number
         i_joint = self.su_joint_dict[i_su]
 
-        assert start_joint <= i_joint, \
-            print('i_joint {} which i_su {} is attached to \
-                    should be larger than or equal to start_joint {}'.format(i_joint, i_su, start_joint))
+        assert start_joint <= i_joint  #, print('i_joint {} which i_su {} is attached to should be larger than or equal to start_joint {}'.format(i_joint, i_su, start_joint))
 
         if start_joint == -1:
             return rs_T_dof[i_joint] * self.dof_T_su[i_su]
