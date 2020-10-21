@@ -75,7 +75,7 @@ def parse_datadir(datadir):
         try:
             datadir = os.path.join(rospkg.RosPack().get_path('ros_robotic_skin'), 'data')
         except Exception:
-            raise FileNotFoundError('ros_robotic_skin not installed in the catkin workspace or pass --datadir=PATH_TO_DATA_DIRECTORY')
+            raise OSError('ros_robotic_skin not installed in the catkin workspace or pass --datadir=PATH_TO_DATA_DIRECTORY')
 
     return datadir
 
