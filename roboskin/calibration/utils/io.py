@@ -93,7 +93,7 @@ def load_data(robot, directory):
         filename = '_'.join([filename, robot])
         filepath = os.path.join(directory, filename + '.pickle')
         with open(filepath, 'rb') as f:
-            return pickle.load(f, encoding='latin1')
+            return pickle.load(f)
 
     static = read_pickle('static_data', robot)
     dynamic = read_pickle('dynamic_data', robot)
@@ -103,7 +103,7 @@ def load_data(robot, directory):
 
     filepath = os.path.join(directory, 'imu_mappings.pickle')
     with open(filepath, 'rb') as f:
-        imu_mappings = pickle.load(f, encoding='latin1')
+        imu_mappings = pickle.load(f)
 
     return data, imu_mappings
 
