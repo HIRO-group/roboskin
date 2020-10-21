@@ -73,10 +73,10 @@ class DataLogger():
     def __call__(self):
         print('Estimated SU Positions')
         for i, values in self.best_data['position'].items():
-            print('SU{}: {utils.n2s(np.array(values), 3)}'.format(i))
+            print('SU{}: {}'.format(i, utils.n2s(np.array(values), 3)))
 
         print('Estimated SU Orientations')
         for i, values in self.best_data['orientation'].items():
-            print('SU{}: {utils.n2s(np.array(values), 3)}'.format(i))
+            print('SU{}: {}'.format(i, utils.n2s(np.array(values), 3)))
 
         print('average_euclidean_distance: ', self.average_euclidean_distance)

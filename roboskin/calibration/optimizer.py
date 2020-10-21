@@ -490,7 +490,7 @@ class MixedIncrementalOptimizer(IncrementalOptimizerBase):
             quaternion_distance=errors['orientation'])
         # print to terminal
         logging.debug('e={:.5f}, res={:.5f}, params:{}'.format(e, res, n2s(params, 3)) +
-                     'P:{}, Q:{}'.format(t2s(T.position), n2s(T.quaternion, 3)))
+                      'P:{}, Q:{}'.format(t2s(T.position), n2s(T.quaternion, 3)))
 
         self.local_step += 1
         self.global_step += 1
@@ -615,7 +615,7 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
             quaternion_distance=errors['orientation'])
         # print to terminal
         logging.debug('e={:.5f}, res={:.5f}, params:{}'.format(e, res, n2s(target_params, 3)) +
-                     'P:{}, Q:{}'.format(t2s(T.position), n2s(T.quaternion, 3)))
+                      'P:{}, Q:{}'.format(t2s(T.position), n2s(T.quaternion, 3)))
 
         self.local_step += 1
         self.global_step += 1
