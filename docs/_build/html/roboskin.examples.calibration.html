@@ -373,8 +373,11 @@ Shape = (length, data)</p></li>
 
 <dl class="py function">
 <dt id="roboskin.examples.calibration.stats_generator.add_table_to_md">
-<code class="sig-prename descclassname">roboskin.examples.calibration.stats_generator.</code><code class="sig-name descname">add_table_to_md</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">table</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">headers</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/examples/calibration/stats_generator.html#add_table_to_md"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.examples.calibration.stats_generator.add_table_to_md" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-prename descclassname">roboskin.examples.calibration.stats_generator.</code><code class="sig-name descname">add_table_to_md</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="n">table</span></em>, <em class="sig-param"><span class="n">headers</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/examples/calibration/stats_generator.html#add_table_to_md"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.examples.calibration.stats_generator.add_table_to_md" title="Permalink to this definition">¶</a></dt>
+<dd><p>filename: str
+table: list
+headers: list</p>
+</dd></dl>
 
 <dl class="py function">
 <dt id="roboskin.examples.calibration.stats_generator.append_true_parameters">
@@ -383,18 +386,42 @@ Shape = (length, data)</p></li>
 
 <dl class="py function">
 <dt id="roboskin.examples.calibration.stats_generator.array_to_table_string">
-<code class="sig-prename descclassname">roboskin.examples.calibration.stats_generator.</code><code class="sig-name descname">array_to_table_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dh_params_array</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="_modules/roboskin/examples/calibration/stats_generator.html#array_to_table_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.examples.calibration.stats_generator.array_to_table_string" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-prename descclassname">roboskin.examples.calibration.stats_generator.</code><code class="sig-name descname">array_to_table_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dh_params_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/examples/calibration/stats_generator.html#array_to_table_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.examples.calibration.stats_generator.array_to_table_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>dh_params_array: np.ndarray</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="roboskin.examples.calibration.stats_generator.create_cascaded_table">
-<code class="sig-prename descclassname">roboskin.examples.calibration.stats_generator.</code><code class="sig-name descname">create_cascaded_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">method_names</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">data_loggers</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">target_measure</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">column_names</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">row_names</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/examples/calibration/stats_generator.html#create_cascaded_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.examples.calibration.stats_generator.create_cascaded_table" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-prename descclassname">roboskin.examples.calibration.stats_generator.</code><code class="sig-name descname">create_cascaded_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">method_names</span></em>, <em class="sig-param"><span class="n">data_loggers</span></em>, <em class="sig-param"><span class="n">target_measure</span></em>, <em class="sig-param"><span class="n">column_names</span></em>, <em class="sig-param"><span class="n">row_names</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/examples/calibration/stats_generator.html#create_cascaded_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.examples.calibration.stats_generator.create_cascaded_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>method_names: list
+data_loggers: list
+target_measure: str
+column_names: list
+row_names: list</p>
+</dd></dl>
 
 <dl class="py function">
 <dt id="roboskin.examples.calibration.stats_generator.list_to_html_table">
-<code class="sig-prename descclassname">roboskin.examples.calibration.stats_generator.</code><code class="sig-name descname">list_to_html_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">my_list</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">is_header</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/roboskin/examples/calibration/stats_generator.html#list_to_html_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.examples.calibration.stats_generator.list_to_html_table" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-prename descclassname">roboskin.examples.calibration.stats_generator.</code><code class="sig-name descname">list_to_html_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">my_list</span></em>, <em class="sig-param"><span class="n">is_header</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/examples/calibration/stats_generator.html#list_to_html_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.examples.calibration.stats_generator.list_to_html_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>my_list: list
+is_header: bool</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="roboskin.examples.calibration.stats_generator.save_plt">

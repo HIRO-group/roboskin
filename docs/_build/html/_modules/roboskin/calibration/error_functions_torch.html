@@ -157,7 +157,7 @@
 <span class="kn">from</span> <span class="nn">roboskin.calibration.utils.rotational_acceleration_torch</span> <span class="kn">import</span> <span class="n">estimate_acceleration_torch</span>
 
 
-<div class="viewcode-block" id="max_angle_func"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.error_functions_torch.max_angle_func">[docs]</a><span class="k">def</span> <span class="nf">max_angle_func</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<div class="viewcode-block" id="max_angle_func"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.error_functions_torch.max_angle_func">[docs]</a><span class="k">def</span> <span class="nf">max_angle_func</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes current joint angle at time t</span>
 <span class="sd">    joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.</span>
@@ -229,7 +229,7 @@
             <span class="n">q_su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pose_names</span><span class="p">[</span><span class="n">p</span><span class="p">]][</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_names</span><span class="p">[</span><span class="n">i_su</span><span class="p">]][:</span><span class="mi">4</span><span class="p">]</span>
             <span class="n">d</span> <span class="o">=</span> <span class="n">pyqt</span><span class="o">.</span><span class="n">Quaternion</span><span class="o">.</span><span class="n">absolute_distance</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="n">np_to_pyqt</span><span class="p">(</span><span class="n">q_su</span><span class="p">))</span>
             <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">q_su</span> <span class="o">-</span> <span class="n">T</span><span class="o">.</span><span class="n">quaternion</span><span class="p">)</span>
-            <span class="c1"># logging.debug(f&#39;Measured: {q_su}, Model: {T.quaternion}&#39;)</span>
+            <span class="c1"># logging.debug(&#39;Measured: {}, Model: {}&#39;.format(q_su, T.quaternion))</span>
             <span class="n">error_quaternion</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">gravities</span><span class="p">,</span> <span class="n">gravity</span><span class="p">)</span></div>
@@ -310,8 +310,8 @@
                         <span class="n">angle_func</span><span class="o">=</span><span class="n">max_angle_func</span><span class="p">,</span>
                         <span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">)</span>
 
-                    <span class="c1"># logging.debug(f&#39;[{pose}, {joint}, {su}@Joint{i_joint}]\t&#39; +</span>
-                    <span class="c1">#               f&#39;Model: {n2s(estimate_A, 4)} SU: {n2s(measured_A, 4)}&#39;)</span>
+                    <span class="c1"># logging.debug(&#39;[{}, {}, {}@Joint{}]\t&#39;.format(pose, joint, su, i_joint) +</span>
+                    <span class="c1">#               &#39;Model: {} SU: {}&#39;.format(n2s(estimate_A, 4), n2s(measured_A, 4)))</span>
                     <span class="n">measured_A_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">measured_A</span><span class="p">)</span><span class="o">.</span><span class="n">double</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
                     <span class="c1"># print(max_accel_model.detach().numpy(), max_accel_train)</span>
                     <span class="n">error</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">measured_A_tensor</span> <span class="o">-</span> <span class="n">estimate_A_tensor</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
