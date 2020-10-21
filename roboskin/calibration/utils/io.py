@@ -49,9 +49,14 @@ def load_robot_configs(configdir, robot):
         raise ValueError('Please provide a valid config directory with robot yaml files')
 
 
-def initialize_logging(log_level: str, filename: str = None):
+def initialize_logging(log_level, filename=None):
     """
     Initialize Logging Module with given log_lvel
+
+    Arguments
+    ----------
+    log_level: str
+    filename: str
     """
     numeric_level = getattr(logging, log_level.upper(), None)
     if not isinstance(numeric_level, int):
@@ -104,11 +109,21 @@ def load_data(robot, directory):
     return data, imu_mappings
 
 
-def add_noise(data, data_types: List[str], sigma=1):
+def add_noise(data, data_types, sigma=1):
+    """
+    Arguments
+    ----------
+    data_types: List[str]
+    """
     return add_outlier(data, data_types, sigma, 1)
 
 
-def add_outlier(data, data_types: List[str], sigma=3, outlier_ratio=0.25):  # noqa:#C901
+def add_outlier(data, data_types, sigma=3, outlier_ratio=0.25):
+    """
+    Arguments
+    ----------
+    data_types: List[str]
+    """
     for data_type in data_types:
         if data_type not in ['static', 'dynamic']:
             raise ValueError('There is no such data_type='+data_type)

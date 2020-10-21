@@ -7,7 +7,7 @@ from roboskin.calibration.utils.quaternion import np_to_pyqt
 from roboskin.calibration.utils.rotational_acceleration_torch import estimate_acceleration_torch
 
 
-def max_angle_func(t: int):
+def max_angle_func(t):
     """
     Computes current joint angle at time t
     joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.

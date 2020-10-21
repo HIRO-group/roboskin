@@ -25,7 +25,14 @@ REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file
 CONFIGDIR = os.path.join(REPODIR, 'config')
 
 
-def array_to_table_string(dh_params_array: np.ndarray) -> list:  # noqa: E999
+def array_to_table_string(dh_params_array):  # noqa: E999
+    """
+    dh_params_array: np.ndarray
+
+    Returns
+    --------
+    : list
+    """
     return_list = []
     # Round off DH params to two decimals
     dh_params_array = np.around(dh_params_array, decimals=2)
@@ -34,7 +41,15 @@ def array_to_table_string(dh_params_array: np.ndarray) -> list:  # noqa: E999
     return return_list
 
 
-def list_to_html_table(my_list: list, is_header: bool = False) -> str:
+def list_to_html_table(my_list, is_header=False):
+    """
+    my_list: list
+    is_header: bool
+
+    Returns
+    --------
+    str
+    """
     starting_string = "<table><tr>"
     trailing_string = "</tr></table>"
     return_string = f"{starting_string}"
@@ -78,8 +93,15 @@ def save_plt(filename):
     plt.savefig(filename, format="png")
 
 
-def create_cascaded_table(method_names: list, data_loggers: list, target_measure: str,
-                          column_names: list, row_names: list):
+def create_cascaded_table(method_names, data_loggers, target_measure,
+                          column_names, row_names):
+    """
+    method_names: list
+    data_loggers: list
+    target_measure: str
+    column_names: list
+    row_names: list
+    """
     if len(method_names) != len(data_loggers):
         raise ValueError('Size of method_names and data_loggers should be the same')
 
@@ -110,7 +132,12 @@ def create_cascaded_table(method_names: list, data_loggers: list, target_measure
     return table
 
 
-def add_table_to_md(filename: str, table: list, headers: list):
+def add_table_to_md(filename, table, headers):
+    """
+    filename: str
+    table: list
+    headers: list
+    """
     with open(filename, "a") as f:
         f.write(tabulate(table, headers, tablefmt="github").__str__())
         f.write("\n")

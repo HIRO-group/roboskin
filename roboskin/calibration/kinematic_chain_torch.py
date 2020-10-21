@@ -18,8 +18,16 @@ BOUNDS_SU = np.array([
     [-np.pi, np.pi]])   # alpha
 
 
-def construct_kinematic_chain(robot_configs: dict, imu_mappings: dict,
+def construct_kinematic_chain(robot_configs, imu_mappings,
                               test_code=False, optimize_all=False):
+    """
+    Arguments
+    ----------
+    robot_configs: dict
+    imu_mappings: dict
+    test_code: bool
+    optimize_all: bool
+    """
     su_joint_dict = {}
     joints = []
     for imu_str, link_str in imu_mappings.items():
@@ -50,9 +58,8 @@ def construct_kinematic_chain(robot_configs: dict, imu_mappings: dict,
 
 
 class KinematicChainTorch():
-    def __init__(self, n_joint: int, su_joint_dict: dict,  # noqa: E999
-                 bound_dict: dict, linkdh_dict: dict = None,     # noqa: E999
-                 sudh_dict: dict = None, eval_poses: np.ndarray = None) -> None:
+    def __init__(self, n_joint, su_joint_dict, bound_dict, linkdh_dict=None,
+                 sudh_dict=None, eval_poses=None):
         """
         Defines a kinematic chain.
         This class enables users to easily retrieve
@@ -80,6 +87,8 @@ class KinematicChainTorch():
             Bounds of DH Parameters
             {'link': np.ndarray (4, 2), 'su': np.ndarray (6, 2)}
         linkdh_dict: dict
+        sudh_dict: dict
+        eval_poses: np.ndarray
             DH Parameters of all links.
 
         Attributes
@@ -157,7 +166,17 @@ class KinematicChainTorch():
             t.q = copy.deepcopy(t.q)
         return shallow_copy
 
-    def __predefined_or_rand_dofs(self, linkdh_dict: dict, bound_dict: dict) -> List[TM]:
+    def __predefined_or_rand_dofs(self, linkdh_dict, bound_dict):
+        """
+        Arguments
+        ---------
+        linkdh_dict: dict
+        bound_dict: dict
+
+        Returns
+        --------
+        : List[TM]
+        """
         if linkdh_dict is None:
             # Initialize DH parameters randomly within the given bounds
             return [TM.from_bounds(bound_dict['link']).tensor()
@@ -167,7 +186,17 @@ class KinematicChainTorch():
             return [TM.from_list(linkdh_dict[f'joint{i+1}']).tensor()
                     for i in range(self.n_joint)]
 
-    def predefined_or_rand_sus(self, sudh_dict: dict, bound_dict: dict) -> List[TM]:
+    def __predefined_or_rand_sus(self, sudh_dict, bound_dict):
+        """
+        Arguments
+        ---------
+        sudh_dict: dict
+        bound_dict: dict
+
+        Returns
+        --------
+        : List[TM]
+        """
         dof_T_vdof = []
         vdof_T_su = []
         dof_T_su = []
@@ -183,10 +212,18 @@ class KinematicChainTorch():
             dof_T_su.append(_dof_T_vdof * _vdof_T_su)
         return dof_T_vdof, vdof_T_su, dof_T_su
 
-    def __initialize_chains(self, dof_T_dof: List[TM]) -> List[TM]:
+    def __initialize_chains(self, dof_T_dof):
         """
         initialize chains (rs to dof matrices) from
         dof to dof matrices.
+
+        Arguments
+        ----------
+        dof_T_dof: List[TM]
+
+        Returns
+        --------
+        : List[TM]
         """
         start_joint = 0
         # list of nones - to be filled in later
@@ -194,13 +231,23 @@ class KinematicChainTorch():
         self.__update_chains(dof_T_dof, rs_T_dof, start_joint)
         return rs_T_dof
 
-    def __update_chains(self, dof_T_dof: List[TM], rs_T_dof: List[TM],
-                        start_joint: int = 0, end_joint: int = None):
+    def __update_chains(self, dof_T_dof, rs_T_dof, start_joint=0, end_joint=None):
         """
         Updates rs to dof matrices based on dof to dof matrices.
 
         Unlike other functions, since this is a private function.
         i_joint should start from 0 to n-1
+
+        Arguments
+        ----------
+        dof_T_dof: List[TM]
+        rs_T_dof: List[TM]
+        start_joint: int
+        end_joint: int
+
+        Returns
+        --------
+        : List[TM]
         """
         assert isinstance(dof_T_dof, list)
         assert isinstance(rs_T_dof, list)
@@ -216,11 +263,22 @@ class KinematicChainTorch():
             T = T * dof_T_dof[i]
             rs_T_dof[i] = T
 
-    def __apply_poses(self, poses: np.ndarray, dof_T_dof: List[TM], rs_T_dof: List[TM],
-                      start_joint: int = 0, end_joint: int = None) -> List[TM]:
+    def __apply_poses(self, poses, dof_T_dof, rs_T_dof, start_joint=0, end_joint=None):
         """
         based on `poses` and specified start and end joints,
         applies a pose.
+
+        Arguments
+        ----------
+        poses: np.ndarray
+        dof_T_dof: List[TM]
+        rs_T_dof: List[TM]
+        start_joint: int
+        end_joint: int
+
+        Returns
+        --------
+        : List[TM]
         """
         poses = torch.tensor(poses).cuda()
         assert isinstance(poses, torch.Tensor)
@@ -251,10 +309,15 @@ class KinematicChainTorch():
         # self.dof_Tc_dof = copy.deepcopy(self.dof_T0_dof)
         # self.rs_Tc_dof = copy.deepcopy(self.rs_T0_dof)
 
-    def set_poses(self, poses: np.ndarray,
-                  start_joint: int = 0, end_joint: int = None) -> None:
+    def set_poses(self, poses, start_joint=0, end_joint=None):
         """
         sets poses from start_joint to end_joint.
+
+        Arguments
+        ----------
+        poses: np.ndarray
+        start_joint: int
+        end_joint: int
         """
         poses = torch.tensor(poses).cuda()
         assert isinstance(poses, torch.Tensor)
@@ -271,7 +334,7 @@ class KinematicChainTorch():
         self.rs_Tt_dof = None
         self.temp_poses = None
 
-    def init_temp_TM(self, i_joint: int, additional_pose: float) -> None:
+    def init_temp_TM(self, i_joint, additional_pose):
         """
         Initialize a temporary Transformation Matrices by adding
         an extra joint angle to Current Tranformation Matrices.
@@ -298,7 +361,7 @@ class KinematicChainTorch():
         self.dof_Tt_dof[i_joint] = self.dof_Tt_dof[i_joint](theta=additional_pose)
         self.__update_chains(self.dof_Tt_dof, self.rs_Tt_dof, start_joint=i_joint)
 
-    def add_temp_pose(self, i_joint: int, additional_pose: float) -> None:
+    def add_temp_pose(self, i_joint, additional_pose):
         """
         Add a pose to the temporary pose/TM
         It does not initialize the temporary pose
@@ -306,15 +369,30 @@ class KinematicChainTorch():
         The temporary pose/TM will be reset once init_temp_TM or set_poses are called.
 
         TODO: Allow multiple additional poses
+
+        Parameters
+        -----------
+        i_joint: int
+        additional_pose:float
         """
         self.temp_poses[i_joint] += additional_pose
         self.dof_Tt_dof[i_joint] = self.dof_Tt_dof[i_joint](theta=additional_pose)
         self.__update_chains(self.dof_Tt_dof, self.rs_Tt_dof, start_joint=i_joint)
 
-    def __compute_joint_TM(self, i_joint: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
-                           start_joint: int = 0) -> TM:
+    def __compute_joint_TM(self, i_joint, dof_T_dof, rs_T_dof, start_joint):
         """
         i_joint should also start from 0 to n-1.
+
+        Parameters
+        -----------
+        i_joint: int
+        dof_T_dof: List[TM]
+        rs_T_dof: List[TM]
+        start_joint: int
+
+        Returns
+        -------
+        : TM
         """
         assert 0 <= i_joint <= self.n_joint-1, \
             print(f'i_joint Should be in between 0 and {self.n_joint-1}')
@@ -330,11 +408,21 @@ class KinematicChainTorch():
             T = T * dof_T_dof[i]
         return T
 
-    def compute_joint_TM(self, i_joint: int, pose_type: str, start_joint: int = -1) -> TM:
+    def compute_joint_TM(self, i_joint, pose_type, start_joint=-1):
         """
         Get a TransformationMatrix to the i_joint th joint
 
         Based on `pose_type`, computes transformation matrix to joint.
+
+        Parameters
+        -----------
+        i_joint: int
+        pose_type: str
+        start_joint: int
+
+        Returns
+        -------
+        : TM
         """
         if pose_type == 'orgin':
             return self.__compute_joint_TM(i_joint, self.dof_T0_dof, self.rs_T0_dof, start_joint)
@@ -349,10 +437,20 @@ class KinematicChainTorch():
         else:
             raise ValueError(f'Not such pose as {pose_type}')
 
-    def __compute_su_TM(self, i_su: int, dof_T_dof: List[TM], rs_T_dof: List[TM],
-                        start_joint: int) -> TM:
+    def __compute_su_TM(self, i_su, dof_T_dof, rs_T_dof, start_joint):
         """
         i_su should also start from 0 to m-1.
+
+        Parameters
+        -----------
+        i_su: int
+        dof_T_dof: List[TM]
+        rs_T_dof: List[TM]
+        start_joint: int
+
+        Returns
+        --------
+        : TM
         """
         assert 0 <= i_su <= self.n_su-1, \
             print(f'i_su Should be in between 0 and {self.n_su-1}')
@@ -372,9 +470,19 @@ class KinematicChainTorch():
             T = T * dof_T_dof[j]
         return T * self.dof_T_su[i_su]
 
-    def compute_su_TM(self, i_su: int, pose_type: str, start_joint: int = -1) -> TM:
+    def compute_su_TM(self, i_su, pose_type, start_joint=-1):
         """
         Get a TransformationMatrix to the i_su th su
+
+        Arguments
+        ----------
+        i_su: int
+        pose_type: str
+        start_joint: int
+
+        Returns
+        ---------
+        : TM
         """
         if pose_type == 'origin':
             return self.__compute_su_TM(i_su, self.dof_T0_dof, self.rs_T0_dof, start_joint)
@@ -389,7 +497,7 @@ class KinematicChainTorch():
         else:
             raise ValueError(f'There is no such pose_type as {pose_type}')
 
-    def set_sudh(self, i_su: int, params: np.ndarray) -> None:
+    def set_sudh(self, i_su, params):
         """
         Set i_su th SU DH Parameters
 
@@ -407,7 +515,7 @@ class KinematicChainTorch():
         self.vdof_T_su[i_su] = TM.from_numpy(params[2:]).tensor()
         self.dof_T_su[i_su] = self.dof_T_vdof[i_su] * self.vdof_T_su[i_su]
 
-    def set_linkdh(self, i_joint: int, params: np.ndarray) -> None:
+    def set_linkdh(self, i_joint, params):
         """
         Set i_su th SU DH Parameters
 
@@ -429,7 +537,7 @@ class KinematicChainTorch():
 
         self.dof_Te_dof = self.__apply_poses(self.eval_poses, self.dof_T0_dof, self.rs_Te_dof)
 
-    def get_params_at(self, i_su: int):
+    def get_params_at(self, i_su):
         """
 
         Arguments

@@ -85,7 +85,7 @@ def quaternion_from_two_vectors(source, target):
     return pyqt.Quaternion(axis=axis, angle=angle)
 
 
-def angle_between_quaternions(q_1: np.ndarray, q_2: np.ndarray, output_in_degrees: bool = False) -> float:  # noqa: E999
+def angle_between_quaternions(q_1, q_2, output_in_degrees=False):
     r"""
     Angle between quaternions a and b in degrees. Please note the input quaternions should be of
     form np.ndarray([x, y, z, w]).
@@ -106,6 +106,7 @@ def angle_between_quaternions(q_1: np.ndarray, q_2: np.ndarray, output_in_degree
         Quaternion a
     :param q_2: np.ndarray
         Quaternion b
+    :param output_in_degrees: bool
     :return: float
         Angle between quaternions in degrees
     """
