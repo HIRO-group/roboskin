@@ -15,7 +15,6 @@ REPODIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.pat
 CONFIGDIR = os.path.join(REPODIR, 'config')
 
 
-
 def parse_arguments():
     """
     Parse Arguments

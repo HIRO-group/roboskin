@@ -1,6 +1,5 @@
 import copy
 import numpy as np
-from typing import List
 from roboskin.calibration.transformation_matrix import TransformationMatrix as TM
 import torch
 

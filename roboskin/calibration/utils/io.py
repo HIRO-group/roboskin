@@ -4,7 +4,6 @@ import pickle
 import rospkg
 import logging
 import numpy as np
-from typing import List
 from collections import namedtuple
 
 
@@ -118,7 +117,7 @@ def add_noise(data, data_types, sigma=1):
     return add_outlier(data, data_types, sigma, 1)
 
 
-def add_outlier(data, data_types, sigma=3, outlier_ratio=0.25):
+def add_outlier(data, data_types, sigma=3, outlier_ratio=0.25):  # noqa:C901
     """
     Arguments
     ----------
