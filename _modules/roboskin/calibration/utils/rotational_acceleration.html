@@ -185,8 +185,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;analytical&#39;</span><span class="p">,</span> <span class="s1">&#39;our&#39;</span><span class="p">,</span> <span class="s1">&#39;mittendorfer&#39;</span><span class="p">,</span> <span class="s1">&#39;modified_mittendorfer&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">methods</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;There is no method called </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span>
-                         <span class="sa">f</span><span class="s1">&#39;Please Choose from </span><span class="si">{</span><span class="n">methods</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;There is no method called </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="o">+</span>
+                         <span class="s1">&#39;Please Choose from </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">methods</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">angle_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">_angle_func</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -324,7 +324,7 @@
         <span class="k">return</span> <span class="n">world_g</span><span class="p">,</span> <span class="n">world_Ac</span><span class="p">,</span> <span class="n">world_At</span>
 
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Coordinate name &quot;</span><span class="si">{</span><span class="n">coordinate</span><span class="si">}</span><span class="s1">&quot; is invalid</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Coordinate name &quot;</span><span class="si">{}</span><span class="s1">&quot; is invalid</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coordinate</span><span class="p">)</span> <span class="o">+</span>
                        <span class="s1">&#39;Please choose from &quot;body&quot;, &quot;inertial&quot;, or &quot;world&quot;&#39;</span><span class="p">)</span></div>
 
 

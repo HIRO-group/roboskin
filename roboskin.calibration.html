@@ -480,12 +480,16 @@ more reliable and robust than just using one.</p>
 
 <dl class="py function">
 <dt id="roboskin.calibration.error_functions.max_angle_func">
-<code class="sig-prename descclassname">roboskin.calibration.error_functions.</code><code class="sig-name descname">max_angle_func</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">t</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">delta_t</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/error_functions.html#max_angle_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.error_functions.max_angle_func" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">roboskin.calibration.error_functions.</code><code class="sig-name descname">max_angle_func</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">t</span></em>, <em class="sig-param"><span class="n">i_joint</span></em>, <em class="sig-param"><span class="n">delta_t</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/error_functions.html#max_angle_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.error_functions.max_angle_func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes current joint angle at time t
 joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>t</strong> (<cite>int</cite>) – Current time t</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<cite>int</cite>) – Current time t</p></li>
+<li><p><strong>i_joint</strong> (<cite>int</cite>) – </p></li>
+<li><p><strong>delta_t</strong> (<cite>float</cite>) – </p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -509,7 +513,7 @@ joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.<
 
 <dl class="py function">
 <dt id="roboskin.calibration.error_functions_torch.max_angle_func">
-<code class="sig-prename descclassname">roboskin.calibration.error_functions_torch.</code><code class="sig-name descname">max_angle_func</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">t</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/error_functions_torch.html#max_angle_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.error_functions_torch.max_angle_func" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">roboskin.calibration.error_functions_torch.</code><code class="sig-name descname">max_angle_func</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">t</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/error_functions_torch.html#max_angle_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.error_functions_torch.max_angle_func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes current joint angle at time t
 joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.</p>
 <dl class="field-list simple">
@@ -538,33 +542,71 @@ joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.<
 <span id="roboskin-calibration-kinematic-chain-module"></span><h2>roboskin.calibration.kinematic_chain module<a class="headerlink" href="#module-roboskin.calibration.kinematic_chain" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="roboskin.calibration.kinematic_chain.KinematicChain">
-<em class="property">class </em><code class="sig-prename descclassname">roboskin.calibration.kinematic_chain.</code><code class="sig-name descname">KinematicChain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">su_joint_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">bound_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">linkdh_dict</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sudh_dict</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">eval_poses</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">roboskin.calibration.kinematic_chain.</code><code class="sig-name descname">KinematicChain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_joint</span></em>, <em class="sig-param"><span class="n">su_joint_dict</span></em>, <em class="sig-param"><span class="n">bound_dict</span></em>, <em class="sig-param"><span class="n">linkdh_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sudh_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">eval_poses</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain.KinematicChain.add_temp_pose">
-<code class="sig-name descname">add_temp_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">additional_pose</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.add_temp_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.add_temp_pose" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add_temp_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span></em>, <em class="sig-param"><span class="n">additional_pose</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.add_temp_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.add_temp_pose" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a pose to the temporary pose/TM
 It does not initialize the temporary pose
 nor overwrite the current pose.
 The temporary pose/TM will be reset once init_temp_TM or set_poses are called.</p>
 <p>TODO: Allow multiple additional poses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i_joint</strong> (<em>int</em>) – </p></li>
+<li><p><strong>additional_pose</strong> (<em>float</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain.KinematicChain.compute_joint_TM">
-<code class="sig-name descname">compute_joint_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pose_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#roboskin.calibration.transformation_matrix.TransformationMatrix" title="roboskin.calibration.transformation_matrix.TransformationMatrix">roboskin.calibration.transformation_matrix.TransformationMatrix</a><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.compute_joint_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.compute_joint_TM" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">compute_joint_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span></em>, <em class="sig-param"><span class="n">pose_type</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="o">=</span><span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.compute_joint_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.compute_joint_TM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a TransformationMatrix to the i_joint th joint</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i_joint</strong> (<em>int</em>) – </p></li>
+<li><p><strong>pose_type</strong> (<em>str</em>) – </p></li>
+<li><p><strong>start_joint</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>TM</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain.KinematicChain.compute_su_TM">
-<code class="sig-name descname">compute_su_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pose_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#roboskin.calibration.transformation_matrix.TransformationMatrix" title="roboskin.calibration.transformation_matrix.TransformationMatrix">roboskin.calibration.transformation_matrix.TransformationMatrix</a><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.compute_su_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.compute_su_TM" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">compute_su_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">pose_type</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="o">=</span><span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.compute_su_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.compute_su_TM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a TransformationMatrix to the i_su th su</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i_su</strong> (<em>int</em>) – </p></li>
+<li><p><strong>pose_type</strong> (<em>str</em>) – </p></li>
+<li><p><strong>start_joint</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>TM</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain.KinematicChain.get_params_at">
-<code class="sig-name descname">get_params_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.get_params_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.get_params_at" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_params_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.get_params_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.get_params_at" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>i_su</strong> (<em>int</em>) – ith SU</p>
@@ -581,7 +623,7 @@ The temporary pose/TM will be reset once init_temp_TM or set_poses are called.</
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain.KinematicChain.init_temp_TM">
-<code class="sig-name descname">init_temp_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">additional_pose</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.init_temp_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.init_temp_TM" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">init_temp_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span></em>, <em class="sig-param"><span class="n">additional_pose</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.init_temp_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.init_temp_TM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a temporary Transformation Matrices by adding
 an extra joint angle to Current Tranformation Matrices.
 Current Pose will not be updated.
@@ -607,7 +649,7 @@ Origin and Evaluation Poses will never be changed.</p>
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain.KinematicChain.set_linkdh">
-<code class="sig-name descname">set_linkdh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.set_linkdh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.set_linkdh" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_linkdh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span></em>, <em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.set_linkdh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.set_linkdh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set i_su th SU DH Parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -638,13 +680,22 @@ or 10 (all dh params)</p>
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain.KinematicChain.set_poses">
-<code class="sig-name descname">set_poses</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poses</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">end_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.set_poses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.set_poses" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_poses</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poses</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">end_joint</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.set_poses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.set_poses" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set Current Poses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poses</strong> (<em>np.ndarray</em>) – </p></li>
+<li><p><strong>start_joint</strong> (<em>int</em>) – </p></li>
+<li><p><strong>end_joint</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain.KinematicChain.set_sudh">
-<code class="sig-name descname">set_sudh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.set_sudh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.set_sudh" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_sudh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#KinematicChain.set_sudh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.KinematicChain.set_sudh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set i_su th SU DH Parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -660,42 +711,91 @@ or 10 (all dh params)</p>
 
 <dl class="py function">
 <dt id="roboskin.calibration.kinematic_chain.construct_kinematic_chain">
-<code class="sig-prename descclassname">roboskin.calibration.kinematic_chain.</code><code class="sig-name descname">construct_kinematic_chain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">robot_configs</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">imu_mappings</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">test_code</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">optimize_all</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">is_torch</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#construct_kinematic_chain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.construct_kinematic_chain" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-prename descclassname">roboskin.calibration.kinematic_chain.</code><code class="sig-name descname">construct_kinematic_chain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">robot_configs</span></em>, <em class="sig-param"><span class="n">imu_mappings</span></em>, <em class="sig-param"><span class="n">test_code</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">optimize_all</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">is_torch</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain.html#construct_kinematic_chain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain.construct_kinematic_chain" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>robot_configs</strong> (<em>dict</em>) – </p></li>
+<li><p><strong>imu_mappings</strong> (<em>dict</em>) – </p></li>
+<li><p><strong>test_code</strong> (<em>bool</em>) – </p></li>
+<li><p><strong>optimize_all</strong> (<em>bool</em>) – </p></li>
+<li><p><strong>is_torch</strong> (<em>bool</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 <div class="section" id="module-roboskin.calibration.kinematic_chain_torch">
 <span id="roboskin-calibration-kinematic-chain-torch-module"></span><h2>roboskin.calibration.kinematic_chain_torch module<a class="headerlink" href="#module-roboskin.calibration.kinematic_chain_torch" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="roboskin.calibration.kinematic_chain_torch.KinematicChainTorch">
-<em class="property">class </em><code class="sig-prename descclassname">roboskin.calibration.kinematic_chain_torch.</code><code class="sig-name descname">KinematicChainTorch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">su_joint_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">bound_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">linkdh_dict</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sudh_dict</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">eval_poses</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">roboskin.calibration.kinematic_chain_torch.</code><code class="sig-name descname">KinematicChainTorch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_joint</span></em>, <em class="sig-param"><span class="n">su_joint_dict</span></em>, <em class="sig-param"><span class="n">bound_dict</span></em>, <em class="sig-param"><span class="n">linkdh_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sudh_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">eval_poses</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.add_temp_pose">
-<code class="sig-name descname">add_temp_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">additional_pose</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.add_temp_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.add_temp_pose" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add_temp_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span></em>, <em class="sig-param"><span class="n">additional_pose</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.add_temp_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.add_temp_pose" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a pose to the temporary pose/TM
 It does not initialize the temporary pose
 nor overwrite the current pose.
 The temporary pose/TM will be reset once init_temp_TM or set_poses are called.</p>
 <p>TODO: Allow multiple additional poses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i_joint</strong> (<em>int</em>) – </p></li>
+<li><p><strong>additional_pose</strong> (<em>float</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.compute_joint_TM">
-<code class="sig-name descname">compute_joint_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pose_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#roboskin.calibration.transformation_matrix.TransformationMatrix" title="roboskin.calibration.transformation_matrix.TransformationMatrix">roboskin.calibration.transformation_matrix.TransformationMatrix</a><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.compute_joint_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.compute_joint_TM" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">compute_joint_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span></em>, <em class="sig-param"><span class="n">pose_type</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="o">=</span><span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.compute_joint_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.compute_joint_TM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a TransformationMatrix to the i_joint th joint</p>
 <p>Based on <cite>pose_type</cite>, computes transformation matrix to joint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i_joint</strong> (<em>int</em>) – </p></li>
+<li><p><strong>pose_type</strong> (<em>str</em>) – </p></li>
+<li><p><strong>start_joint</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>TM</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.compute_su_TM">
-<code class="sig-name descname">compute_su_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pose_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#roboskin.calibration.transformation_matrix.TransformationMatrix" title="roboskin.calibration.transformation_matrix.TransformationMatrix">roboskin.calibration.transformation_matrix.TransformationMatrix</a><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.compute_su_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.compute_su_TM" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">compute_su_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">pose_type</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="o">=</span><span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.compute_su_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.compute_su_TM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a TransformationMatrix to the i_su th su</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i_su</strong> (<em>int</em>) – </p></li>
+<li><p><strong>pose_type</strong> (<em>str</em>) – </p></li>
+<li><p><strong>start_joint</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>TM</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.get_params_at">
-<code class="sig-name descname">get_params_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.get_params_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.get_params_at" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_params_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.get_params_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.get_params_at" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>i_su</strong> (<em>int</em>) – ith SU</p>
@@ -712,7 +812,7 @@ The temporary pose/TM will be reset once init_temp_TM or set_poses are called.</
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.init_temp_TM">
-<code class="sig-name descname">init_temp_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">additional_pose</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.init_temp_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.init_temp_TM" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">init_temp_TM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span></em>, <em class="sig-param"><span class="n">additional_pose</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.init_temp_TM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.init_temp_TM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a temporary Transformation Matrices by adding
 an extra joint angle to Current Tranformation Matrices.
 Current Pose will not be updated.
@@ -730,11 +830,6 @@ Current pose will not be updated.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.predefined_or_rand_sus">
-<code class="sig-name descname">predefined_or_rand_sus</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sudh_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">bound_dict</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#roboskin.calibration.transformation_matrix.TransformationMatrix" title="roboskin.calibration.transformation_matrix.TransformationMatrix">roboskin.calibration.transformation_matrix.TransformationMatrix</a><span class="p">]</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.predefined_or_rand_sus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.predefined_or_rand_sus" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.reset_poses">
 <code class="sig-name descname">reset_poses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.reset_poses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.reset_poses" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resets current and temporary poses to 0s.
@@ -743,7 +838,7 @@ Origin and Evaluation Poses will never be changed.</p>
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_linkdh">
-<code class="sig-name descname">set_linkdh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.set_linkdh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_linkdh" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_linkdh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_joint</span></em>, <em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.set_linkdh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_linkdh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set i_su th SU DH Parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -774,13 +869,22 @@ or 10 (all dh params)</p>
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_poses">
-<code class="sig-name descname">set_poses</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poses</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">end_joint</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.set_poses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_poses" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_poses</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poses</span></em>, <em class="sig-param"><span class="n">start_joint</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">end_joint</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.set_poses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_poses" title="Permalink to this definition">¶</a></dt>
 <dd><p>sets poses from start_joint to end_joint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poses</strong> (<em>np.ndarray</em>) – </p></li>
+<li><p><strong>start_joint</strong> (<em>int</em>) – </p></li>
+<li><p><strong>end_joint</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_sudh">
-<code class="sig-name descname">set_sudh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.set_sudh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_sudh" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_sudh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_su</span></em>, <em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#KinematicChainTorch.set_sudh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.KinematicChainTorch.set_sudh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set i_su th SU DH Parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -796,8 +900,18 @@ or 10 (all dh params)</p>
 
 <dl class="py function">
 <dt id="roboskin.calibration.kinematic_chain_torch.construct_kinematic_chain">
-<code class="sig-prename descclassname">roboskin.calibration.kinematic_chain_torch.</code><code class="sig-name descname">construct_kinematic_chain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">robot_configs</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">imu_mappings</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">test_code</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">optimize_all</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#construct_kinematic_chain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.construct_kinematic_chain" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-prename descclassname">roboskin.calibration.kinematic_chain_torch.</code><code class="sig-name descname">construct_kinematic_chain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">robot_configs</span></em>, <em class="sig-param"><span class="n">imu_mappings</span></em>, <em class="sig-param"><span class="n">test_code</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">optimize_all</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/roboskin/calibration/kinematic_chain_torch.html#construct_kinematic_chain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#roboskin.calibration.kinematic_chain_torch.construct_kinematic_chain" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>robot_configs</strong> (<em>dict</em>) – </p></li>
+<li><p><strong>imu_mappings</strong> (<em>dict</em>) – </p></li>
+<li><p><strong>test_code</strong> (<em>bool</em>) – </p></li>
+<li><p><strong>optimize_all</strong> (<em>bool</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 <div class="section" id="module-roboskin.calibration.loss">

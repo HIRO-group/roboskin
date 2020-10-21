@@ -154,7 +154,6 @@
 <span class="kn">import</span> <span class="nn">rospkg</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 
 
@@ -199,9 +198,14 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please provide a valid config directory with robot yaml files&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="initialize_logging"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.io.initialize_logging">[docs]</a><span class="k">def</span> <span class="nf">initialize_logging</span><span class="p">(</span><span class="n">log_level</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="initialize_logging"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.io.initialize_logging">[docs]</a><span class="k">def</span> <span class="nf">initialize_logging</span><span class="p">(</span><span class="n">log_level</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initialize Logging Module with given log_lvel</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ----------</span>
+<span class="sd">    log_level: str</span>
+<span class="sd">    filename: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">numeric_level</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">log_level</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">numeric_level</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
@@ -209,7 +213,7 @@
     <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
         <span class="n">overwrite</span> <span class="o">=</span> <span class="s1">&#39;y&#39;</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-            <span class="n">overwrite</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;File </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s1"> already exists. Do you want to overwrite [y/n]?&#39;</span><span class="p">)</span>
+            <span class="n">overwrite</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;File </span><span class="si">{}</span><span class="s1"> already exists. Do you want to overwrite [y/n]?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">overwrite</span> <span class="o">==</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">numeric_level</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">filemode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
 
@@ -221,7 +225,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">datadir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rospkg</span><span class="o">.</span><span class="n">RosPack</span><span class="p">()</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s1">&#39;ros_robotic_skin&#39;</span><span class="p">),</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;ros_robotic_skin not installed in the catkin workspace or pass --datadir=PATH_TO_DATA_DIRECTORY&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;ros_robotic_skin not installed in the catkin workspace or pass --datadir=PATH_TO_DATA_DIRECTORY&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">datadir</span></div>
 
@@ -239,7 +243,7 @@
         <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">filename</span><span class="p">,</span> <span class="n">robot</span><span class="p">])</span>
         <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.pickle&#39;</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin1&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
     <span class="n">static</span> <span class="o">=</span> <span class="n">read_pickle</span><span class="p">(</span><span class="s1">&#39;static_data&#39;</span><span class="p">,</span> <span class="n">robot</span><span class="p">)</span>
     <span class="n">dynamic</span> <span class="o">=</span> <span class="n">read_pickle</span><span class="p">(</span><span class="s1">&#39;dynamic_data&#39;</span><span class="p">,</span> <span class="n">robot</span><span class="p">)</span>
@@ -249,16 +253,26 @@
 
     <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="s1">&#39;imu_mappings.pickle&#39;</span><span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">imu_mappings</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin1&#39;</span><span class="p">)</span>
+        <span class="n">imu_mappings</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">imu_mappings</span></div>
 
 
-<div class="viewcode-block" id="add_noise"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.io.add_noise">[docs]</a><span class="k">def</span> <span class="nf">add_noise</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data_types</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="add_noise"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.io.add_noise">[docs]</a><span class="k">def</span> <span class="nf">add_noise</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data_types</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Arguments</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_types: List[str]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">add_outlier</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data_types</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="add_outlier"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.io.add_outlier">[docs]</a><span class="k">def</span> <span class="nf">add_outlier</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data_types</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">outlier_ratio</span><span class="o">=</span><span class="mf">0.25</span><span class="p">):</span>  <span class="c1"># noqa:#C901</span>
+<div class="viewcode-block" id="add_outlier"><a class="viewcode-back" href="../../../../roboskin.calibration.utils.html#roboskin.calibration.utils.io.add_outlier">[docs]</a><span class="k">def</span> <span class="nf">add_outlier</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data_types</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">outlier_ratio</span><span class="o">=</span><span class="mf">0.25</span><span class="p">):</span>  <span class="c1"># noqa:C901</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Arguments</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_types: List[str]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">data_type</span> <span class="ow">in</span> <span class="n">data_types</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">data_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;static&#39;</span><span class="p">,</span> <span class="s1">&#39;dynamic&#39;</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;There is no such data_type=&#39;</span><span class="o">+</span><span class="n">data_type</span><span class="p">)</span>
