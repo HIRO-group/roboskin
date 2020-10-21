@@ -60,7 +60,8 @@ def run_optimizations(measured_data, optimizers, data_loggers, method_names, n_n
         data = copy.deepcopy(measured_data)
         utils.add_outlier(data, ['static', 'dynamic'], sigma=noise_sigma, outlier_ratio=outlier_ratio)
         for j, (optimizer, data_logger) in enumerate(zip(optimizers, data_loggers)):
-            logging.info(f'Optimizer: {method_names[j]}, sigma={noise_sigma}, Outlier: {outlier_ratio}')
+            logging.info('Optimizer: {}, sigma={}, Outlier: {}'.format(
+                method_names[j], noise_sigma, outlier_ratio))
             optimizer.optimize(data)
             ave_euclidean_distance[i, j] = data_logger.average_euclidean_distance
             total_time[i, j] = data_logger.elapsed_times['total']

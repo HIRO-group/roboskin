@@ -41,7 +41,7 @@ def construct_kinematic_chain(robot_configs, imu_mappings,
     keys = ['dh_parameter', 'su_dh_parameter', 'eval_poses']
     for key in keys:
         if key not in robot_configs:
-            raise KeyError(f'Keys {keys} should exist in robot yaml file')
+            raise KeyError('Keys {} should exist in robot yaml file'.format(keys))
 
     linkdh_dict = None if optimize_all else robot_configs['dh_parameter']
     sudh_dict = robot_configs['su_dh_parameter'] if test_code else None
@@ -187,7 +187,7 @@ class KinematicChain():
                     for i in range(self.n_joint)]
         else:
             # Specified DH Parameters
-            return [TM.from_list(linkdh_dict[f'joint{i+1}'])
+            return [TM.from_list(linkdh_dict['joint{}'.format(i+1)])
                     for i in range(self.n_joint)]
 
     def __predefined_or_rand_sus(self, sudh_dict, bound_dict):
@@ -209,8 +209,8 @@ class KinematicChain():
                 _dof_T_vdof = TM.from_bounds(bound_dict['su'][:2, :], ['theta', 'd'])
                 _vdof_T_su = TM.from_bounds(bound_dict['su'][2:, :])
             else:
-                _dof_T_vdof = TM.from_list(sudh_dict[f'su{i+1}'][:2], ['theta', 'd'])
-                _vdof_T_su = TM.from_list(sudh_dict[f'su{i+1}'][2:])
+                _dof_T_vdof = TM.from_list(sudh_dict['su{}'.format(i+1)][:2], ['theta', 'd'])
+                _vdof_T_su = TM.from_list(sudh_dict['su{}'.format(i+1)][2:])
             dof_T_vdof.append(_dof_T_vdof)
             vdof_T_su.append(_vdof_T_su)
             dof_T_su.append(_dof_T_vdof * _vdof_T_su)
@@ -382,9 +382,9 @@ class KinematicChain():
         : TM
         """
         assert 0 <= i_joint <= self.n_joint-1, \
-            print(f'i_joint Should be in between 0 and {self.n_joint-1}')
+            print('i_joint Should be in between 0 and {}'.format(self.n_joint-1))
         assert start_joint <= i_joint, \
-            print(f'i_joint={i_joint} should be >= than start_joint {start_joint}')
+            print('i_joint={} should be >= than start_joint {}'.format(i_joint, start_joint))
 
         if start_joint == -1:
             return rs_T_dof[i_joint]
@@ -419,7 +419,7 @@ class KinematicChain():
                 raise ValueError('Temprary Pose is not set')
             return self.__compute_joint_TM(i_joint, self.dof_Tt_dof, self.rs_Tt_dof, start_joint)
         else:
-            raise ValueError(f'Not such pose as {pose_type}')
+            raise ValueError('Not such pose as {}'.format(pose_type))
 
     def __compute_su_TM(self, i_su, dof_T_dof, rs_T_dof, start_joint):
         """
@@ -437,14 +437,14 @@ class KinematicChain():
         : TM
         """
         assert 0 <= i_su <= self.n_su-1, \
-            print(f'i_su Should be in between 0 and {self.n_su-1}')
+            print('i_su Should be in between 0 and {}'.format(self.n_su-1))
 
         # Get corresponding joint number
         i_joint = self.su_joint_dict[i_su]
 
         assert start_joint <= i_joint, \
-            print(f'i_joint {i_joint} which i_su {i_su} is attached to \
-                    should be larger than or equal to start_joint {start_joint}')
+            print('i_joint {} which i_su {} is attached to \
+                    should be larger than or equal to start_joint {}'.format(i_joint, i_su, start_joint))
 
         if start_joint == -1:
             return rs_T_dof[i_joint] * self.dof_T_su[i_su]
@@ -479,7 +479,7 @@ class KinematicChain():
                 raise ValueError('Temprary Pose is not set')
             return self.__compute_su_TM(i_su, self.dof_Tt_dof, self.rs_Tt_dof, start_joint)
         else:
-            raise ValueError(f'There is no such pose_type as {pose_type}')
+            raise ValueError('There is no such pose_type as {}'.format(pose_type))
 
     def set_sudh(self, i_su, params):
         """

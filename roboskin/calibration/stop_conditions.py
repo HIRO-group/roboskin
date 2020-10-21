@@ -65,7 +65,7 @@ class MaxCountStopCondition(StopCondition):
 
         self.count += 1
         if self.count >= self.count_limit:
-            logging.info(f'Reached Count Limit of {self.count_limit}')
+            logging.info('Reached Count Limit of {}'.format(self.count_limit))
             return 0.0, self.x
 
         return e, x
@@ -113,7 +113,7 @@ class DeltaXStopCondition(StopCondition):
             self.xdiffs = np.append(self.xdiffs, self.xdiff)
         if len(self.xdiffs) >= self.windowsize:
             if np.mean(self.xdiffs[-(self.windowsize+1):-1]) <= self.threshold:
-                logging.info(f'Reached DeltaX less than a threshold of {self.threshold}')
+                logging.info('Reached DeltaX less than a threshold of {}'.format(self.threshold))
                 return self.retval, x
 
         return e, x

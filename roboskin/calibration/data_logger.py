@@ -20,13 +20,13 @@ class DataLogger():
 
     def start_timer(self, timer_name):
         if timer_name in self.start_timers.keys() and not self.overwrite:
-            raise ValueError(f'Timer Name "{timer_name}" already exists')
+            raise ValueError('Timer Name "{}" already exists'.format(timer_name))
 
         self.start_timers[timer_name] = time.time()
 
     def end_timer(self, timer_name):
         if timer_name not in self.start_timers.keys():
-            raise KeyError(f'Timer Name "{timer_name}" does not exist')
+            raise KeyError('Timer Name "{}" does not exist'.format(timer_name))
 
         end_time = time.time()
 
@@ -73,10 +73,10 @@ class DataLogger():
     def __call__(self):
         print('Estimated SU Positions')
         for i, values in self.best_data['position'].items():
-            print(f'SU{i}: {utils.n2s(np.array(values), 3)}')
+            print('SU{}: {utils.n2s(np.array(values), 3)}'.format(i))
 
         print('Estimated SU Orientations')
         for i, values in self.best_data['orientation'].items():
-            print(f'SU{i}: {utils.n2s(np.array(values), 3)}')
+            print('SU{}: {utils.n2s(np.array(values), 3)}'.format(i))
 
         print('average_euclidean_distance: ', self.average_euclidean_distance)

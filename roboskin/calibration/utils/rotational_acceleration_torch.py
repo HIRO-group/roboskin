@@ -35,8 +35,8 @@ def estimate_acceleration_torch(kinematic_chain, i_rotate_joint, i_su, method,
     """
     methods = ['analytical', 'our', 'mittendorfer', 'modified_mittendorfer']
     if method not in methods:
-        raise ValueError(f'There is no method called {method}\n' +
-                         f'Please Choose from {methods}')
+        raise ValueError('There is no method called {}\n'.format(method) +
+                         'Please Choose from {}'.format(methods))
 
     if angle_func is None:
         def _angle_func_torch(t):
@@ -175,7 +175,7 @@ def compute_acceleration_analytically_torch(inert_w_body, inert_r_body, inert_al
         return world_g, world_Ac, world_At
 
     else:
-        raise ValueError(f'Coordinate name "{coordinate}" is invalid\n' +
+        raise ValueError('Coordinate name "{}" is invalid\n'.format(coordinate) +
                          'Please choose from "body", "inertial", or "world"')
 
 

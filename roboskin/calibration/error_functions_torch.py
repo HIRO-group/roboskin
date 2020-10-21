@@ -79,7 +79,7 @@ class StaticErrorFunctionTorch(ErrorFunction):
             q_su = self.data.static[self.pose_names[p]][self.imu_names[i_su]][:4]
             d = pyqt.Quaternion.absolute_distance(T.q, np_to_pyqt(q_su))
             d = np.linalg.norm(q_su - T.quaternion)
-            # logging.debug(f'Measured: {q_su}, Model: {T.quaternion}')
+            # logging.debug('Measured: {}, Model: {}'.format(q_su, T.quaternion))
             error_quaternion[p] = d
 
         return self.loss(gravities, gravity)
@@ -160,8 +160,8 @@ class MaxAccelerationErrorFunctionTorch(ErrorFunction):
                         angle_func=max_angle_func,
                         method=self.method)
 
-                    # logging.debug(f'[{pose}, {joint}, {su}@Joint{i_joint}]\t' +
-                    #               f'Model: {n2s(estimate_A, 4)} SU: {n2s(measured_A, 4)}')
+                    # logging.debug('[{}, {}, {}@Joint{}]\t'.format(pose, joint, su, i_joint) +
+                    #               'Model: {} SU: {}'.format(n2s(estimate_A, 4), n2s(measured_A, 4)))
                     measured_A_tensor = torch.tensor(measured_A).double().cuda()
                     # print(max_accel_model.detach().numpy(), max_accel_train)
                     error = torch.sum(torch.abs(measured_A_tensor - estimate_A_tensor)**2)

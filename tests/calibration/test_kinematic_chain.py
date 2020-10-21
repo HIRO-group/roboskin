@@ -182,21 +182,21 @@ class KinematicChainTest(unittest.TestCase):
 
         for i in range(n_joint):
             T = kinematic_chain.compute_su_TM(i, pose_type='eval')
-            expected_position = su_pose[f'su{i+1}']['position']  # noqa: E999
-            q = su_pose[f'su{i+1}']['rotation']  # noqa: E999
+            expected_position = su_pose['su{}'.format(i+1)]['position']  # noqa: E999
+            q = su_pose['su{}'.format(i+1)]['rotation']  # noqa: E999
             expected_orientation = pyqt.Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
 
             np.testing.assert_array_almost_equal(
                 x=T.position,
                 y=expected_position,
                 decimal=2,
-                err_msg=f'{i+1}th SU Position supposed to be {expected_position}')
+                err_msg='{}th SU Position supposed to be {}'.format(i+1, expected_position))
 
             d = pyqt.Quaternion.absolute_distance(T.q, expected_orientation)
             self.assertTrue(
                 expr=d < 0.01,
-                msg=f'{i+1}th SU Orientation supposed to be {expected_orientation} \
-                    but got {T.q}')
+                msg='{}th SU Orientation supposed to be {} \
+                    but got {}'.format(i+1, expected_orientation, T.q))
 
     def test_compute_current_joint_TM(self):
         current_poses = np.array([1.5708, 0.0, 1.5708, -1.5708, 1.5689, 1.5707, 1.5708])
@@ -380,7 +380,7 @@ class KinematicChainTest(unittest.TestCase):
             self.assertFalse(d < 0.01)
 
             # Set Link DH Parameters
-            kinematic_chain.set_linkdh(i, np.array(linkdh_dict[f'joint{i+1}']))
+            kinematic_chain.set_linkdh(i, np.array(linkdh_dict['joint{}'.format(i+1)]))
 
             # Now DH Parameter Estimation should be correct
             T = kinematic_chain.compute_joint_TM(i, pose_type='eval')
@@ -416,8 +416,8 @@ class KinematicChainTest(unittest.TestCase):
         for i in range(n_joint):
             # First check if the DH Parameter Estimation is not correct
             T = kinematic_chain.compute_su_TM(i, pose_type='eval')
-            expected_position = su_pose[f'su{i+1}']['position']  # noqa: E999
-            expected_orientation = su_pose[f'su{i+1}']['rotation']  # noqa: E999
+            expected_position = su_pose['su{}'.format(i+1)]['position']  # noqa: E999
+            expected_orientation = su_pose['su{}'.format(i+1)]['rotation']  # noqa: E999
 
             # Test SU Positions
             np.testing.assert_raises(
@@ -432,7 +432,7 @@ class KinematicChainTest(unittest.TestCase):
             self.assertFalse(d < 0.01)
 
             # Set SU DH Parameters
-            kinematic_chain.set_sudh(i, np.array(sudh_dict[f'su{i+1}']))
+            kinematic_chain.set_sudh(i, np.array(sudh_dict['su{}'.format(i+1)]))
 
             # Now DH Parameter Estimation should be correct
             T = kinematic_chain.compute_su_TM(i, pose_type='eval')
@@ -550,12 +550,12 @@ class KinematicChainTest(unittest.TestCase):
 
         for i in range(n_joint):
             # Get the correct DH parameters
-            params = linkdh_dict[f'joint{i+1}'] + sudh_dict[f'su{i+1}']
+            params = linkdh_dict['joint{}'.format(i+1)] + sudh_dict['su{}'.format(i+1)]
             # Set the DH parameters
             kinematic_chain.set_params_at(i, np.array(params))
 
-            expected_position = su_pose[f'su{i+1}']['position']  # noqa: E999
-            expected_orientation = su_pose[f'su{i+1}']['rotation']  # noqa: E999
+            expected_position = su_pose['su{}'.format(i+1)]['position']  # noqa: E999
+            expected_orientation = su_pose['su{}'.format(i+1)]['rotation']  # noqa: E999
 
             # Now DH Parameter Estimation should be correct
             T = kinematic_chain.compute_su_TM(i, pose_type='eval')

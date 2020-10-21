@@ -204,8 +204,8 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                         angle_func=max_angle_func,
                         method=self.method)
 
-                    # logging.debug(f'[{pose}, {joint}, {su}@Joint{i_joint}]\t' +
-                    #               f'Model: {n2s(estimate_A, 4)} SU: {n2s(measured_A, 4)}')
+                    # logging.debug('[{}, {}, {}@Joint{}]\t'.format(pose, joint, su, i_joint) +
+                    #               'Model: {} SU: {}'.format(n2s(estimate_A, 4), n2s(measured_A, 4)))
                     error = np.sum(np.abs(measured_A - estimate_A)**2)
                     e2 += error
                     n_data += 1

@@ -63,7 +63,7 @@ def initialize_logging(log_level, filename=None):
     if filename:
         overwrite = 'y'
         if os.path.exists(filename):
-            overwrite = input(f'File {filename} already exists. Do you want to overwrite [y/n]?')
+            overwrite = input('File {} already exists. Do you want to overwrite [y/n]?'.format(filename))
         if overwrite == 'y':
             logging.basicConfig(level=numeric_level, filename=filename, filemode='w')
 
