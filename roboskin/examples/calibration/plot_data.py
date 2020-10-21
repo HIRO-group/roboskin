@@ -164,7 +164,7 @@ def check_data(y_dict: dict, ylabels: List[str]):
     n_row = data.shape[1]
 
     if len(ylabels) != n_row:
-        raise ValueError(f'len of ylabels should be the {n_row}')
+        raise ValueError('len of ylabels should be the {}'.format(n_row))
 
     return methods, n_data, n_row
 
@@ -231,7 +231,7 @@ def savefig(dirname: str, filename: str):
         os.makedirs(dirname)
     savepath = os.path.join(dirname, filename)
     plt.savefig(savepath)
-    print(f'image saved to {savepath}')
+    print('image saved to {}'.format(savepath))
 
 
 def plot_side_by_side(y_dict: dict, title: str,
@@ -391,7 +391,7 @@ def verify_noise_added_correctly(data, pose_names: List[str],
                 # Plot
                 plot_side_by_side(
                     y_dict=y_dict,
-                    title=f'{joint}_{su}_{pose_names[i]}',
+                    title='{}_{}_{}'.format(joint, su, pose_names[i]),
                     xlabel='Data Points',
                     show=False,
                     save=True)
@@ -435,7 +435,12 @@ def verify_acceleration_estimate(data, pose_names: List[str],
 
                 # Prepare for plotting
                 measured_As = each_data[:, indices['measured']]
-                print(f'[{su} {pose} {joint}] {static_acceleration} = {np.linalg.norm(static_acceleration)}', measured_As.shape)
+                print('[{} {} {}] {} = {}'.format(
+                    su,
+                    pose,
+                    joint,
+                    static_acceleration,
+                    np.linalg.norm(static_acceleration)), measured_As.shape)
                 if measured_As.shape[0] == 0:
                     continue
 
@@ -462,7 +467,7 @@ def verify_acceleration_estimate(data, pose_names: List[str],
                     y_dict=y_dict,
                     ylabels=['ax', 'ay', 'az'],
                     xlabel='Time [s]',
-                    title=f'{joint}_{su}_{pose}',
+                    title='{}_{}_{}'.format(joint, su, pose),
                     x=time,
                     show=False,
                     save=False)

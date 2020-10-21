@@ -45,7 +45,7 @@ def choose_optimizer(args, kinematic_chain, evaluator, data_logger, optimize_all
             kinematic_chain, evaluator, data_logger,
             optimize_all, args.error_functions, args.stop_conditions)
     else:
-        raise ValueError(f'There is no such method name={args.method}')
+        raise ValueError('There is no such method name={}'.format(args.method))
 
     return optimizer
 
@@ -117,9 +117,9 @@ class IncrementalOptimizerBase(OptimizerBase):
             logging.info("Optimizing %ith SU ..." % (i_su))
 
             # optimize parameters wrt data
-            self.data_logger.start_timer(timer_name=f'SU{i_su+1}')
+            self.data_logger.start_timer(timer_name='SU{}'.format(i_su+1))
             params = self._optimize(i_su=i_su)
-            elapsed_time = self.data_logger.end_timer(timer_name=f'SU{i_su+1}')
+            elapsed_time = self.data_logger.end_timer(timer_name='SU{}'.format(i_su+1))
 
             # Compute necessary data
             self.kinematic_chain.set_params_at(i_su, params)
@@ -138,11 +138,11 @@ class IncrementalOptimizerBase(OptimizerBase):
                 quaternion_distance=errors['orientation'])
 
             logging.info('='*100)
-            logging.info(f'Params: {params}')
-            logging.info(f'Position: {T.position}')
-            logging.info(f'Quaternion: {T.quaternion}')
-            logging.info(f"Euclidean distance: {errors['position']}")
-            logging.info(f'Elapsed Time {elapsed_time}')
+            logging.info('Params: {}'.format(params))
+            logging.info('Position: {}'.format(T.position))
+            logging.info('Quaternion: {}'.format(T.quaternion))
+            logging.info('Euclidean distance: {}'.format(errors['position']))
+            logging.info('Elapsed Time {}'.format(elapsed_time))
             logging.info('='*100)
         elapsed_time = self.data_logger.end_timer('total')
 
@@ -269,8 +269,8 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
             euclidean_distance=errors['position'],
             quaternion_distance=errors['orientation'])
         # print to terminal
-        logging.info(f'e={e:.5f}, res={res:.5f}, params:{n2s(params, 3)}' +
-                     f'P:{n2s(pos, 3)}, Q:{n2s(quat, 3)}')
+        logging.info('e={:.5f}, res={:.5f}, params:{}'.format(e, res, n2s(params, 3)) +
+                     'P:{}, Q:{}'.format(n2s(pos, 3), n2s(quat, 3)))
 
         self.local_step += 1
         self.global_step += 1
@@ -316,8 +316,8 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
             euclidean_distance=errors['position'],
             quaternion_distance=errors['orientation'])
         # print to terminal
-        logging.info(f'e={error:.5f}, res={res:.5f}, params:{n2s(params, 3)}' +
-                     f'P:{t2s(T.position)}, Q:{n2s(T.quaternion, 3)}')
+        logging.info('e={:.5f}, res={:.5f}, params:{}'.format(error, res, n2s(params, 3)) +
+                     'P:{}, Q:{}'.format(t2s(T.position), n2s(T.quaternion, 3)))
         self.local_step += 1
         self.global_step += 1
 
@@ -377,13 +377,13 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
         print(self.kinematic_chain.n_su)
         for i_su in range(1, self.kinematic_chain.n_su):
 
-            logging.info("Optimizing %ith SU ..." % (i_su))
-            self.data_logger.start_timer(timer_name=f'SU{i_su+1}')
+            logging.info("Optimizing {}th SU ...".format(i_su))
+            self.data_logger.start_timer(timer_name='SU{}'.format(i_su+1))
 
             # optimize parameters wrt data
             params = self._optimize(i_su=i_su)
 
-            elapsed_time = self.data_logger.end_timer(timer_name=f'SU{i_su+1}')
+            elapsed_time = self.data_logger.end_timer(timer_name='SU{}'.format(i_su+1))
 
             # Compute necessary data
             self.kinematic_chain.set_params_at(i_su, params)
@@ -401,11 +401,11 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
                 quaternion_distance=errors['orientation'])
 
             logging.info('='*100)
-            logging.info(f'Params: {params}')
-            logging.info(f'Position: {T.position}')
-            logging.info(f'Quaternion: {T.quaternion}')
-            logging.info(f"Euclidean distance: {errors['position']}")
-            logging.info(f'Elapsed Time {elapsed_time}')
+            logging.info('Params: {}'.format(params))
+            logging.info('Position: {}'.format(T.position))
+            logging.info('Quaternion: {}'.format(T.quaternion))
+            logging.info('Euclidean distance: {}'.format(errors['position']))
+            logging.info('Elapsed Time {}'.format(elapsed_time))
             logging.info('='*100)
         elapsed_time = self.data_logger.end_timer('total')
 
@@ -489,8 +489,8 @@ class MixedIncrementalOptimizer(IncrementalOptimizerBase):
             euclidean_distance=errors['position'],
             quaternion_distance=errors['orientation'])
         # print to terminal
-        logging.debug(f'e={e:.5f}, res={res:.5f}, params:{n2s(params, 3)} ' +
-                      f'P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
+        logging.debug('e={:.5f}, res={:.5f}, params:{}'.format(e, res, n2s(params, 3)) +
+                      'P:{}, Q:{}'.format(t2s(T.position), n2s(T.quaternion, 3)))
 
         self.local_step += 1
         self.global_step += 1
@@ -507,7 +507,7 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
 
         for dictionary in [error_functions, stop_conditions]:
             if self.targets != list(dictionary.keys()):
-                raise KeyError(f'All dict Keys must be {self.targets}')
+                raise KeyError('All dict Keys must be {}'.format(self.targets))
 
         self.indices = {}
         # indices vary based on optimizing all dh params.
@@ -614,8 +614,8 @@ class SeparateIncrementalOptimizer(IncrementalOptimizerBase):
             euclidean_distance=errors['position'],
             quaternion_distance=errors['orientation'])
         # print to terminal
-        logging.debug(f'e={e:.5f}, res={res:.5f}, params:{n2s(target_params, 3)} ' +
-                      f'P:{n2s(T.position, 3)}, Q:{n2s(T.quaternion, 3)}')
+        logging.debug('e={:.5f}, res={:.5f}, params:{}'.format(e, res, n2s(target_params, 3)) +
+                      'P:{}, Q:{}'.format(t2s(T.position), n2s(T.quaternion, 3)))
 
         self.local_step += 1
         self.global_step += 1

@@ -291,7 +291,7 @@ class TransformationMatrixTest(unittest.TestCase):
             T_joint = TM(theta=rad)
             T = T * T_dof * T_joint
 
-            su_str = f'su{i+1}'  # noqa: E999
+            su_str = 'su{}'.format(i+1)  # noqa: E999
             dof_T_vdof = TM.from_list(sudh_dict[su_str][:2], keys=['theta', 'd'])
             vdof_T_su = TM.from_list(sudh_dict[su_str][2:])
             rs_T_su = T * dof_T_vdof * vdof_T_su

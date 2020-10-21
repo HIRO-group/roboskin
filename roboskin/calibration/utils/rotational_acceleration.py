@@ -35,8 +35,8 @@ def estimate_acceleration(kinematic_chain, i_rotate_joint, i_su, method,
     """
     methods = ['analytical', 'our', 'mittendorfer', 'modified_mittendorfer']
     if method not in methods:
-        raise ValueError(f'There is no method called {method}\n' +
-                         f'Please Choose from {methods}')
+        raise ValueError('There is no method called {}\n'.format(method) +
+                         'Please Choose from {}'.format(methods))
 
     if angle_func is None:
         def _angle_func(t, **kwargs):
@@ -174,7 +174,7 @@ def compute_acceleration_analytically(inert_w_body, inert_r_body, inert_alpha_bo
         return world_g, world_Ac, world_At
 
     else:
-        raise KeyError(f'Coordinate name "{coordinate}" is invalid\n' +
+        raise KeyError('Coordinate name "{}" is invalid\n'.format(coordinate) +
                        'Please choose from "body", "inertial", or "world"')
 
 

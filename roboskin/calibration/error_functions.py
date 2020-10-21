@@ -7,7 +7,7 @@ from roboskin.calibration.utils.rotational_acceleration import estimate_accelera
 # import logging
 
 
-def max_angle_func(t: int, i_joint: int, delta_t=0.0, **kwargs):
+def max_angle_func(t, i_joint, delta_t=0.0, **kwargs):
     """
     Computes current joint angle at time t
     joint is rotated in a sinusoidal motion during MaxAcceleration Data Collection.
@@ -16,6 +16,8 @@ def max_angle_func(t: int, i_joint: int, delta_t=0.0, **kwargs):
     ------------
     `t`: `int`
         Current time t
+    `i_joint`: `int`
+    `delta_t`: `float`
     """
     # return joint_angle + t *joint_velocity
     return (C.MAX_ANGULAR_VELOCITY[i_joint] / (2*np.pi*C.PATTERN_FREQ[i_joint])) *\
@@ -159,6 +161,7 @@ class MaxAccelerationErrorFunction(ErrorFunction):
             raise ValueError('Not Initialized')
 
         i_joint = kinematic_chain.su_joint_dict[i_su]
+        # Will be add a multiprocessing feature.
 
         e2 = 0.0
         n_data = 0
@@ -201,8 +204,8 @@ class MaxAccelerationErrorFunction(ErrorFunction):
                         angle_func=max_angle_func,
                         method=self.method)
 
-                    # logging.debug(f'[{pose}, {joint}, {su}@Joint{i_joint}]\t' +
-                    #               f'Model: {n2s(estimate_A, 4)} SU: {n2s(measured_A, 4)}')
+                    # logging.debug('[{}, {}, {}@Joint{}]\t'.format(pose, joint, su, i_joint) +
+                    #               'Model: {} SU: {}'.format(n2s(estimate_A, 4), n2s(measured_A, 4)))
                     error = np.sum(np.abs(measured_A - estimate_A)**2)
                     e2 += error
                     n_data += 1

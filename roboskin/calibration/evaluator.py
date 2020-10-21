@@ -13,9 +13,9 @@ class Evaluator():
         if type(position) == torch.Tensor:
             position = position.cpu().detach().numpy()
         euclidean_distance = np.linalg.norm(
-            position - self.true_su_pose[f'su{i_su+1}']['position'])
+            position - self.true_su_pose['su{}'.format(i_su+1)]['position'])
 
-        q_su = self.true_su_pose[f'su{i_su+1}']['rotation']
+        q_su = self.true_su_pose['su{}'.format(i_su+1)]['rotation']
         quaternion_distance = pyqt.Quaternion.absolute_distance(
             T.q, utils.np_to_pyqt(q_su))
 

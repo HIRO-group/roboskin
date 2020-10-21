@@ -4,7 +4,6 @@ import pickle
 import rospkg
 import logging
 import numpy as np
-from typing import List
 from collections import namedtuple
 
 
@@ -49,9 +48,14 @@ def load_robot_configs(configdir, robot):
         raise ValueError('Please provide a valid config directory with robot yaml files')
 
 
-def initialize_logging(log_level: str, filename: str = None):
+def initialize_logging(log_level, filename=None):
     """
     Initialize Logging Module with given log_lvel
+
+    Arguments
+    ----------
+    log_level: str
+    filename: str
     """
     numeric_level = getattr(logging, log_level.upper(), None)
     if not isinstance(numeric_level, int):
@@ -59,7 +63,7 @@ def initialize_logging(log_level: str, filename: str = None):
     if filename:
         overwrite = 'y'
         if os.path.exists(filename):
-            overwrite = input(f'File {filename} already exists. Do you want to overwrite [y/n]?')
+            overwrite = input('File {} already exists. Do you want to overwrite [y/n]?'.format(filename))
         if overwrite == 'y':
             logging.basicConfig(level=numeric_level, filename=filename, filemode='w')
 
@@ -71,7 +75,7 @@ def parse_datadir(datadir):
         try:
             datadir = os.path.join(rospkg.RosPack().get_path('ros_robotic_skin'), 'data')
         except Exception:
-            raise FileNotFoundError('ros_robotic_skin not installed in the catkin workspace or pass --datadir=PATH_TO_DATA_DIRECTORY')
+            raise OSError('ros_robotic_skin not installed in the catkin workspace or pass --datadir=PATH_TO_DATA_DIRECTORY')
 
     return datadir
 
@@ -89,7 +93,7 @@ def load_data(robot, directory):
         filename = '_'.join([filename, robot])
         filepath = os.path.join(directory, filename + '.pickle')
         with open(filepath, 'rb') as f:
-            return pickle.load(f, encoding='latin1')
+            return pickle.load(f)
 
     static = read_pickle('static_data', robot)
     dynamic = read_pickle('dynamic_data', robot)
@@ -99,16 +103,26 @@ def load_data(robot, directory):
 
     filepath = os.path.join(directory, 'imu_mappings.pickle')
     with open(filepath, 'rb') as f:
-        imu_mappings = pickle.load(f, encoding='latin1')
+        imu_mappings = pickle.load(f)
 
     return data, imu_mappings
 
 
-def add_noise(data, data_types: List[str], sigma=1):
+def add_noise(data, data_types, sigma=1):
+    """
+    Arguments
+    ----------
+    data_types: List[str]
+    """
     return add_outlier(data, data_types, sigma, 1)
 
 
-def add_outlier(data, data_types: List[str], sigma=3, outlier_ratio=0.25):  # noqa:#C901
+def add_outlier(data, data_types, sigma=3, outlier_ratio=0.25):  # noqa:C901
+    """
+    Arguments
+    ----------
+    data_types: List[str]
+    """
     for data_type in data_types:
         if data_type not in ['static', 'dynamic']:
             raise ValueError('There is no such data_type='+data_type)
