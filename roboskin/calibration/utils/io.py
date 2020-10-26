@@ -1,4 +1,5 @@
 import os
+import sys
 import yaml
 import pickle
 import rospkg
@@ -93,7 +94,10 @@ def load_data(robot, directory):
         filename = '_'.join([filename, robot])
         filepath = os.path.join(directory, filename + '.pickle')
         with open(filepath, 'rb') as f:
-            return pickle.load(f)
+            if sys.version_info[0] == 2:
+                return pickle.load(f)
+            else:
+                return pickle.load(f, encoding='latin1')
 
     static = read_pickle('static_data', robot)
     dynamic = read_pickle('dynamic_data', robot)
@@ -103,7 +107,10 @@ def load_data(robot, directory):
 
     filepath = os.path.join(directory, 'imu_mappings.pickle')
     with open(filepath, 'rb') as f:
-        imu_mappings = pickle.load(f)
+        if sys.version_info[0] == 2:
+            imu_mappings = pickle.load(f)
+        else:
+            imu_mappings = pickle.load(f, encoding='latin1')
 
     return data, imu_mappings
 

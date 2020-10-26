@@ -67,7 +67,7 @@ class OptimizerBase():
         raise NotImplementedError()
 
     @property
-    def result(self) -> dict:
+    def result(self):
         """
         Return dict
         - average_errors of all SU
@@ -146,9 +146,11 @@ class IncrementalOptimizerBase(OptimizerBase):
             logging.info('='*100)
         elapsed_time = self.data_logger.end_timer('total')
 
-    def _optimize(self, i_su: int):
+    def _optimize(self):
         """
         Optimize i_su sensor
+
+        i_su: int
         """
         # Initialize local_step when this function is called
         self.local_step = 0
@@ -412,7 +414,12 @@ class TorchOptimizerBase(IncrementalOptimizerBase):
 
 class MixedIncrementalOptimizer(IncrementalOptimizerBase):
     def __init__(self, kinematic_chain, evaluator, data_logger, optimize_all,
-                 error_function: ErrorFunction, stop_condition: StopCondition):
+                 error_function, stop_condition):
+        """
+        error_function: ErrorFunction
+        stop_condition: StopCondition
+        """
+
         super().__init__(kinematic_chain, evaluator, data_logger, optimize_all,
                          error_function, stop_condition)
 
