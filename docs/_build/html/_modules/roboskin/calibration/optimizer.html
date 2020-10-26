@@ -217,7 +217,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return dict</span>
 <span class="sd">        - average_errors of all SU</span>
@@ -296,9 +296,11 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span>
         <span class="n">elapsed_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_logger</span><span class="o">.</span><span class="n">end_timer</span><span class="p">(</span><span class="s1">&#39;total&#39;</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_su</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Optimize i_su sensor</span>
+
+<span class="sd">        i_su: int</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Initialize local_step when this function is called</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">local_step</span> <span class="o">=</span> <span class="mi">0</span>
@@ -562,7 +564,12 @@
 
 <div class="viewcode-block" id="MixedIncrementalOptimizer"><a class="viewcode-back" href="../../../roboskin.calibration.html#roboskin.calibration.optimizer.MixedIncrementalOptimizer">[docs]</a><span class="k">class</span> <span class="nc">MixedIncrementalOptimizer</span><span class="p">(</span><span class="n">IncrementalOptimizerBase</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span> <span class="n">optimize_all</span><span class="p">,</span>
-                 <span class="n">error_function</span><span class="p">:</span> <span class="n">ErrorFunction</span><span class="p">,</span> <span class="n">stop_condition</span><span class="p">:</span> <span class="n">StopCondition</span><span class="p">):</span>
+                 <span class="n">error_function</span><span class="p">,</span> <span class="n">stop_condition</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        error_function: ErrorFunction</span>
+<span class="sd">        stop_condition: StopCondition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="p">,</span> <span class="n">evaluator</span><span class="p">,</span> <span class="n">data_logger</span><span class="p">,</span> <span class="n">optimize_all</span><span class="p">,</span>
                          <span class="n">error_function</span><span class="p">,</span> <span class="n">stop_condition</span><span class="p">)</span>
 
