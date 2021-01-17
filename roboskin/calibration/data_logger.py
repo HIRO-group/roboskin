@@ -10,6 +10,8 @@ class DataLogger():
     def __init__(self, savedir, robot, method, overwrite=False):
         self.date = datetime.now().strftime('%Y%m%d_%H%M%S')
         filepath = robot + '_' + method + '.pickle'
+        filepath = robot + '_' + method + '_jan16' + '.pickle'
+
         self.savepath = os.path.join(savedir, filepath)
         self.best_data = {}
         self.trials = {}

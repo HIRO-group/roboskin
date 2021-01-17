@@ -35,6 +35,10 @@ def construct_kinematic_chain(robot_configs, imu_mappings,
         su_joint_dict[int(imu_str[-1])] = int(link_str[-1]) - 1
         joints.append(int(link_str[-1]) - 1)
     joints = np.unique(joints)
+    # hardcode atm b/c of panda's 7 joints
+    joints = np.array([0, 1, 2, 3, 4, 5, 6])
+    print(joints)
+    print(su_joint_dict)
 
     bound_dict = {'link': BOUNDS, 'su': BOUNDS_SU}
 
@@ -121,11 +125,11 @@ class KinematicChain():
         self.current_poses: np.ndarray
             Current Pose :math:`\vec{\theta}`
         self.dof_T_vdof:
-            Transformation Mtarices from each joint to SU's virtual joint
+            Transformation matrices from each joint to SU's virtual joint
         self.vdof_T_su:
-            Transformation Mtarices from a virtual joint to its SU
+            Transformation matrices from a virtual joint to its SU
         self.dof_T_su:
-            Transformation Mtarices from each joint to its SU
+            Transformation matrices from each joint to its SU
             Multiplication of self.dof_T_vdof and self.vdof_T_su
         """
         assert isinstance(n_joint, int)
