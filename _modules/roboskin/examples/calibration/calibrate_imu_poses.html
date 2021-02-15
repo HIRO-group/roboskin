@@ -32,7 +32,6 @@
         <script src="../../../../_static/jquery.js"></script>
         <script src="../../../../_static/underscore.js"></script>
         <script src="../../../../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
@@ -210,11 +209,11 @@
 
     <span class="n">robot_configs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_robot_configs</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">configdir</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">robot</span><span class="p">)</span>
     <span class="n">measured_data</span><span class="p">,</span> <span class="n">imu_mappings</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">robot</span><span class="p">,</span> <span class="n">datadir</span><span class="p">)</span>
-
+    <span class="nb">print</span><span class="p">(</span><span class="n">imu_mappings</span><span class="p">)</span>
     <span class="c1"># Kinematic Chain of a robot - get torch version depending on method.</span>
     <span class="n">kinematic_chain</span> <span class="o">=</span> <span class="n">construct_kinematic_chain</span><span class="p">(</span>
         <span class="n">robot_configs</span><span class="p">,</span> <span class="n">imu_mappings</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">test</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">optimizeall</span><span class="p">,</span> <span class="n">is_torch</span><span class="o">=</span><span class="n">is_torch</span><span class="p">)</span>
-
+    <span class="nb">print</span><span class="p">(</span><span class="n">kinematic_chain</span><span class="o">.</span><span class="n">n_su</span><span class="p">)</span>
     <span class="n">evaluator</span> <span class="o">=</span> <span class="n">Evaluator</span><span class="p">(</span><span class="n">true_su_pose</span><span class="o">=</span><span class="n">robot_configs</span><span class="p">[</span><span class="s1">&#39;su_pose&#39;</span><span class="p">])</span>
     <span class="n">data_logger</span> <span class="o">=</span> <span class="n">DataLogger</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">robot</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">method</span><span class="p">)</span>
 
