@@ -32,10 +32,16 @@ def construct_kinematic_chain(robot_configs, imu_mappings,
     su_joint_dict = {}
     joints = []
     for imu_str, link_str in imu_mappings.items():
-        su_joint_dict[int(imu_str[-1])] = int(link_str[-1]) - 1
+        imu_val = -1
+        try:
+            imu_val = int(imu_str[-2:])
+        except Exception as _:
+            imu_val = int(imu_str[-1])
+        su_joint_dict[imu_val] = int(link_str[-1]) - 1
         joints.append(int(link_str[-1]) - 1)
     joints = np.unique(joints)
-
+    joints = np.array([0, 1, 2, 3, 4, 5, 6])
+    print(su_joint_dict)
     bound_dict = {'link': BOUNDS, 'su': BOUNDS_SU}
 
     keys = ['dh_parameter', 'su_dh_parameter', 'eval_poses']
