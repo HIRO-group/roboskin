@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#/usr/local/lib python3
 """
 Module for Kinematics Estimation.
 """
@@ -26,7 +26,7 @@ def parse_arguments():
                         help="Please provide a path to the data directory")
     parser.add_argument('-cd', '--configdir', type=str, default=CONFIGDIR,
                         help="Please provide a path to the config directory")
-    parser.add_argument('-sf', '--savefile', type=str, default='estimate_imu_positions.txt',
+    parser.add_argument('-sf', '--savefile', type=str, default='estimate_imu_positions_jan16.txt',
                         help="Please Provide a filename for saving estimated IMU poses")
     parser.add_argument('--log', type=str, default='INFO',
                         help="Please provide a log level")

@@ -113,7 +113,9 @@ class IncrementalOptimizerBase(OptimizerBase):
             self.error_functions.initialize(data)
 
         logging.info('Skipping 0th IMU')
-        for i_su in range(1, self.kinematic_chain.n_su):
+        # for i_su in range(1, self.kinematic_chain.n_su):
+
+        for i_su in range(0, self.kinematic_chain.n_su):
             logging.info("Optimizing %ith SU ..." % (i_su))
 
             # optimize parameters wrt data

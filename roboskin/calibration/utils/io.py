@@ -92,7 +92,9 @@ def load_data(robot, directory):
     """
     def read_pickle(filename, robot):
         filename = '_'.join([filename, robot])
-        filepath = os.path.join(directory, filename + '.pickle')
+        filepath = os.path.join(directory, filename + '_jan16' + '.pickle')
+        # filepath = os.path.join(directory, filename + '.pickle')
+
         with open(filepath, 'rb') as f:
             if sys.version_info[0] == 2:
                 return pickle.load(f)
