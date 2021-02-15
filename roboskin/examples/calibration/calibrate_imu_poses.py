@@ -28,7 +28,7 @@ def parse_arguments():
                         help="Please provide a path to the config directory")
     parser.add_argument('-sf', '--savefile', type=str, default='estimate_imu_positions.txt',
                         help="Please Provide a filename for saving estimated IMU poses")
-    parser.add_argument('--log', type=str, default='WARNING',
+    parser.add_argument('--log', type=str, default='INFO',
                         help="Please provide a log level")
     parser.add_argument('--logfile', type=str, default=None,
                         help="Please provide a log filename to export")
@@ -56,11 +56,11 @@ if __name__ == '__main__':
 
     robot_configs = utils.load_robot_configs(args.configdir, args.robot)
     measured_data, imu_mappings = utils.load_data(args.robot, datadir)
-
+    print(imu_mappings)
     # Kinematic Chain of a robot - get torch version depending on method.
     kinematic_chain = construct_kinematic_chain(
         robot_configs, imu_mappings, args.test, args.optimizeall, is_torch=is_torch)
-
+    print(kinematic_chain.n_su)
     evaluator = Evaluator(true_su_pose=robot_configs['su_pose'])
     data_logger = DataLogger(datadir, args.robot, args.method)
 
