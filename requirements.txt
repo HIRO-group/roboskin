@@ -7,9 +7,7 @@ sphinx
 sphinx-autobuild
 sphinx_rtd_theme
 sklearn
-# Installation of RPI.GPIO fails on Mac.
-# This library only works for linux!?
-# Just comment out this line
+# Installation of RPI.GPIO fails on Mac -- the below line is currently commented out
 # RPI.GPIO
 pycodestyle
 nlopt
