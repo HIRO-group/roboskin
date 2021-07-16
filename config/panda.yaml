@@ -8,6 +8,9 @@ dh_parameter:
   joint7: [0, 0, 0.088, 1.57079633]
 
 su_dh_parameter:
+
+  # the commented-out lines are the original SU DH parameters
+  # used in our IROS calibration paper.
   # su1: [1.57079633, -0.15, -1.57079633, 0.05, 0, 1.57079633]
   # su2: [1.57079633, 0.06, -1.57079633, 0.06, 0, 1.57079633]
   # su3: [0, -0.08, 0, 0.05, 0, 1.57079633]
