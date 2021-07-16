@@ -35,7 +35,8 @@ def construct_kinematic_chain(robot_configs, imu_mappings,
         imu_val = -1
         try:
             imu_val = int(imu_str[-2:])
-        except Exception as _:
+        except Exception as e:
+            print(e)
             imu_val = int(imu_str[-1])
         su_joint_dict[imu_val] = int(link_str[-1]) - 1
         joints.append(int(link_str[-1]) - 1)
